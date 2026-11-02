@@ -1,10 +1,16 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "A left click on a partially visible window focuses it without moving the viewport. Keyboard navigation, gestures, Cmd-Tab, and the Dock still scroll windows into view. Has no effect when Center Focused Column is Always." : {
+
+    },
     "Dialog open" : {
 
     },
     "Could Not Install Update" : {
+
+    },
+    "Focus Clicked Windows Without Scrolling" : {
 
     },
     "GitHub returned HTTP %lld while downloading the update." : {
