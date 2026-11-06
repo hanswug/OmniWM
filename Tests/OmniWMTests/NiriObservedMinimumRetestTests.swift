@@ -39,6 +39,23 @@ final class NiriObservedMinimumRetestTests: XCTestCase {
         XCTAssertLessThan(try layoutFrame(fixture).width, min(startWidth, 1299) - 1)
     }
 
+    func testGrowingAfterRefusedShrinkStepsStartsFromTheRefusedWidth() throws {
+        for resizesWindow in [false, true] {
+            let fixture = try makeFixture()
+            try learnMinimumWidth(1299, fixture: fixture)
+
+            for _ in 0 ..< 3 {
+                adjust(-10, resizesWindow: resizesWindow, fixture: fixture)
+                try learnMinimumWidth(1299, fixture: fixture)
+            }
+            XCTAssertEqual(try layoutFrame(fixture).width, 1299)
+
+            adjust(10, resizesWindow: resizesWindow, fixture: fixture)
+
+            XCTAssertGreaterThan(try layoutFrame(fixture).width, 1299)
+        }
+    }
+
     func testExplicitResizeKeepsTheAppsDeclaredMinimum() throws {
         let fixture = try makeFixture()
         fixture.controller.workspaceManager.setCachedConstraints(
@@ -77,6 +94,15 @@ final class NiriObservedMinimumRetestTests: XCTestCase {
         let workspaceId: WorkspaceDescriptor.ID
         let token: WindowToken
         let handle: WindowHandle
+    }
+
+    private func adjust(_ percent: Double, resizesWindow: Bool, fixture: Fixture) {
+        let handler = fixture.controller.niriLayoutHandler
+        if resizesWindow {
+            handler.setWindowPrimarySpan(.adjustProportion(percent), target: .window(fixture.handle))
+        } else {
+            handler.setContainerPrimarySpan(.adjustProportion(percent), target: .window(fixture.handle))
+        }
     }
 
     private func learnMinimumWidth(_ width: CGFloat, fixture: Fixture) throws {
