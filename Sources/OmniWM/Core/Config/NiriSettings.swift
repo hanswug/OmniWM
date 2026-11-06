@@ -83,6 +83,14 @@ final class NiriSettings {
         didSet { onChange?() }
     }
 
+    var newWindowPlacement = NewWindowPlacement.right {
+        didSet { onChange?() }
+    }
+
+    var newWindowJoinsTabbedColumn = false {
+        didSet { onChange?() }
+    }
+
     var overscrollVisibleStripPercent = NiriSettings.defaults.overscrollVisibleStripPercent ?? 5 {
         didSet {
             let validated = Self.validatedOverscrollVisibleStripPercent(overscrollVisibleStripPercent)
@@ -121,7 +129,9 @@ final class NiriSettings {
             allowOverscroll: allowOverscroll,
             overscrollVisibleStripPercent: overscrollVisibleStripPercent,
             shrinkToFit: shrinkToFit ? true : nil,
-            visibleContainerChangeAction: visibleContainerChangeAction == .balance ? nil : visibleContainerChangeAction
+            visibleContainerChangeAction: visibleContainerChangeAction == .balance ? nil : visibleContainerChangeAction,
+            newWindowPlacement: newWindowPlacement == .right ? nil : newWindowPlacement,
+            newWindowJoinsTabbedColumn: newWindowJoinsTabbedColumn ? true : nil
         )
     }
 
@@ -139,6 +149,8 @@ final class NiriSettings {
         shrinkToFit = niri.shrinkToFit ?? baseline.shrinkToFit ?? false
         visibleContainerChangeAction = niri.visibleContainerChangeAction
             ?? baseline.visibleContainerChangeAction ?? .balance
+        newWindowPlacement = niri.newWindowPlacement ?? baseline.newWindowPlacement ?? .right
+        newWindowJoinsTabbedColumn = niri.newWindowJoinsTabbedColumn ?? baseline.newWindowJoinsTabbedColumn ?? false
         resizeStepPercent = niri.resizeStepPercent ?? baseline.resizeStepPercent ?? BuiltInSettingsDefaults
             .niriResizeStepPercent
         containerPrimarySpanPresets = NiriSettings.validatedContainerPrimarySpanPresets(

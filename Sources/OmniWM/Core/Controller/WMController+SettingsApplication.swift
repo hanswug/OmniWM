@@ -152,6 +152,8 @@ extension WMController {
             containerPrimarySpanPresets: settings.niri.containerPrimarySpanPresets,
             defaultContainerPrimarySpan: settings.niri.defaultContainerPrimarySpan
         )
+        niriEngine?.newWindowPlacement = settings.niri.newWindowPlacement
+        niriEngine?.newWindowJoinsTabbedColumn = settings.niri.newWindowJoinsTabbedColumn
         if let previousVisibleContainerCount, previousVisibleContainerCount != settings.niri.visibleContainerCount {
             rebalanceNiriSizesForVisibleContainerCountChange()
         }

@@ -118,6 +118,8 @@ struct SettingsExport: Equatable {
         var overscrollVisibleStripPercent: Int?
         var shrinkToFit: Bool?
         var visibleContainerChangeAction: VisibleContainerChangeAction?
+        var newWindowPlacement: NewWindowPlacement?
+        var newWindowJoinsTabbedColumn: Bool?
     }
 
     struct Dwindle: Codable, Equatable {

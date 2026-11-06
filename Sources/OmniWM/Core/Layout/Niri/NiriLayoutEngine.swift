@@ -52,6 +52,9 @@ final class NiriLayoutEngine {
     var windowMovementAnimationConfig: SpringConfig = .niriWindowMovement
     var animationClock: AnimationClock?
     var isMutationSanctioned = true
+    // OmniWM new features (hanswug/OmniWM fork).
+    var newWindowPlacement = NewWindowPlacement.right
+    var newWindowJoinsTabbedColumn = false
 
     func assertSanctionedMutation(_ operation: StaticString = #function) {
         assert(
