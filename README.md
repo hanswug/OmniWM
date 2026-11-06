@@ -27,7 +27,7 @@ All new settings live in the `[niri]` table of `settings.toml` and in **Settings
 
 ### Explicit resizes retest learned minimums
 
-OmniWM learns an app's minimum size when the app refuses to shrink, and then won't size it smaller. Some apps' real minimum later drops (Safari is one), but the learned value stayed, so the column was held wider than it needed to be. Now a resize you ask for (keyboard resizing, Reset Layout) retests the learned minimum instead of trusting it forever.
+OmniWM learns an app's minimum size when the app refuses to shrink, and then won't size it smaller. Some apps' real minimum later drops (Safari is one), but the learned value stayed, so the column was held wider than it needed to be. Now a resize you ask for (keyboard resizing, Reset Layout) retests the learned minimum instead of trusting it forever. If the app really can't go narrower, the column keeps the width the app kept, so growing it back works on the first press.
 
 ### Keyboard resizes stay inside the working area
 
@@ -40,7 +40,7 @@ Sizing commands (a fixed width, a proportion above 100%, repeated grow steps) ar
 shrinkToFit = true   # default false
 ```
 
-Upstream intentionally leaves the other columns alone when you resize one ([#615](https://github.com/OmniNull/OmniWM/pull/615)), so the row can extend into the outer gaps until you scroll. With this on, a keyboard resize (set, adjust or cycle a column's span) also resizes the other visible columns, so together they fill the working area, each within its size limits. Mouse resizing is unchanged.
+Upstream intentionally leaves the other columns alone when you resize one ([#615](https://github.com/OmniNull/OmniWM/pull/615)), so the row can extend into the outer gaps until you scroll. With this on, a keyboard resize (set, adjust or cycle a column's span) also resizes the other visible columns, so together they fill the working area, each within its size limits. Mouse resizing is unchanged. If a window turns out to need more room right after a resize (its learned minimum comes back), the visible columns are fitted again once.
 
 ### Reset Layout
 
