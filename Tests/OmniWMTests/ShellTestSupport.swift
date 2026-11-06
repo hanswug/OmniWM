@@ -9,6 +9,24 @@ import XCTest
 
 let failureBound: TimeInterval = 30
 
+func floatStored<T: BinaryFloatingPoint>(_ value: T) -> T {
+    T(Float(value))
+}
+
+extension BinaryFloatingPoint {
+    static func rounding(operations: Int, at magnitude: Self) -> Self {
+        Self(operations) * abs(magnitude).ulp
+    }
+}
+
+struct MissingTestPrerequisite: Error, CustomStringConvertible {
+    let description: String
+
+    init(_ description: String) {
+        self.description = description
+    }
+}
+
 func boundedChanges() -> (changes: AsyncStream<Void>, changed: AsyncStream<Void>.Continuation) {
     let (changes, changed) = AsyncStream.makeStream(of: Void.self)
     DispatchQueue.main.asyncAfter(deadline: .now() + failureBound) { changed.finish() }

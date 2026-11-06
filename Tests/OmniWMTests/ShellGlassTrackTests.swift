@@ -44,7 +44,7 @@ final class ShellGlassTrackTests: XCTestCase {
             )
             if native {
                 guard ShellGlassCapability.shared.available else {
-                    throw XCTSkip(body.failure ?? "Native glass is unavailable")
+                    throw MissingTestPrerequisite(body.failure ?? "Native glass is unavailable")
                 }
                 XCTAssertTrue(body.nativeAvailable, body.failure ?? "Native fixture geometry was rejected")
                 guard body.nativeAvailable else {
@@ -116,7 +116,7 @@ final class ShellGlassTrackTests: XCTestCase {
                 let animation = try XCTUnwrap(item.layer.animation(forKey: item.key) as? CAKeyframeAnimation)
                 XCTAssertEqual(animation.duration, 0.4)
                 XCTAssertEqual(animation.values?.count, 49)
-                XCTAssertEqual(animation.beginTime, fixture.begin, accuracy: 1e-6)
+                XCTAssertEqual(animation.beginTime, fixture.begin)
                 XCTAssertNil(item.layer.animation(forKey: ShellGlassBody.Channel.transform.key))
             }
             for time in [0.084, 0.13, 0.4] {
@@ -198,7 +198,7 @@ final class ShellGlassTrackTests: XCTestCase {
             for item in items {
                 let animation = try XCTUnwrap(item.layer.animation(forKey: item.key) as? CAKeyframeAnimation)
                 XCTAssertEqual(animation.duration, 0.4)
-                XCTAssertEqual(animation.beginTime, fixture.begin, accuracy: 1e-6)
+                XCTAssertEqual(animation.beginTime, fixture.begin)
                 XCTAssertEqual(animation.values?.count, 2)
             }
             fixture.body.removeTrack(Int32.max)

@@ -94,7 +94,7 @@ final class ShellHiddenBarMenuTests: XCTestCase {
 
     func testChildMenuKeepsParentRegisteredAndRejectsOldPageActions() async throws {
         executionTimeAllowance = 60
-        guard let screen = NSScreen.screens.first else { throw XCTSkip("menu panels need a screen") }
+        guard let screen = NSScreen.screens.first else { throw MissingTestPrerequisite("menu panels need a screen") }
         let resources = ShellResources(motion: MotionPolicy(animationsEnabled: false))
         let widget = try ShellRenderedWidget(name: "icons", source: """
         function render(ctx) return ui.row{} end
@@ -130,8 +130,8 @@ final class ShellHiddenBarMenuTests: XCTestCase {
         guard menu.popout.panel.isVisible else { return XCTFail("The child menu did not become visible") }
         XCTAssertTrue(OwnedWindowRegistry.shared.contains(window: parent.panel))
         XCTAssertTrue(OwnedWindowRegistry.shared.contains(window: menu.popout.panel))
-        XCTAssertEqual(menu.popout.panel.frame.midX, icon.midX, accuracy: 0.5)
-        XCTAssertEqual(menu.popout.panel.frame.maxY, icon.minY - 4, accuracy: 0.5)
+        XCTAssertEqual(menu.popout.panel.frame.midX, icon.midX)
+        XCTAssertEqual(menu.popout.panel.frame.maxY, icon.minY - 4)
         let childPoint = CGPoint(x: menu.popout.panel.frame.midX, y: menu.popout.panel.frame.midY)
         XCTAssertTrue(parent.contains(screenPoint: childPoint, in: menu.popout.panel))
         XCTAssertTrue(menu.popout.surface.handleKey(UInt16(kVK_DownArrow), shift: false))
@@ -157,7 +157,7 @@ final class ShellHiddenBarMenuTests: XCTestCase {
 
     func testFailedScriptClosesOnlyItsChildPresentation() async throws {
         executionTimeAllowance = 60
-        guard let screen = NSScreen.screens.first else { throw XCTSkip("menu panels need a screen") }
+        guard let screen = NSScreen.screens.first else { throw MissingTestPrerequisite("menu panels need a screen") }
         let resources = ShellResources(motion: MotionPolicy(animationsEnabled: false))
         let parent = makeParent(screen: screen, resources: resources)
         defer { parent.close(animated: false) }

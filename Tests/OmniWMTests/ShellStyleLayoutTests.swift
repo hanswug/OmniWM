@@ -89,357 +89,359 @@ final class ShellStyleLayoutTests: XCTestCase {
         }
     }
 
-    func testExportWidgetRendersForEveryProfile() throws {
-        guard let directory = ProcessInfo.processInfo.environment["OMNIWM_STEP_RENDERS"] else {
-            throw XCTSkip("Set OMNIWM_STEP_RENDERS to export per-profile widget renders")
-        }
-        let name = ProcessInfo.processInfo.environment["OMNIWM_STEP_WIDGET"] ?? "workspaces"
-        let shared = ProcessInfo.processInfo.environment["OMNIWM_STEP_SHARED"] == "1"
-        let tab = ProcessInfo.processInfo.environment["OMNIWM_STEP_TAB"] ?? "audio"
-        let environment = ProcessInfo.processInfo.environment
-        let shell = try stepShell(environment)
-        defer { try? FileManager.default.removeItem(at: shell) }
-        if !shared, let baseline = ProcessInfo.processInfo.environment["OMNIWM_STEP_BASE_SOURCE"] {
-            try Data(contentsOf: URL(fileURLWithPath: baseline))
-                .write(to: shell.appendingPathComponent("default/widgets/\(name)/init.luau"))
-        }
-        try useSharedLibraries(ProcessInfo.processInfo.environment["OMNIWM_STEP_SHARED_LIBS"] ?? "", in: shell)
-        for profile in ShellProfiles.names(in: shell).sorted() {
-            XCTAssertTrue(try ShellProfiles.select(profile, in: shell))
-            let config = ShellConfig.resolve(shellDirectory: shell)
-            let height = config.barOverride?.settings.height ?? 32
-            for dark in [false, true] {
-                for vertical in [false, true] {
-                    let resources = ShellResources(
-                        motion: MotionPolicy(animationsEnabled: false),
-                        windowIcon: { [applications] id in
-                            guard let index = Int(id), applications.indices.contains(index),
-                                  let url = NSWorkspace.shared
-                                      .urlForApplication(withBundleIdentifier: applications[index])
-                            else { return nil }
-                            return NSWorkspace.shared.icon(forFile: url.path)
-                        }
-                    )
-                    resources.palette.refresh(
-                        theme: config.theme,
-                        appearance: try XCTUnwrap(NSAppearance(named: dark ? .darkAqua : .aqua))
-                    )
-                    let widget = try makeWidget(
-                        name, config: config, shell: shell, resources: resources,
-                        source: shared ? shell.appendingPathComponent("default/widgets/\(name)/init.luau") : nil
-                    )
-                    if ["volume", "control-center"].contains(name) {
-                        audioFixture(widget, access: .granted)
-                    }
-                    if name == "media" || (name == "control-center" && tab == "media") {
-                        mediaFixture(widget)
-                    }
-                    if ["clock", "calendar"].contains(name) || (name == "control-center" && tab == "calendar") {
-                        calendarFixture(widget)
-                    }
-                    if name == "weather" || (name == "control-center" && tab == "weather") {
-                        weatherFixture(widget)
-                    }
-                    if name == "control-center", tab == "overview" {
-                        wifiFixture(widget)
-                        bluetoothFixture(widget)
-                        batteryFixture(widget)
-                        mediaFixture(widget)
-                    }
-                    if name == "control-center", tab == "system" {
-                        systemStatsFixture(widget)
-                    }
-                    if ["battery", "battery-details"].contains(name) {
-                        batteryFixture(widget)
-                    }
-                    if name == "wifi" {
-                        wifiFixture(widget)
-                        networkFixture(widget)
-                    }
-                    if name == "bluetooth" {
-                        bluetoothFixture(widget)
-                    }
-                    if name == "active-window" {
-                        widget.set("app") { $0.string("Safari") }
-                        widget.set("bundle") { $0.string("com.apple.Safari") }
-                        widget.set("title") { $0.string("A quiet afternoon") }
-                    }
-                    statusFixture(widget, name: name)
-                    var bar = name == "scratchpads"
-                        ? scratchpadFixture(config, height: height, vertical: vertical)
-                        : fixture(config, height: height, vertical: vertical)
-                    if environment["OMNIWM_STEP_CAPSULE"] == "1" {
-                        bar.style.transparent = true
-                        bar.style.backgrounds = true
-                    }
-                    widget.render(bar)
-                    if ["hidden-bar", "hidden-bar-menu"].contains(name) {
-                        let hidden = hiddenBarFixture(vertical: vertical, menu: name == "hidden-bar-menu")
-                        widget.set("hiddenBar") { hidden.write(into: &$0) }
-                        widget.layoutPopout()
-                    }
-                    let background = resources.palette.color(.clear, default: .background)
-                    try ShellBundledWidgetTests.writeSnapshot(
-                        widget.surface,
-                        name: "\(name)-\(profile)-\(vertical ? "vertical" : "horizontal")-\(dark ? "dark" : "light")",
-                        dark: dark, directory: directory, background: background
-                    )
-                    if name == "battery-details" {
-                        for mode in ["inside", "off"] {
-                            widget.set("settings") {
-                                ShellServiceValue.object(["percent": .text(mode)]).write(to: &$0)
+    #if OMNIWM_LIVE_CHECKS
+        func testExportWidgetRendersForEveryProfile() throws {
+            guard let directory = ProcessInfo.processInfo.environment["OMNIWM_STEP_RENDERS"] else {
+                throw MissingTestPrerequisite("Set OMNIWM_STEP_RENDERS to export per-profile widget renders")
+            }
+            let name = ProcessInfo.processInfo.environment["OMNIWM_STEP_WIDGET"] ?? "workspaces"
+            let shared = ProcessInfo.processInfo.environment["OMNIWM_STEP_SHARED"] == "1"
+            let tab = ProcessInfo.processInfo.environment["OMNIWM_STEP_TAB"] ?? "audio"
+            let environment = ProcessInfo.processInfo.environment
+            let shell = try stepShell(environment)
+            defer { try? FileManager.default.removeItem(at: shell) }
+            if !shared, let baseline = ProcessInfo.processInfo.environment["OMNIWM_STEP_BASE_SOURCE"] {
+                try Data(contentsOf: URL(fileURLWithPath: baseline))
+                    .write(to: shell.appendingPathComponent("default/widgets/\(name)/init.luau"))
+            }
+            try useSharedLibraries(ProcessInfo.processInfo.environment["OMNIWM_STEP_SHARED_LIBS"] ?? "", in: shell)
+            for profile in ShellProfiles.names(in: shell).sorted() {
+                XCTAssertTrue(try ShellProfiles.select(profile, in: shell))
+                let config = ShellConfig.resolve(shellDirectory: shell)
+                let height = config.barOverride?.settings.height ?? 32
+                for dark in [false, true] {
+                    for vertical in [false, true] {
+                        let resources = ShellResources(
+                            motion: MotionPolicy(animationsEnabled: false),
+                            windowIcon: { [applications] id in
+                                guard let index = Int(id), applications.indices.contains(index),
+                                      let url = NSWorkspace.shared
+                                          .urlForApplication(withBundleIdentifier: applications[index])
+                                else { return nil }
+                                return NSWorkspace.shared.icon(forFile: url.path)
                             }
-                            widget.render(bar)
-                            try ShellBundledWidgetTests.writeSnapshot(
-                                widget.surface,
-                                name: "\(name)-\(profile)-\(vertical ? "vertical" : "horizontal")-\(mode)\(dark ? "-dark" : "")",
-                                dark: dark, directory: directory, background: background
-                            )
-                        }
-                        widget.set("settings") { ShellServiceValue.object([:]).write(to: &$0) }
-                        widget.render(bar)
-                    }
-                    if ["volume", "control-center"].contains(name), !vertical {
-                        audioFixture(widget, access: .granted)
-                        if name == "control-center" {
-                            widget.set("settings") { ShellServiceValue.object(["tab": .text(tab)]).write(to: &$0) }
-                        }
-                        widget.layoutPopout()
-                        try ShellBundledWidgetTests.writeSnapshot(
-                            widget.surface,
-                            name: "\(name)-\(profile)-popout-\(dark ? "dark" : "light")",
-                            dark: dark, directory: directory, background: background
                         )
-                        if !dark {
-                            audioFixture(widget, access: .denied)
-                            widget.layoutPopout()
-                            try ShellBundledWidgetTests.writeSnapshot(
-                                widget.surface, name: "\(name)-\(profile)-popout-denied",
-                                dark: false, directory: directory, background: background
-                            )
-                            if name == "control-center", tab == "overview" {
-                                audioFixture(widget, access: .granted)
-                                batteryFixture(widget, level: 80, power: ShellPower(source: "ac"))
-                                widget.layoutPopout()
-                                try ShellBundledWidgetTests.writeSnapshot(
-                                    widget.surface, name: "\(name)-\(profile)-popout-ac",
-                                    dark: false, directory: directory, background: background
-                                )
-                                batteryFixture(widget)
-                            }
-                            if name == "volume" {
-                                audioFixture(widget, access: .granted)
-                                for state in ["muted", "zero", "unavailable"] {
-                                    widget.set("muted") { $0.bool(state == "muted") }
-                                    widget.set("volume") {
-                                        if state == "unavailable" { $0.null() }
-                                        else { $0.number(state == "zero" ? 0 : 62) }
-                                    }
-                                    if state == "unavailable" {
-                                        widget.set("outputs") { $0.null() }
-                                        widget.set("audioApps") { $0.null() }
-                                    }
-                                    widget.layoutPopout()
-                                    try ShellBundledWidgetTests.writeSnapshot(
-                                        widget.surface, name: "volume-\(profile)-popout-\(state)",
-                                        dark: false, directory: directory, background: background
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    if name == "calendar" || (name == "clock" && shared)
-                        || (name == "control-center" && tab == "calendar"), !vertical
-                    {
-                        widget.layoutPopout()
-                        try ShellBundledWidgetTests.writeSnapshot(
-                            widget.surface,
-                            name: "\(name)-\(profile)-popout-\(dark ? "dark" : "light")",
-                            dark: dark, directory: directory, background: background
+                        resources.palette.refresh(
+                            theme: config.theme,
+                            appearance: try XCTUnwrap(NSAppearance(named: dark ? .darkAqua : .aqua))
                         )
-                        if !dark {
-                            for state in ["notDetermined", "denied", "nomonth", "loading"] {
-                                if state == "loading" {
-                                    widget.set("calendar") { $0.null() }
-                                } else {
-                                    calendarFixture(
-                                        widget,
-                                        access: state == "nomonth" ? "full" : state,
-                                        month: state != "nomonth"
-                                    )
-                                }
-                                widget.layoutPopout()
-                                try ShellBundledWidgetTests.writeSnapshot(
-                                    widget.surface, name: "\(name)-\(profile)-popout-\(state)",
-                                    dark: false, directory: directory, background: background
-                                )
-                            }
+                        let widget = try makeWidget(
+                            name, config: config, shell: shell, resources: resources,
+                            source: shared ? shell.appendingPathComponent("default/widgets/\(name)/init.luau") : nil
+                        )
+                        if ["volume", "control-center"].contains(name) {
+                            audioFixture(widget, access: .granted)
+                        }
+                        if name == "media" || (name == "control-center" && tab == "media") {
+                            mediaFixture(widget)
+                        }
+                        if ["clock", "calendar"].contains(name) || (name == "control-center" && tab == "calendar") {
                             calendarFixture(widget)
                         }
-                    }
-                    if ["wifi", "bluetooth"].contains(name), !vertical {
-                        widget.layoutPopout()
-                        try ShellBundledWidgetTests.writeSnapshot(
-                            widget.surface,
-                            name: "\(name)-\(profile)-popout-\(dark ? "dark" : "light")",
-                            dark: dark, directory: directory, background: background
-                        )
-                        if !dark {
-                            for state in radioStates(name).dropFirst() + ["unavailable"] {
-                                radioFixture(widget, name: name, state: state)
-                                widget.layoutPopout()
-                                try ShellBundledWidgetTests.writeSnapshot(
-                                    widget.surface, name: "\(name)-\(profile)-popout-\(state)",
-                                    dark: false, directory: directory, background: background
-                                )
-                            }
-                            if name == "wifi" { wifiFixture(widget) } else { bluetoothFixture(widget) }
+                        if name == "weather" || (name == "control-center" && tab == "weather") {
+                            weatherFixture(widget)
                         }
-                    }
-                    if name == "battery-details", !vertical {
-                        widget.layoutPopout()
-                        try ShellBundledWidgetTests.writeSnapshot(
-                            widget.surface,
-                            name: "\(name)-\(profile)-popout-\(dark ? "dark" : "light")",
-                            dark: dark, directory: directory, background: background
-                        )
-                        if !dark {
-                            for state in ["charging", "low", "charged", "ac", "nopower", "unavailable"] {
-                                switch state {
-                                case "ac": batteryFixture(widget, level: 80, power: ShellPower(source: "ac"))
-                                case "nopower":
-                                    batteryFixture(widget)
-                                    widget.set("power") { $0.null() }
-                                case "charging": batteryFixture(
-                                        widget,
-                                        charging: true,
-                                        power: ShellPower(source: "ac", full: 40)
-                                    )
-                                case "low":
-                                    batteryFixture(
-                                        widget,
-                                        level: 12,
-                                        power: ShellPower(source: "battery", remaining: 25, lowPower: true)
-                                    )
-                                case "unavailable": widget.set("battery") { $0.null() }
-                                default: batteryFixture(
-                                        widget,
-                                        level: 100,
-                                        power: ShellPower(source: "ac", charged: true)
-                                    )
-                                }
-                                widget.layoutPopout()
-                                try ShellBundledWidgetTests.writeSnapshot(
-                                    widget.surface, name: "\(name)-\(profile)-popout-\(state)",
-                                    dark: false, directory: directory, background: background
-                                )
-                            }
+                        if name == "control-center", tab == "overview" {
+                            wifiFixture(widget)
+                            bluetoothFixture(widget)
+                            batteryFixture(widget)
+                            mediaFixture(widget)
+                        }
+                        if name == "control-center", tab == "system" {
+                            systemStatsFixture(widget)
+                        }
+                        if ["battery", "battery-details"].contains(name) {
                             batteryFixture(widget)
                         }
-                    }
-                    if name == "weather" || (name == "control-center" && tab == "weather"), !vertical {
-                        func writeScrolledWeatherSnapshot(_ suffix: String) throws {
-                            guard name == "weather", shared, profile == "celestial" else { return }
-                            let scroll = try XCTUnwrap(widget.surface.layout.core.elements { $0.scrolls }.first)
-                            let frame = CGRect(widget.surface.layout.core.absoluteFrame(of: scroll))
-                            let point = CGPoint(x: frame.midX, y: frame.midY)
-                            XCTAssertTrue(widget.surface.scroll(
-                                at: point,
-                                event: ShellEvent(button: .none),
-                                content: CGPoint(x: 0, y: 10_000)
-                            ))
-                            try ShellBundledWidgetTests.writeSnapshot(
-                                widget.surface,
-                                name: "weather-celestial-popout-scrolled-\(suffix)",
-                                dark: dark, directory: directory, background: background
-                            )
-                            XCTAssertTrue(widget.surface.scroll(
-                                at: point,
-                                event: ShellEvent(button: .none),
-                                content: CGPoint(x: 0, y: -10_000)
-                            ))
+                        if name == "wifi" {
+                            wifiFixture(widget)
+                            networkFixture(widget)
                         }
-                        if name == "weather" {
+                        if name == "bluetooth" {
+                            bluetoothFixture(widget)
+                        }
+                        if name == "active-window" {
+                            widget.set("app") { $0.string("Safari") }
+                            widget.set("bundle") { $0.string("com.apple.Safari") }
+                            widget.set("title") { $0.string("A quiet afternoon") }
+                        }
+                        statusFixture(widget, name: name)
+                        var bar = name == "scratchpads"
+                            ? scratchpadFixture(config, height: height, vertical: vertical)
+                            : fixture(config, height: height, vertical: vertical)
+                        if environment["OMNIWM_STEP_CAPSULE"] == "1" {
+                            bar.style.transparent = true
+                            bar.style.backgrounds = true
+                        }
+                        widget.render(bar)
+                        if ["hidden-bar", "hidden-bar-menu"].contains(name) {
+                            let hidden = hiddenBarFixture(vertical: vertical, menu: name == "hidden-bar-menu")
+                            widget.set("hiddenBar") { hidden.write(into: &$0) }
+                            widget.layoutPopout()
+                        }
+                        let background = resources.palette.color(.clear, default: .background)
+                        try ShellBundledWidgetTests.writeSnapshot(
+                            widget.surface,
+                            name: "\(name)-\(profile)-\(vertical ? "vertical" : "horizontal")-\(dark ? "dark" : "light")",
+                            dark: dark, directory: directory, background: background
+                        )
+                        if name == "battery-details" {
+                            for mode in ["inside", "off"] {
+                                widget.set("settings") {
+                                    ShellServiceValue.object(["percent": .text(mode)]).write(to: &$0)
+                                }
+                                widget.render(bar)
+                                try ShellBundledWidgetTests.writeSnapshot(
+                                    widget.surface,
+                                    name: "\(name)-\(profile)-\(vertical ? "vertical" : "horizontal")-\(mode)\(dark ? "-dark" : "")",
+                                    dark: dark, directory: directory, background: background
+                                )
+                            }
+                            widget.set("settings") { ShellServiceValue.object([:]).write(to: &$0) }
+                            widget.render(bar)
+                        }
+                        if ["volume", "control-center"].contains(name), !vertical {
+                            audioFixture(widget, access: .granted)
+                            if name == "control-center" {
+                                widget.set("settings") { ShellServiceValue.object(["tab": .text(tab)]).write(to: &$0) }
+                            }
                             widget.layoutPopout()
                             try ShellBundledWidgetTests.writeSnapshot(
                                 widget.surface,
                                 name: "\(name)-\(profile)-popout-\(dark ? "dark" : "light")",
                                 dark: dark, directory: directory, background: background
                             )
-                            try writeScrolledWeatherSnapshot(dark ? "dark" : "light")
-                        }
-                        if !dark {
-                            for state in ["stale", "unavailable"] {
-                                if state == "stale" {
-                                    weatherFixture(widget, stale: true)
-                                } else {
-                                    widget.set("weather") { $0.null() }
-                                }
+                            if !dark {
+                                audioFixture(widget, access: .denied)
                                 widget.layoutPopout()
                                 try ShellBundledWidgetTests.writeSnapshot(
-                                    widget.surface, name: "\(name)-\(profile)-popout-\(state)",
+                                    widget.surface, name: "\(name)-\(profile)-popout-denied",
                                     dark: false, directory: directory, background: background
                                 )
-                                if state == "stale" {
-                                    try writeScrolledWeatherSnapshot(state)
+                                if name == "control-center", tab == "overview" {
+                                    audioFixture(widget, access: .granted)
+                                    batteryFixture(widget, level: 80, power: ShellPower(source: "ac"))
+                                    widget.layoutPopout()
+                                    try ShellBundledWidgetTests.writeSnapshot(
+                                        widget.surface, name: "\(name)-\(profile)-popout-ac",
+                                        dark: false, directory: directory, background: background
+                                    )
+                                    batteryFixture(widget)
+                                }
+                                if name == "volume" {
+                                    audioFixture(widget, access: .granted)
+                                    for state in ["muted", "zero", "unavailable"] {
+                                        widget.set("muted") { $0.bool(state == "muted") }
+                                        widget.set("volume") {
+                                            if state == "unavailable" { $0.null() }
+                                            else { $0.number(state == "zero" ? 0 : 62) }
+                                        }
+                                        if state == "unavailable" {
+                                            widget.set("outputs") { $0.null() }
+                                            widget.set("audioApps") { $0.null() }
+                                        }
+                                        widget.layoutPopout()
+                                        try ShellBundledWidgetTests.writeSnapshot(
+                                            widget.surface, name: "volume-\(profile)-popout-\(state)",
+                                            dark: false, directory: directory, background: background
+                                        )
+                                    }
                                 }
                             }
-                            weatherFixture(widget)
                         }
-                    }
-                    if name == "media", !vertical {
-                        widget.layoutPopout()
-                        try ShellBundledWidgetTests.writeSnapshot(
-                            widget.surface,
-                            name: "\(name)-\(profile)-popout-\(dark ? "dark" : "light")",
-                            dark: dark, directory: directory, background: background
-                        )
-                        if !dark {
-                            for state in ["paused", "loading", "nolyrics", "nothing"] {
-                                switch state {
-                                case "paused": mediaFixture(widget, playing: false)
-                                case "loading": mediaFixture(widget, lyrics: .loading)
-                                case "nolyrics": mediaFixture(widget, lyrics: .missing)
-                                default:
-                                    widget.set("media") { $0.null() }
-                                    widget.set("lyrics") { $0.null() }
+                        if name == "calendar" || (name == "clock" && shared)
+                            || (name == "control-center" && tab == "calendar"), !vertical
+                        {
+                            widget.layoutPopout()
+                            try ShellBundledWidgetTests.writeSnapshot(
+                                widget.surface,
+                                name: "\(name)-\(profile)-popout-\(dark ? "dark" : "light")",
+                                dark: dark, directory: directory, background: background
+                            )
+                            if !dark {
+                                for state in ["notDetermined", "denied", "nomonth", "loading"] {
+                                    if state == "loading" {
+                                        widget.set("calendar") { $0.null() }
+                                    } else {
+                                        calendarFixture(
+                                            widget,
+                                            access: state == "nomonth" ? "full" : state,
+                                            month: state != "nomonth"
+                                        )
+                                    }
+                                    widget.layoutPopout()
+                                    try ShellBundledWidgetTests.writeSnapshot(
+                                        widget.surface, name: "\(name)-\(profile)-popout-\(state)",
+                                        dark: false, directory: directory, background: background
+                                    )
                                 }
+                                calendarFixture(widget)
+                            }
+                        }
+                        if ["wifi", "bluetooth"].contains(name), !vertical {
+                            widget.layoutPopout()
+                            try ShellBundledWidgetTests.writeSnapshot(
+                                widget.surface,
+                                name: "\(name)-\(profile)-popout-\(dark ? "dark" : "light")",
+                                dark: dark, directory: directory, background: background
+                            )
+                            if !dark {
+                                for state in radioStates(name).dropFirst() + ["unavailable"] {
+                                    radioFixture(widget, name: name, state: state)
+                                    widget.layoutPopout()
+                                    try ShellBundledWidgetTests.writeSnapshot(
+                                        widget.surface, name: "\(name)-\(profile)-popout-\(state)",
+                                        dark: false, directory: directory, background: background
+                                    )
+                                }
+                                if name == "wifi" { wifiFixture(widget) } else { bluetoothFixture(widget) }
+                            }
+                        }
+                        if name == "battery-details", !vertical {
+                            widget.layoutPopout()
+                            try ShellBundledWidgetTests.writeSnapshot(
+                                widget.surface,
+                                name: "\(name)-\(profile)-popout-\(dark ? "dark" : "light")",
+                                dark: dark, directory: directory, background: background
+                            )
+                            if !dark {
+                                for state in ["charging", "low", "charged", "ac", "nopower", "unavailable"] {
+                                    switch state {
+                                    case "ac": batteryFixture(widget, level: 80, power: ShellPower(source: "ac"))
+                                    case "nopower":
+                                        batteryFixture(widget)
+                                        widget.set("power") { $0.null() }
+                                    case "charging": batteryFixture(
+                                            widget,
+                                            charging: true,
+                                            power: ShellPower(source: "ac", full: 40)
+                                        )
+                                    case "low":
+                                        batteryFixture(
+                                            widget,
+                                            level: 12,
+                                            power: ShellPower(source: "battery", remaining: 25, lowPower: true)
+                                        )
+                                    case "unavailable": widget.set("battery") { $0.null() }
+                                    default: batteryFixture(
+                                            widget,
+                                            level: 100,
+                                            power: ShellPower(source: "ac", charged: true)
+                                        )
+                                    }
+                                    widget.layoutPopout()
+                                    try ShellBundledWidgetTests.writeSnapshot(
+                                        widget.surface, name: "\(name)-\(profile)-popout-\(state)",
+                                        dark: false, directory: directory, background: background
+                                    )
+                                }
+                                batteryFixture(widget)
+                            }
+                        }
+                        if name == "weather" || (name == "control-center" && tab == "weather"), !vertical {
+                            func writeScrolledWeatherSnapshot(_ suffix: String) throws {
+                                guard name == "weather", shared, profile == "celestial" else { return }
+                                let scroll = try XCTUnwrap(widget.surface.layout.core.elements { $0.scrolls }.first)
+                                let frame = CGRect(widget.surface.layout.core.absoluteFrame(of: scroll))
+                                let point = CGPoint(x: frame.midX, y: frame.midY)
+                                XCTAssertTrue(widget.surface.scroll(
+                                    at: point,
+                                    event: ShellEvent(button: .none),
+                                    content: CGPoint(x: 0, y: 10_000)
+                                ))
+                                try ShellBundledWidgetTests.writeSnapshot(
+                                    widget.surface,
+                                    name: "weather-celestial-popout-scrolled-\(suffix)",
+                                    dark: dark, directory: directory, background: background
+                                )
+                                XCTAssertTrue(widget.surface.scroll(
+                                    at: point,
+                                    event: ShellEvent(button: .none),
+                                    content: CGPoint(x: 0, y: -10_000)
+                                ))
+                            }
+                            if name == "weather" {
                                 widget.layoutPopout()
                                 try ShellBundledWidgetTests.writeSnapshot(
-                                    widget.surface, name: "media-\(profile)-popout-\(state)",
-                                    dark: false, directory: directory, background: background
+                                    widget.surface,
+                                    name: "\(name)-\(profile)-popout-\(dark ? "dark" : "light")",
+                                    dark: dark, directory: directory, background: background
                                 )
+                                try writeScrolledWeatherSnapshot(dark ? "dark" : "light")
+                            }
+                            if !dark {
+                                for state in ["stale", "unavailable"] {
+                                    if state == "stale" {
+                                        weatherFixture(widget, stale: true)
+                                    } else {
+                                        widget.set("weather") { $0.null() }
+                                    }
+                                    widget.layoutPopout()
+                                    try ShellBundledWidgetTests.writeSnapshot(
+                                        widget.surface, name: "\(name)-\(profile)-popout-\(state)",
+                                        dark: false, directory: directory, background: background
+                                    )
+                                    if state == "stale" {
+                                        try writeScrolledWeatherSnapshot(state)
+                                    }
+                                }
+                                weatherFixture(widget)
                             }
                         }
-                    }
-                    try exportStatusVariants(
-                        widget, name: name, profile: profile, bar: bar, vertical: vertical, dark: dark,
-                        directory: directory, background: background
-                    )
-                    if name == "system-stats", !vertical {
-                        systemStatsFixture(widget)
-                        widget.layoutPopout()
-                        try ShellBundledWidgetTests.writeSnapshot(
-                            widget.surface,
-                            name: "\(name)-\(profile)-popout-\(dark ? "dark" : "light")",
-                            dark: dark, directory: directory, background: background
+                        if name == "media", !vertical {
+                            widget.layoutPopout()
+                            try ShellBundledWidgetTests.writeSnapshot(
+                                widget.surface,
+                                name: "\(name)-\(profile)-popout-\(dark ? "dark" : "light")",
+                                dark: dark, directory: directory, background: background
+                            )
+                            if !dark {
+                                for state in ["paused", "loading", "nolyrics", "nothing"] {
+                                    switch state {
+                                    case "paused": mediaFixture(widget, playing: false)
+                                    case "loading": mediaFixture(widget, lyrics: .loading)
+                                    case "nolyrics": mediaFixture(widget, lyrics: .missing)
+                                    default:
+                                        widget.set("media") { $0.null() }
+                                        widget.set("lyrics") { $0.null() }
+                                    }
+                                    widget.layoutPopout()
+                                    try ShellBundledWidgetTests.writeSnapshot(
+                                        widget.surface, name: "media-\(profile)-popout-\(state)",
+                                        dark: false, directory: directory, background: background
+                                    )
+                                }
+                            }
+                        }
+                        try exportStatusVariants(
+                            widget, name: name, profile: profile, bar: bar, vertical: vertical, dark: dark,
+                            directory: directory, background: background
                         )
-                    }
-                    if name == "workspaces", ProcessInfo.processInfo.environment["OMNIWM_STEP_POPOUT"] == "1" {
-                        let group = try XCTUnwrap(widget.tree()
-                            .first { widget.text.string($0.content.target) == "window 1" })
-                        widget.invoke(group.content.action)
-                        widget.layoutPopout()
-                        try ShellBundledWidgetTests.writeSnapshot(
-                            widget.surface,
-                            name: "\(name)-\(profile)-picker-\(vertical ? "vertical" : "horizontal")-\(dark ? "dark" : "light")",
-                            dark: dark, directory: directory, background: background
-                        )
+                        if name == "system-stats", !vertical {
+                            systemStatsFixture(widget)
+                            widget.layoutPopout()
+                            try ShellBundledWidgetTests.writeSnapshot(
+                                widget.surface,
+                                name: "\(name)-\(profile)-popout-\(dark ? "dark" : "light")",
+                                dark: dark, directory: directory, background: background
+                            )
+                        }
+                        if name == "workspaces", ProcessInfo.processInfo.environment["OMNIWM_STEP_POPOUT"] == "1" {
+                            let group = try XCTUnwrap(widget.tree()
+                                .first { widget.text.string($0.content.target) == "window 1" })
+                            widget.invoke(group.content.action)
+                            widget.layoutPopout()
+                            try ShellBundledWidgetTests.writeSnapshot(
+                                widget.surface,
+                                name: "\(name)-\(profile)-picker-\(vertical ? "vertical" : "horizontal")-\(dark ? "dark" : "light")",
+                                dark: dark, directory: directory, background: background
+                            )
+                        }
                     }
                 }
             }
         }
-    }
+    #endif
 
     func testSharedInputSourceModelKeepsSelectionAndCommands() throws {
         let shell = try sharedLibraryShell("input-source")
@@ -841,8 +843,8 @@ final class ShellStyleLayoutTests: XCTestCase {
                                     }.count > 0, context)
                                     if ["nocturne", "celestial"].contains(profile) {
                                         let expected = height * (profile == "celestial" ? 40.0 / 60 : 32.0 / 40)
-                                        XCTAssertEqual(widget.surface.size.width, expected, accuracy: 0.01, context)
-                                        XCTAssertEqual(widget.surface.size.height, expected, accuracy: 0.01, context)
+                                        XCTAssertEqual(widget.surface.size.width, floatStored(expected), context)
+                                        XCTAssertEqual(widget.surface.size.height, floatStored(expected), context)
                                     }
                                 }
                             }
@@ -943,7 +945,7 @@ final class ShellStyleLayoutTests: XCTestCase {
                     return CGRect(small.surface.layout.core.absoluteFrame(of: entry)).minX
                 }
                 for column in columns.dropFirst() {
-                    XCTAssertEqual(column, columns[0], accuracy: 0.01, profile)
+                    XCTAssertEqual(column, columns[0], profile)
                 }
             }
         }
@@ -1224,19 +1226,17 @@ final class ShellStyleLayoutTests: XCTestCase {
                                     context
                                 )
                                 if ["wayline", "nocturne"].contains(profile) {
-                                    XCTAssertEqual(widget.surface.size.width, 32 * height / 40, accuracy: 0.01, context)
+                                    XCTAssertEqual(widget.surface.size.width, floatStored(32 * height / 40), context)
                                     XCTAssertEqual(
                                         widget.surface.size.height,
-                                        32 * height / 40,
-                                        accuracy: 0.01,
+                                        floatStored(32 * height / 40),
                                         context
                                     )
                                 }
                                 if profile == "celestial" {
                                     XCTAssertEqual(
                                         vertical ? widget.surface.size.width : widget.surface.size.height,
-                                        40 * height / 60,
-                                        accuracy: 0.01,
+                                        floatStored(40 * height / 60),
                                         context
                                     )
                                 }
@@ -1602,7 +1602,6 @@ final class ShellStyleLayoutTests: XCTestCase {
                                 XCTAssertEqual(
                                     widget.surface.size.width,
                                     widget.surface.size.height,
-                                    accuracy: 0.01,
                                     context
                                 )
                                 XCTAssertLessThanOrEqual(
@@ -1667,7 +1666,7 @@ final class ShellStyleLayoutTests: XCTestCase {
                             if hooked.contains(profile), !vertical {
                                 let design: Double = profile == "celestial" ? 60 : 40
                                 let expected = (profile == "celestial" ? 40 : 32) * height / design
-                                XCTAssertEqual(widget.surface.size.height, expected, accuracy: 0.01, context)
+                                XCTAssertEqual(widget.surface.size.height, floatStored(expected), context)
                             }
                         }
                     }
@@ -1943,8 +1942,8 @@ final class ShellStyleLayoutTests: XCTestCase {
                     XCTAssertLessThanOrEqual(cross, height, context)
                     for icon in icons {
                         let designSize: Double = profile == "matrix" ? 18 : profile == "nocturne" ? 20 : 24
-                        XCTAssertEqual(Double(icon.layout.width), designSize * scale, accuracy: 0.01, context)
-                        XCTAssertEqual(Double(icon.layout.height), designSize * scale, accuracy: 0.01, context)
+                        XCTAssertEqual(Double(icon.layout.width), floatStored(designSize * scale), context)
+                        XCTAssertEqual(Double(icon.layout.height), floatStored(designSize * scale), context)
                     }
                     for label in labels {
                         let role: ShellRole = profile == "matrix" ? .secondaryForeground : profile == "celestial" ?
@@ -1959,9 +1958,9 @@ final class ShellStyleLayoutTests: XCTestCase {
                         )
                     }
                     if profile == "matrix" {
-                        XCTAssertEqual(cross, height - 4, accuracy: 0.01, context)
+                        XCTAssertEqual(cross, height - 4, context)
                     } else if profile == "wayline" {
-                        XCTAssertEqual(cross, 32 * scale, accuracy: 0.01, context)
+                        XCTAssertEqual(cross, floatStored(32 * scale), context)
                         XCTAssertEqual(root.paint.cornerRadius, Float(floor(32 * scale * 0.24)), context)
                         XCTAssertEqual(
                             root.paint.fill.role & 0xFF,
@@ -1977,14 +1976,14 @@ final class ShellStyleLayoutTests: XCTestCase {
                             XCTAssertEqual(widget.surface.size.width - frame.maxX, 9 * scale, accuracy: 0.01, context)
                         }
                     } else if profile == "nocturne" {
-                        XCTAssertEqual(cross, 32 * scale, accuracy: 0.01, context)
-                        XCTAssertEqual(Double(root.paint.cornerRadius), 16 * scale - 1, accuracy: 0.01, context)
+                        XCTAssertEqual(cross, floatStored(32 * scale), context)
+                        XCTAssertEqual(Double(root.paint.cornerRadius), floatStored(16 * scale - 1), context)
                         XCTAssertEqual(root.paint.fill.role & 0xFF, UInt16(ShellRole.surface.rawValue + 1), context)
                         XCTAssertEqual(root.paint.strokeWidth, 1, context)
                         XCTAssertTrue(root.content.hover.isVisible, context)
                     } else {
-                        XCTAssertEqual(cross, (vertical ? 40 : 32) * scale, accuracy: 0.01, context)
-                        XCTAssertEqual(Double(root.paint.cornerRadius), 16 * scale, accuracy: 0.01, context)
+                        XCTAssertEqual(cross, floatStored((vertical ? 40 : 32) * scale), context)
+                        XCTAssertEqual(Double(root.paint.cornerRadius), floatStored(16 * scale), context)
                         bar.style.textColor = "#123456"
                         widget.render(bar)
                         let overridden = try XCTUnwrap(widget.tree().first { $0.kind == .label }, context)
@@ -2064,11 +2063,10 @@ final class ShellStyleLayoutTests: XCTestCase {
                                 XCTAssertEqual(
                                     widget.surface.size.width,
                                     widget.surface.size.height,
-                                    accuracy: 0.01,
                                     context
                                 )
                             }
-                            XCTAssertEqual(CGFloat(root.paint.cornerRadius), cross / 2, accuracy: 0.01, context)
+                            XCTAssertEqual(CGFloat(root.paint.cornerRadius), cross / 2, context)
                             XCTAssertEqual(root.paint.fill.role & 0xFF, UInt16(ShellRole.surface.rawValue + 1), context)
                             XCTAssertEqual(
                                 root.paint.stroke.role & 0xFF,
@@ -2083,8 +2081,8 @@ final class ShellStyleLayoutTests: XCTestCase {
                                 if name == "omniwm",
                                    widget.text.string(widget.surface.layout.core.content(of: element).text) == "omniwm"
                                 {
-                                    XCTAssertEqual(frame.midX, bounds.midX, accuracy: 0.01, context)
-                                    XCTAssertEqual(frame.midY, bounds.midY, accuracy: 0.01, context)
+                                    XCTAssertEqual(frame.midX, bounds.midX, context)
+                                    XCTAssertEqual(frame.midY, bounds.midY, context)
                                 }
                             }
                         }
@@ -3172,37 +3170,42 @@ final class ShellStyleLayoutTests: XCTestCase {
         }
     }
 
-    func testExportCelestialDashboardMediaCardRenders() throws {
-        let environment = ProcessInfo.processInfo.environment
-        guard let directory = environment["OMNIWM_STEP_DASHBOARD_RENDERS"] else {
-            throw XCTSkip("Set OMNIWM_STEP_DASHBOARD_RENDERS to export Dashboard media states")
-        }
-        let shell = try stepShell(environment)
-        defer { try? FileManager.default.removeItem(at: shell) }
-        XCTAssertTrue(try ShellProfiles.select("celestial", in: shell))
-        let config = ShellConfig.resolve(shellDirectory: shell)
-        for dark in [false, true] {
-            let resources = ShellResources(motion: MotionPolicy(animationsEnabled: false))
-            resources.palette.refresh(
-                theme: config.theme,
-                appearance: try XCTUnwrap(NSAppearance(named: dark ? .darkAqua : .aqua))
-            )
-            let widget = try makeWidget("dashboard", config: config, shell: shell, resources: resources)
-            weatherFixture(widget)
-            systemStatsFixture(widget)
-            calendarFixture(widget)
-            widget.render(fixture(config, height: 60, vertical: false))
-            for state in ["playing", "paused", "idle"] {
-                mediaFixture(widget, playing: state == "playing")
-                if state == "idle" { widget.set("media") { $0.null() } }
-                widget.layoutPopout()
-                try ShellBundledWidgetTests.writeSnapshot(
-                    widget.surface, name: "dashboard-celestial-popout-\(state)-\(dark ? "dark" : "light")",
-                    dark: dark, directory: directory, background: resources.palette.color(.clear, default: .background)
+    #if OMNIWM_LIVE_CHECKS
+        func testExportCelestialDashboardMediaCardRenders() throws {
+            let environment = ProcessInfo.processInfo.environment
+            guard let directory = environment["OMNIWM_STEP_DASHBOARD_RENDERS"] else {
+                throw MissingTestPrerequisite("Set OMNIWM_STEP_DASHBOARD_RENDERS to export Dashboard media states")
+            }
+            let shell = try stepShell(environment)
+            defer { try? FileManager.default.removeItem(at: shell) }
+            XCTAssertTrue(try ShellProfiles.select("celestial", in: shell))
+            let config = ShellConfig.resolve(shellDirectory: shell)
+            for dark in [false, true] {
+                let resources = ShellResources(motion: MotionPolicy(animationsEnabled: false))
+                resources.palette.refresh(
+                    theme: config.theme,
+                    appearance: try XCTUnwrap(NSAppearance(named: dark ? .darkAqua : .aqua))
                 )
+                let widget = try makeWidget("dashboard", config: config, shell: shell, resources: resources)
+                weatherFixture(widget)
+                systemStatsFixture(widget)
+                calendarFixture(widget)
+                widget.render(fixture(config, height: 60, vertical: false))
+                for state in ["playing", "paused", "idle"] {
+                    mediaFixture(widget, playing: state == "playing")
+                    if state == "idle" { widget.set("media") { $0.null() } }
+                    widget.layoutPopout()
+                    try ShellBundledWidgetTests.writeSnapshot(
+                        widget.surface, name: "dashboard-celestial-popout-\(state)-\(dark ? "dark" : "light")",
+                        dark: dark, directory: directory, background: resources.palette.color(
+                            .clear,
+                            default: .background
+                        )
+                    )
+                }
             }
         }
-    }
+    #endif
 
     func testSharedMediaPanelsDeliverControlsSeekAndLyricsThroughEverySkin() throws {
         let shell = try sharedLibraryShell("media")
@@ -3340,7 +3343,6 @@ final class ShellStyleLayoutTests: XCTestCase {
                     XCTAssertEqual(
                         CGFloat(frame.x + frame.width / 2),
                         widget.surface.size.width / 2,
-                        accuracy: 0.5,
                         context
                     )
                 }
@@ -3772,7 +3774,7 @@ final class ShellStyleLayoutTests: XCTestCase {
                     return try XCTUnwrap(labels.map { widget.surface.layout.core.absoluteFrame(of: $0).y }.min(), title)
                 }
                 for position in positions.dropFirst() {
-                    XCTAssertEqual(position, positions[0], accuracy: 0.001)
+                    XCTAssertEqual(position, positions[0])
                 }
             }
         }
@@ -3810,8 +3812,8 @@ final class ShellStyleLayoutTests: XCTestCase {
                 .first { widget.text.string(widget.surface.layout.core.content(of: $0).text) == "applelogo" })
             let header = widget.surface.layout.core.parent(of: widget.surface.layout.core.parent(of: apple))
             let headerFrame = CGRect(widget.surface.layout.core.absoluteFrame(of: header))
-            XCTAssertEqual(headerFrame.minX - bounds.minX, 12, accuracy: 0.5, position)
-            XCTAssertEqual(headerFrame.minY - bounds.minY, 12, accuracy: 0.5, position)
+            XCTAssertEqual(headerFrame.minX - bounds.minX, 12, position)
+            XCTAssertEqual(headerFrame.minY - bounds.minY, 12, position)
             var footer = try XCTUnwrap(elements.first {
                 widget.text.string(widget.surface.layout.core.content(of: $0).text).hasPrefix("Mac16,9")
             })
@@ -3820,8 +3822,8 @@ final class ShellStyleLayoutTests: XCTestCase {
             }
             XCTAssertGreaterThanOrEqual(footer.slot, 0, position)
             let footerFrame = CGRect(widget.surface.layout.core.absoluteFrame(of: footer))
-            XCTAssertEqual(bounds.maxX - footerFrame.maxX, 12, accuracy: 0.5, position)
-            XCTAssertEqual(bounds.maxY - footerFrame.maxY, 12, accuracy: 0.5, position)
+            XCTAssertEqual(bounds.maxX - footerFrame.maxX, 12, position)
+            XCTAssertEqual(bounds.maxY - footerFrame.maxY, 12, position)
         }
     }
 
@@ -3865,8 +3867,8 @@ final class ShellStyleLayoutTests: XCTestCase {
                 ShellLayerScene.engineQueue.sync {}
                 let scrolled = try XCTUnwrap(widget.layers().first { $0.bounds.origin.y > 0 }, context)
                 let bottom = try XCTUnwrap(scrolled.sublayers?.map(\.frame.maxY).max(), context)
-                XCTAssertEqual(scrolled.bounds.height, viewport.height, accuracy: 0.5, context)
-                XCTAssertEqual(scrolled.bounds.origin.y, bottom + 16 - viewport.height, accuracy: 0.5, context)
+                XCTAssertEqual(scrolled.bounds.height, viewport.height, context)
+                XCTAssertEqual(scrolled.bounds.origin.y, bottom + 16 - viewport.height, context)
             }
         }
     }
@@ -4376,22 +4378,22 @@ final class ShellStyleLayoutTests: XCTestCase {
                         )
                         XCTAssertEqual(logos.first?.content.color, Color(packed: 0xB665_45FF), context)
                         if ["default", "lake", "matrix", "sakura"].contains(profile) {
-                            XCTAssertEqual(frame.width, height - 4, accuracy: 0.001, context)
-                            XCTAssertEqual(frame.height, height - 4, accuracy: 0.001, context)
+                            XCTAssertEqual(frame.width, height - 4, context)
+                            XCTAssertEqual(frame.height, height - 4, context)
                         } else if ["wayline", "nocturne"].contains(profile) {
-                            XCTAssertEqual(frame.width, 32 * height / 40, accuracy: 0.001, context)
-                            XCTAssertEqual(frame.height, 32 * height / 40, accuracy: 0.001, context)
+                            XCTAssertEqual(frame.width, 32 * height / 40, context)
+                            XCTAssertEqual(frame.height, 32 * height / 40, context)
                         }
                         if profile == "wayline" {
                             XCTAssertTrue(widget.surface.layout.core.paint(of: button).fill.isVisible, context)
-                            XCTAssertEqual(content.hoverOpacity, 0.85, accuracy: 0.001, context)
+                            XCTAssertEqual(content.hoverOpacity, 0.85, context)
                         } else if profile == "nocturne" {
                             XCTAssertEqual(
                                 widget.surface.layout.core.paint(of: button).fill.isVisible,
                                 state.backgrounds,
                                 context
                             )
-                            XCTAssertEqual(content.hoverScale, 1.06, accuracy: 0.001, context)
+                            XCTAssertEqual(content.hoverScale, 1.06, context)
                         }
                         let modeLabel: String
                         let modeHelp: String
@@ -4418,7 +4420,6 @@ final class ShellStyleLayoutTests: XCTestCase {
                         XCTAssertEqual(
                             vertical ? chipFrame.minY - frame.maxY : chipFrame.minX - frame.maxX,
                             4,
-                            accuracy: 0.001,
                             context
                         )
                     }
@@ -4783,8 +4784,7 @@ final class ShellStyleLayoutTests: XCTestCase {
                     }).frame
                     XCTAssertEqual(
                         vertical ? line.height : line.width,
-                        vertical ? workspace.height : workspace.width,
-                        accuracy: 0.01
+                        vertical ? workspace.height : workspace.width
                     )
                 }
             }

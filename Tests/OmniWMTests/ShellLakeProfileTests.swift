@@ -176,10 +176,11 @@ final class ShellLakeProfileTests: XCTestCase {
         try checkExpandedMediaRetainedWork(renderBudget: ShellRenderTestBudget.unlimited)
     }
 
-    func testRenderSpeedExpandedMediaUpdatesStayWithinProductionBudget() throws {
-        try ShellRenderTestBudget.requireBenchmark()
-        try checkExpandedMediaRetainedWork(renderBudget: ShellWidgetPackage.renderBudget)
-    }
+    #if OMNIWM_LIVE_CHECKS
+        func testRenderSpeedExpandedMediaUpdatesStayWithinProductionBudget() throws {
+            try checkExpandedMediaRetainedWork(renderBudget: ShellWidgetPackage.renderBudget)
+        }
+    #endif
 
     private func checkExpandedMediaRetainedWork(renderBudget: UInt64) throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
@@ -307,8 +308,8 @@ final class ShellLakeProfileTests: XCTestCase {
             XCTAssertEqual(fields.count, 3)
             XCTAssertEqual(fields.first, "spring")
             guard fields.count == 3 else { return }
-            XCTAssertEqual(try XCTUnwrap(Double(fields[1])), response, accuracy: 0.000001)
-            XCTAssertEqual(try XCTUnwrap(Double(fields[2])), bounce, accuracy: 0.000001)
+            XCTAssertEqual(try XCTUnwrap(Double(fields[1])), response)
+            XCTAssertEqual(try XCTUnwrap(Double(fields[2])), bounce)
         }
         let compact = try primary()
         try spring(compact, response: 0.30, bounce: 0.04)
@@ -327,8 +328,8 @@ final class ShellLakeProfileTests: XCTestCase {
         XCTAssertEqual(expanded.input_flags & UInt8(OMNI_INPUT_GESTURE_ALL), 0)
         let track = try XCTUnwrap(ShellGestureTrack(fixture.text.string(expanded.gesture_track)))
         XCTAssertEqual(track.dy.to, -40)
-        XCTAssertEqual(track.dy.rubber, 0.4, accuracy: 0.000001)
-        XCTAssertEqual(track.scale.to, 0.94, accuracy: 0.000001)
+        XCTAssertEqual(track.dy.rubber, 0.4)
+        XCTAssertEqual(track.scale.to, 0.94)
         fixture.invoke(expanded.key_action, event: intentEvent("down", key: "right"))
         try fixture.render()
         try spring(try primary(), response: 0.34, bounce: 0.16)
@@ -468,10 +469,11 @@ final class ShellLakeProfileTests: XCTestCase {
         try checkLakeWidgetsSettings(renderBudget: ShellRenderTestBudget.unlimited)
     }
 
-    func testRenderSpeedLakeWidgetsSettingsStayWithinProductionBudget() throws {
-        try ShellRenderTestBudget.requireBenchmark()
-        try checkLakeWidgetsSettings(renderBudget: ShellWidgetPackage.renderBudget, snapshotSuffix: "-speed")
-    }
+    #if OMNIWM_LIVE_CHECKS
+        func testRenderSpeedLakeWidgetsSettingsStayWithinProductionBudget() throws {
+            try checkLakeWidgetsSettings(renderBudget: ShellWidgetPackage.renderBudget, snapshotSuffix: "-speed")
+        }
+    #endif
 
     private func checkLakeWidgetsSettings(renderBudget: UInt64, snapshotSuffix: String = "") throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)

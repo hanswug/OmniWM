@@ -233,7 +233,8 @@ extension ShellGlassSceneTests {
 
     func testBandLayerSitsAboveFillOnlyWhileRimAddsLight() throws {
         try ShellLayerScene.engineQueue.sync {
-            guard ShellGlassCapability.shared.available else { throw XCTSkip("Native glass is unavailable") }
+            guard ShellGlassCapability.shared.available
+            else { throw MissingTestPrerequisite("Native glass is unavailable") }
             let fitted = try Self.rimBody("0.1:0:90")
             XCTAssertEqual(fitted.layer.sublayers?.count, 6)
             let glass = try Self.rimBody("0.3:0:90")
@@ -245,7 +246,7 @@ extension ShellGlassSceneTests {
             let effect = try XCTUnwrap(band.value(forKey: "effect") as? NSObject)
             XCTAssertEqual(NSStringFromClass(type(of: effect)), "CASDFGradientEffect")
             let colors = try XCTUnwrap(effect.value(forKey: "colors") as? [CGColor])
-            XCTAssertEqual(try XCTUnwrap(colors.last).alpha, 0.36 * 0.2, accuracy: 1e-6)
+            XCTAssertEqual(try XCTUnwrap(colors.last).alpha, 0.36 * 0.2)
             XCTAssertEqual(glass.elements.count, 5)
             XCTAssertTrue(glass.canvasLayers.contains { $0 === band })
         }
@@ -286,7 +287,8 @@ extension ShellGlassSceneTests {
 
     func testBandJoinsRunningMotionWhenRimTurnsOnAndLeavesWhenItTurnsOff() throws {
         try ShellLayerScene.engineQueue.sync {
-            guard ShellGlassCapability.shared.available else { throw XCTSkip("Native glass is unavailable") }
+            guard ShellGlassCapability.shared.available
+            else { throw MissingTestPrerequisite("Native glass is unavailable") }
             let body = ShellGlassBody()
             let root = CALayer()
             root.frame = CGRect(x: 0, y: 0, width: 96, height: 96)
