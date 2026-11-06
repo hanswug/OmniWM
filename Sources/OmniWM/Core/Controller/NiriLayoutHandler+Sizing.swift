@@ -24,7 +24,7 @@ extension NiriLayoutHandler {
     func cycleContainerPrimarySpan(forward: Bool, target: WindowTarget = .focused) -> Bool {
         performWindowSizing(on: target) { engine, windowNode, context, state in
             guard let column = engine.findColumn(containing: windowNode, in: context.workspaceId) else { return nil }
-            retestObservedPrimaryMinimums(in: column, engine: engine, context: context)
+            retestObservedPrimaryMinimums(in: column, engine: engine, context: context, forShrinkToFit: true)
             fittingVisibleColumns(around: column, engine: engine, context: context, state: &state) { state in
                 engine.toggleContainerPrimarySpan(column, forwards: forward, context: context, state: &state)
             }
@@ -37,12 +37,47 @@ extension NiriLayoutHandler {
         performWindowSizing(on: target) { engine, windowNode, context, state in
             let column = engine.findColumn(containing: windowNode, in: context.workspaceId)
             if let column {
-                retestObservedPrimaryMinimums(in: column, engine: engine, context: context)
+                retestObservedPrimaryMinimums(in: column, engine: engine, context: context, forShrinkToFit: true)
             }
             fittingVisibleColumns(around: column, engine: engine, context: context, state: &state) { state in
                 engine.toggleWindowPrimarySpan(windowNode, forwards: forward, context: context, state: &state)
             }
             return .windowSizeChanged(token: windowNode.token)
+        }
+    }
+
+    static let shrinkToFitRetestWindow: CFTimeInterval = 2
+
+    func refitAfterRetestedMinimumGrew(for token: WindowToken, now: CFTimeInterval = CACurrentMediaTime()) {
+        guard let retestedAt = shrinkToFitRetests.removeValue(forKey: token),
+              now - retestedAt <= Self.shrinkToFitRetestWindow,
+              let controller,
+              controller.settings.niri.shrinkToFit,
+              let handle = controller.workspaceManager.handle(for: token),
+              let observedMinimum = controller.workspaceManager.observedSizeEvidence(for: token)?.minSize
+        else { return }
+        performWindowSizing(on: .window(handle)) { engine, windowNode, context, state in
+            guard engine.interactiveResize == nil,
+                  let column = engine.findColumn(containing: windowNode, in: context.workspaceId)
+            else { return nil }
+            let onScreen = engine.onScreenProjectedColumns(
+                in: context.workspaceId,
+                state: state,
+                geometry: context.sizingGeometry
+            )
+            guard onScreen.count > 1 else { return nil }
+            var constraints = windowNode.constraints
+            constraints.minSize.width = max(constraints.minSize.width, observedMinimum.width)
+            constraints.minSize.height = max(constraints.minSize.height, observedMinimum.height)
+            engine.updateWindowConstraints(
+                for: token,
+                constraints: constraints,
+                packingHints: windowNode.packingHints,
+                in: context.workspaceId,
+                motion: context.motion
+            )
+            engine.shrinkVisibleColumnsToFit(around: column, onScreen: onScreen, context: context, state: &state)
+            return .containerPrimarySpanChanged
         }
     }
 
@@ -143,7 +178,7 @@ extension NiriLayoutHandler {
     func setContainerPrimarySpan(_ change: NiriSizeChange, target: WindowTarget = .focused) -> Bool {
         performWindowSizing(on: target) { engine, windowNode, context, state in
             guard let column = engine.findColumn(containing: windowNode, in: context.workspaceId) else { return nil }
-            retestObservedPrimaryMinimums(in: column, engine: engine, context: context)
+            retestObservedPrimaryMinimums(in: column, engine: engine, context: context, forShrinkToFit: true)
             fittingVisibleColumns(around: column, engine: engine, context: context, state: &state) { state in
                 engine.setContainerPrimarySpan(column, change: change, context: context, state: &state)
             }
@@ -156,7 +191,7 @@ extension NiriLayoutHandler {
         performWindowSizing(on: target) { engine, windowNode, context, state in
             let column = engine.findColumn(containing: windowNode, in: context.workspaceId)
             if let column {
-                retestObservedPrimaryMinimums(in: column, engine: engine, context: context)
+                retestObservedPrimaryMinimums(in: column, engine: engine, context: context, forShrinkToFit: true)
             }
             fittingVisibleColumns(around: column, engine: engine, context: context, state: &state) { state in
                 engine.setWindowPrimarySpan(windowNode, change: change, context: context, state: &state)
@@ -178,9 +213,11 @@ extension NiriLayoutHandler {
     private func retestObservedPrimaryMinimums(
         in column: NiriContainer,
         engine: NiriLayoutEngine,
-        context: NiriInteractionContext
+        context: NiriInteractionContext,
+        forShrinkToFit: Bool = false
     ) {
         guard let controller else { return }
+        if forShrinkToFit { shrinkToFitRetests.removeAll() }
         let horizontal = context.orientation == .horizontal
         for window in column.windowNodes {
             let token = window.token
@@ -193,6 +230,9 @@ extension NiriLayoutHandler {
                 evidence.minSize.height = 1
             }
             _ = controller.workspaceManager.setObservedSizeEvidence(evidence, for: token)
+            if forShrinkToFit, controller.settings.niri.shrinkToFit {
+                shrinkToFitRetests[token] = CACurrentMediaTime()
+            }
             let declared = controller.workspaceManager.cachedConstraints(
                 for: token,
                 maxAge: .greatestFiniteMagnitude

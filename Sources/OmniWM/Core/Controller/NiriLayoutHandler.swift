@@ -48,6 +48,8 @@ enum StructuralMutationOutcome: Equatable {
 
 @MainActor final class NiriLayoutHandler {
     weak var controller: WMController?
+    // OmniWM new features (hanswug/OmniWM fork).
+    var shrinkToFitRetests: [WindowToken: CFTimeInterval] = [:]
 
     struct NiriLayoutPass {
         let motion: MotionSnapshot
