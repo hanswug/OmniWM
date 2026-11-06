@@ -336,6 +336,10 @@ extension IPCAutomationManifest {
             summary: "Balance layout sizes in the active workspace."
         ),
         .init(
+            name: .dwindle(.resetLayout),
+            summary: "Reset the active workspace to an even layout that fills the working area."
+        ),
+        .init(
             name: .dwindle(.moveToRoot),
             summary: "Move the selected Dwindle window to the root split.",
             layoutCompatibility: .dwindle

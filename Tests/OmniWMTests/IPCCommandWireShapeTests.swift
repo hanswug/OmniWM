@@ -118,6 +118,7 @@ final class IPCCommandWireShapeTests: XCTestCase {
         #"{"arguments":{"change":{"kind":"set-proportion","value":0.5}},"name":"set-window-secondary-span"}"#,
         #"{"arguments":{"direction":"left"},"name":"swap-workspace-with-monitor"}"#,
         #"{"name":"balance-sizes"}"#,
+        #"{"name":"reset-layout"}"#,
         #"{"name":"move-to-root"}"#,
         #"{"name":"toggle-split"}"#,
         #"{"name":"swap-split"}"#,

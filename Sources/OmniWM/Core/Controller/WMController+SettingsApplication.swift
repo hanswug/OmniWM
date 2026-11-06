@@ -141,6 +141,7 @@ extension WMController {
                 alwaysCenterSingleColumn: settings.niri.alwaysCenterSingleColumn
             )
         }
+        let previousVisibleContainerCount = niriEngine?.visibleContainerCount
         updateNiriConfig(
             visibleContainerCount: settings.niri.visibleContainerCount,
             infiniteLoop: settings.niri.infiniteLoop,
@@ -151,6 +152,9 @@ extension WMController {
             containerPrimarySpanPresets: settings.niri.containerPrimarySpanPresets,
             defaultContainerPrimarySpan: settings.niri.defaultContainerPrimarySpan
         )
+        if let previousVisibleContainerCount, previousVisibleContainerCount != settings.niri.visibleContainerCount {
+            rebalanceNiriSizesForVisibleContainerCountChange()
+        }
 
         if dwindleEngine == nil {
             enableDwindleLayout()

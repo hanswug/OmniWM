@@ -147,6 +147,14 @@ private struct GlobalNiriSettingsSection: View {
             )
             .id("Stack Moved Window Into Adjacent Column")
 
+            Picker(selection: Bindable(settings.niri).visibleContainerChangeAction) {
+                Text(verbatim: "Balance Sizes").tag(VisibleContainerChangeAction.balance)
+                Text(verbatim: "Reset Layout").tag(VisibleContainerChangeAction.reset)
+            } label: {
+                Text(verbatim: "When Visible Containers Change")
+            }
+            .id("When Visible Containers Change")
+
             SingleWindowFitControls(
                 label: String(localized: "Single Window"),
                 fit: settings.niri.singleWindowFit,

@@ -145,7 +145,9 @@ extension ActionCatalog {
             ),
             action(id: "moveToRoot", command: .dwindle(.moveToRoot), category: .layout, binding: .unassigned),
             action(id: "toggleSplit", command: .dwindle(.toggleSplit), category: .layout, binding: .unassigned),
-            action(id: "swapSplit", command: .dwindle(.swapSplit), category: .layout, binding: .unassigned)
+            action(id: "swapSplit", command: .dwindle(.swapSplit), category: .layout, binding: .unassigned),
+            // OmniWM new features (hanswug/OmniWM fork): kept last so existing hotkeys keep their positions.
+            action(id: "resetLayout", command: .sizing(.resetLayout), category: .layout, binding: .unassigned)
         ])
     }
 }

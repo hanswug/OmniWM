@@ -130,6 +130,8 @@ extension HotkeyCommand {
         switch command {
         case .balanceSizes:
             self = .sizing(.balanceSizes)
+        case .resetLayout:
+            self = .sizing(.resetLayout)
         case .moveToRoot:
             self = .dwindle(.moveToRoot)
         case .toggleSplit:
