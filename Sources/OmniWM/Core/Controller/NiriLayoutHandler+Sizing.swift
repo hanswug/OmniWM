@@ -42,6 +42,35 @@ extension NiriLayoutHandler {
         }
     }
 
+    func refitOnScreenColumns(afterMinimumIncreaseOf token: WindowToken) {
+        guard let controller,
+              controller.settings.niri.shrinkToFit,
+              let handle = controller.workspaceManager.handle(for: token),
+              let observedMinimum = controller.workspaceManager.observedSizeEvidence(for: token)?.minSize
+        else { return }
+        performWindowSizing(on: .window(handle)) { engine, windowNode, context, state in
+            guard let column = engine.findColumn(containing: windowNode, in: context.workspaceId) else { return nil }
+            let onScreen = engine.onScreenColumns(
+                in: context.workspaceId,
+                state: state,
+                geometry: context.sizingGeometry
+            )
+            guard onScreen.count > 1 else { return nil }
+            var constraints = windowNode.constraints
+            constraints.minSize.width = max(constraints.minSize.width, observedMinimum.width)
+            constraints.minSize.height = max(constraints.minSize.height, observedMinimum.height)
+            engine.updateWindowConstraints(
+                for: token,
+                constraints: constraints,
+                packingHints: windowNode.packingHints,
+                in: context.workspaceId,
+                motion: context.motion
+            )
+            engine.shrinkOnScreenColumnsToFit(around: column, onScreen: onScreen, context: context, state: &state)
+            return .containerPrimarySpanChanged
+        }
+    }
+
     private func fittingOnScreenColumns(
         around column: NiriContainer?,
         engine: NiriLayoutEngine,
