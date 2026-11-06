@@ -195,6 +195,16 @@ extension NiriLayoutHandler {
     }
 
     private func retestObservedPrimaryMinimums(
+        in workspaceId: WorkspaceDescriptor.ID,
+        engine: NiriLayoutEngine,
+        context: NiriInteractionContext
+    ) {
+        for column in engine.columns(in: workspaceId) {
+            retestObservedPrimaryMinimums(in: column, engine: engine, context: context)
+        }
+    }
+
+    private func retestObservedPrimaryMinimums(
         in column: NiriContainer,
         engine: NiriLayoutEngine,
         context: NiriInteractionContext
@@ -262,6 +272,16 @@ extension NiriLayoutHandler {
 
     private func balanceSizes(fillsUnusedSpace: Bool) {
         withNiriWorkspaceContext { engine, wsId, motion, state, _, workingFrame, gaps, orientation in
+            if fillsUnusedSpace {
+                retestObservedPrimaryMinimums(
+                    in: wsId,
+                    engine: engine,
+                    context: .init(
+                        workspaceId: wsId, motion: motion, workingFrame: workingFrame, gaps: gaps,
+                        orientation: orientation
+                    )
+                )
+            }
             guard engine.balanceSizes(
                 in: wsId,
                 motion: motion,
@@ -300,6 +320,16 @@ extension NiriLayoutHandler {
                engine.effectiveSettings(in: descriptor.id).defaultContainerPrimarySpan != nil { continue }
             withNiriWorkspaceContext(for: descriptor.id) {
                 engine, wsId, motion, state, _, workingFrame, gaps, orientation in
+                if fillsUnusedSpace {
+                    retestObservedPrimaryMinimums(
+                        in: wsId,
+                        engine: engine,
+                        context: .init(
+                            workspaceId: wsId, motion: motion, workingFrame: workingFrame, gaps: gaps,
+                            orientation: orientation
+                        )
+                    )
+                }
                 guard engine.balanceSizes(
                     in: wsId,
                     motion: motion,
