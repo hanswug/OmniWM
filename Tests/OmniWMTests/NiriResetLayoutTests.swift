@@ -99,6 +99,48 @@ final class NiriResetLayoutTests: XCTestCase {
         XCTAssertEqual(frames[1].maxX, monitorFrame.width - sidePadding, accuracy: 1)
     }
 
+    func testResetAfterShrinkToFitSplitsEvenly() throws {
+        let fixture = try makeFixture(windowCount: 2, visibleContainerCount: 2)
+        try assertResetClearsShrinkToFit(fixture) {
+            fixture.controller.niriLayoutHandler.resetLayout()
+        }
+    }
+
+    func testResetAfterShrinkToFitWithFewerColumnsFills() throws {
+        let fixture = try makeFixture(windowCount: 2, visibleContainerCount: 3)
+        try assertResetClearsShrinkToFit(fixture) {
+            fixture.controller.niriLayoutHandler.resetLayout()
+        }
+    }
+
+    func testBalanceAfterShrinkToFitSplitsEvenly() throws {
+        let fixture = try makeFixture(windowCount: 2, visibleContainerCount: 2)
+        try assertResetClearsShrinkToFit(fixture) {
+            fixture.controller.niriLayoutHandler.balanceSizes()
+        }
+    }
+
+    private func assertResetClearsShrinkToFit(_ fixture: Fixture, reset: () -> Void) throws {
+        fixture.controller.settings.niri.shrinkToFit = true
+        XCTAssertTrue(fixture.controller.niriLayoutHandler.setContainerPrimarySpan(
+            .setProportion(70),
+            target: .window(fixture.handles[0])
+        ))
+        let fitted = try settledFrames(fixture)
+        XCTAssertGreaterThan(fitted[0].width, fitted[1].width + 100)
+
+        reset()
+
+        let engine = try XCTUnwrap(fixture.controller.niriEngine)
+        let specs = engine.columns(in: fixture.workspaceId).map(\.width)
+        XCTAssertTrue(specs.allSatisfy { $0 == specs[0] })
+        XCTAssertTrue(engine.ensureState(for: fixture.workspaceId).shrinkToFitColumnIds.isEmpty)
+        let frames = try settledFrames(fixture)
+        XCTAssertEqual(frames[0].width, frames[1].width, accuracy: 1)
+        XCTAssertEqual(frames[0].minX, sidePadding, accuracy: 1)
+        XCTAssertEqual(frames[1].maxX, monitorFrame.width - sidePadding, accuracy: 1)
+    }
+
     private struct Fixture {
         let controller: WMController
         let workspaceId: WorkspaceDescriptor.ID
