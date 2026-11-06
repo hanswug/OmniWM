@@ -85,6 +85,51 @@ extension DwindleLayoutEngine {
         return balanceSizesRecursive(state.root, excludedTokens: state.excludedTokens)
     }
 
+    @discardableResult
+    func resetLayout(in workspaceId: WorkspaceDescriptor.ID) -> Bool {
+        assertSanctionedMutation()
+        guard let state = existingState(for: workspaceId) else { return false }
+        return resetLayoutRecursive(state.root, excludedTokens: state.excludedTokens)
+    }
+
+    private func resetLayoutRecursive(
+        _ node: DwindleNode,
+        excludedTokens: Set<WindowToken>
+    ) -> Bool {
+        guard case let .split(orientation, ratio) = node.kind else { return false }
+        let first = node.firstChild()
+        let second = node.secondChild()
+        let firstTiles = first.map { visibleTileCount($0, excluding: excludedTokens) } ?? 0
+        let secondTiles = second.map { visibleTileCount($0, excluding: excludedTokens) } ?? 0
+        var changed = false
+        if firstTiles > 0, secondTiles > 0 {
+            let target = clampedRatioRespectingMinimums(
+                2 * CGFloat(firstTiles) / CGFloat(firstTiles + secondTiles),
+                for: node,
+                innerGap: settings.innerGap,
+                excludedTokens: excludedTokens
+            )
+            changed = ratio != target
+            if changed {
+                node.kind = .split(orientation: orientation, ratio: target)
+            }
+        }
+        if firstTiles > 0, let first {
+            changed = resetLayoutRecursive(first, excludedTokens: excludedTokens) || changed
+        }
+        if secondTiles > 0, let second {
+            changed = resetLayoutRecursive(second, excludedTokens: excludedTokens) || changed
+        }
+        return changed
+    }
+
+    private func visibleTileCount(_ node: DwindleNode, excluding excludedTokens: Set<WindowToken>) -> Int {
+        if let tile = node.tile {
+            return visibleMember(in: tile, excluding: excludedTokens) == nil ? 0 : 1
+        }
+        return node.children.reduce(0) { $0 + visibleTileCount($1, excluding: excludedTokens) }
+    }
+
     private func balanceSizesRecursive(
         _ node: DwindleNode,
         excludedTokens: Set<WindowToken>

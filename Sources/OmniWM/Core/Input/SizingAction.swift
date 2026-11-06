@@ -21,6 +21,7 @@ enum SizingAction: Equatable, Hashable {
     case setWindowPrimarySpan(NiriSizeChange)
     case setWindowSecondarySpan(NiriSizeChange)
     case balanceSizes
+    case resetLayout
 }
 
 extension SizingAction {
@@ -50,6 +51,9 @@ extension SizingAction {
             )
         case .balanceSizes: LocalizedStringResource(
                 "command.sizing.balance", defaultValue: "Balance Sizes", table: "Commands", bundle: .omniWM
+            )
+        case .resetLayout: LocalizedStringResource(
+                "command.sizing.reset", defaultValue: "Reset Layout", table: "Commands", bundle: .omniWM
             )
         case .toggleContainerFullPrimarySpan,
              .expandContainerToAvailablePrimarySpan,
@@ -103,7 +107,8 @@ extension SizingAction {
              .cycleWindowPrimarySpanBackward,
              .cycleWindowSecondarySpanForward,
              .cycleWindowSecondarySpanBackward,
-             .balanceSizes:
+             .balanceSizes,
+             .resetLayout:
             actionDisplayName()
         }
     }
@@ -146,7 +151,8 @@ extension SizingAction {
              .setContainerPrimarySpan,
              .setWindowPrimarySpan,
              .setWindowSecondarySpan,
-             .balanceSizes:
+             .balanceSizes,
+             .resetLayout:
             spanTitle()
         }
     }
@@ -183,6 +189,8 @@ extension SizingAction {
             .sizing(.setWindowSecondarySpan)
         case .balanceSizes:
             .dwindle(.balanceSizes)
+        case .resetLayout:
+            .dwindle(.resetLayout)
         }
     }
 
@@ -190,7 +198,8 @@ extension SizingAction {
         switch self {
         case .cycleSizeForward,
              .cycleSizeBackward,
-             .balanceSizes:
+             .balanceSizes,
+             .resetLayout:
             .shared
         case .cycleWindowPrimarySpanForward,
              .cycleWindowPrimarySpanBackward,

@@ -95,7 +95,11 @@ extension WMController {
     }
 
     func rebalanceNiriSizesForVisibleContainerCountChange(on monitorId: Monitor.ID? = nil) {
-        niriLayoutHandler.balanceSizesAllWorkspaces(on: monitorId, onlyAutomaticSpans: true)
+        niriLayoutHandler.balanceSizesAllWorkspaces(
+            on: monitorId,
+            onlyAutomaticSpans: true,
+            fillsUnusedSpace: settings.niri.visibleContainerChangeAction == .reset
+        )
     }
 
     func enableDwindleLayout() {

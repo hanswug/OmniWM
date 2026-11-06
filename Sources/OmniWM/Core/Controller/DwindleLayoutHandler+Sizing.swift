@@ -66,6 +66,18 @@ extension DwindleLayoutHandler {
         }
     }
 
+    func resetLayout() {
+        guard let controller else { return }
+        withDwindleContext { engine, wsId in
+            if engine.resetLayout(in: wsId) {
+                recordLayoutOperation(.sizesBalanced, in: wsId)
+            }
+            controller.layoutRefreshController.requestLayoutCommandRelayout(
+                affectedWorkspaceIds: [wsId]
+            )
+        }
+    }
+
     func enableDwindleLayout() {
         guard let controller else { return }
         let engine = DwindleLayoutEngine()

@@ -60,6 +60,7 @@ set-window-primary-span
 set-window-secondary-span
 swap-workspace-with-monitor
 balance-sizes
+reset-layout
 move-to-root
 toggle-split
 swap-split

@@ -3,6 +3,7 @@
 
 public enum IPCDwindleCommandName: String, CaseIterable, Hashable, Sendable {
     case balanceSizes = "balance-sizes"
+    case resetLayout = "reset-layout"
     case moveToRoot = "move-to-root"
     case toggleSplit = "toggle-split"
     case swapSplit = "swap-split"
@@ -14,6 +15,7 @@ public enum IPCDwindleCommandName: String, CaseIterable, Hashable, Sendable {
 
 public enum IPCDwindleCommand: Equatable, Sendable {
     case balanceSizes
+    case resetLayout
     case moveToRoot
     case toggleSplit
     case swapSplit
@@ -26,6 +28,8 @@ public enum IPCDwindleCommand: Equatable, Sendable {
         switch self {
         case .balanceSizes:
             .balanceSizes
+        case .resetLayout:
+            .resetLayout
         case .moveToRoot:
             .moveToRoot
         case .toggleSplit:
@@ -47,6 +51,8 @@ public enum IPCDwindleCommand: Equatable, Sendable {
         switch name {
         case .balanceSizes:
             self = try arguments.requireNoArguments(.balanceSizes)
+        case .resetLayout:
+            self = try arguments.requireNoArguments(.resetLayout)
         case .moveToRoot:
             self = try arguments.requireNoArguments(.moveToRoot)
         case .toggleSplit:
@@ -74,6 +80,7 @@ public enum IPCDwindleCommand: Equatable, Sendable {
         case let .preselect(direction):
             try writer.encode(direction: direction)
         case .balanceSizes,
+             .resetLayout,
              .moveToRoot,
              .toggleSplit,
              .swapSplit,

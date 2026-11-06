@@ -253,13 +253,22 @@ extension NiriLayoutHandler {
     }
 
     func balanceSizes() {
+        balanceSizes(fillsUnusedSpace: false)
+    }
+
+    func resetLayout() {
+        balanceSizes(fillsUnusedSpace: true)
+    }
+
+    private func balanceSizes(fillsUnusedSpace: Bool) {
         withNiriWorkspaceContext { engine, wsId, motion, state, _, workingFrame, gaps, orientation in
             guard engine.balanceSizes(
                 in: wsId,
                 motion: motion,
                 workingFrame: workingFrame,
                 gaps: gaps,
-                orientation: orientation
+                orientation: orientation,
+                fillsUnusedSpace: fillsUnusedSpace
             ) else { return }
             engine.recoverSettledCoverage(
                 context: .init(
@@ -277,7 +286,11 @@ extension NiriLayoutHandler {
         }
     }
 
-    func balanceSizesAllWorkspaces(on monitorId: Monitor.ID? = nil, onlyAutomaticSpans: Bool = false) {
+    func balanceSizesAllWorkspaces(
+        on monitorId: Monitor.ID? = nil,
+        onlyAutomaticSpans: Bool = false,
+        fillsUnusedSpace: Bool = false
+    ) {
         guard let controller, let engine = controller.niriEngine else { return }
         var changed: Set<WorkspaceDescriptor.ID> = []
         for descriptor in controller.workspaceManager.workspaces {
@@ -292,7 +305,8 @@ extension NiriLayoutHandler {
                     motion: motion,
                     workingFrame: workingFrame,
                     gaps: gaps,
-                    orientation: orientation
+                    orientation: orientation,
+                    fillsUnusedSpace: fillsUnusedSpace
                 ) else { return }
                 engine.recoverSettledCoverage(
                     context: .init(

@@ -4,4 +4,5 @@
 @MainActor protocol LayoutSizable: AnyObject {
     func cycleSize(forward: Bool)
     func balanceSizes()
+    func resetLayout()
 }

@@ -11660,6 +11660,17 @@
         }
       }
     },
+    "command.sizing.reset" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Reset Layout"
+          }
+        }
+      }
+    },
     "command.sizing.resetWindowSecondary" : {
       "extractionState" : "extracted_with_value",
       "localizations" : {

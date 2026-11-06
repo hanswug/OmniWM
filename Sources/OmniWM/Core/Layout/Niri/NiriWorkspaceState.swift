@@ -4,6 +4,15 @@
 import CoreGraphics
 import Foundation
 
+enum VisibleContainerChangeAction: String, CaseIterable, Codable, Identifiable {
+    case balance
+    case reset
+
+    var id: String {
+        rawValue
+    }
+}
+
 enum CenterFocusedColumn: String, CaseIterable, Codable, Identifiable {
     case never
     case always

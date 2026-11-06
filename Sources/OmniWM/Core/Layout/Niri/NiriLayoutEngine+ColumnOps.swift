@@ -241,15 +241,14 @@ extension NiriLayoutEngine {
         motion: MotionSnapshot,
         workingFrame: CGRect,
         gaps: CGFloat,
-        orientation: Monitor.Orientation
+        orientation: Monitor.Orientation,
+        fillsUnusedSpace: Bool = false
     ) -> Bool {
         assertSanctionedMutation()
         let columns = projectedColumns(in: workspaceId)
         guard !columns.isEmpty else { return false }
 
-        for projectedColumn in columns {
-            beginManualPrimarySpanResize(projectedColumn.column, in: workspaceId, orientation: orientation)
-        }
+        let fills = beginBalance(columns, in: workspaceId, orientation: orientation, fills: fillsUnusedSpace)
 
         let resolvedWidth = resolvedContainerResetPrimarySpan(in: workspaceId)
         switch orientation {
@@ -287,7 +286,57 @@ extension NiriLayoutEngine {
                 motion: motion
             )
         }
+        if fills {
+            reconcilePrimarySpanFit(
+                in: workspaceId,
+                workingFrame: workingFrame,
+                gaps: gaps,
+                orientation: orientation,
+                motion: motion
+            )
+        }
         return true
+    }
+
+    private func beginBalance(
+        _ columns: [NiriProjectedColumn],
+        in workspaceId: WorkspaceDescriptor.ID,
+        orientation: Monitor.Orientation,
+        fills fillsUnusedSpace: Bool
+    ) -> Bool {
+        let isSingleWindow = columns.count == 1 && columns[0].windows.count == 1
+        let fills = fillsUnusedSpace && !isSingleWindow
+            && columns.count < effectiveVisibleContainerCount(in: workspaceId)
+        guard fills else {
+            for projectedColumn in columns {
+                beginManualPrimarySpanResize(projectedColumn.column, in: workspaceId, orientation: orientation)
+            }
+            return false
+        }
+        let workspace = ensureState(for: workspaceId)
+        switch orientation {
+        case .horizontal: workspace.manualWidthColumnCount = nil
+        case .vertical: workspace.manualHeightColumnCount = nil
+        }
+        return true
+    }
+
+    @discardableResult
+    func resetLayout(
+        in workspaceId: WorkspaceDescriptor.ID,
+        motion: MotionSnapshot,
+        workingFrame: CGRect,
+        gaps: CGFloat,
+        orientation: Monitor.Orientation
+    ) -> Bool {
+        balanceSizes(
+            in: workspaceId,
+            motion: motion,
+            workingFrame: workingFrame,
+            gaps: gaps,
+            orientation: orientation,
+            fillsUnusedSpace: true
+        )
     }
 
     private func balanceColumnHeights(

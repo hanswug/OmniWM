@@ -58,6 +58,7 @@ extension IPCJSONWriter {
         case let .preselect(direction):
             try argument("direction", direction, &first)
         case .balanceSizes,
+             .resetLayout,
              .moveToRoot,
              .toggleSplit,
              .swapSplit,
