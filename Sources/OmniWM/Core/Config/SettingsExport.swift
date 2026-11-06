@@ -116,7 +116,6 @@ struct SettingsExport: Equatable {
         var moveWindowStacksIntoColumn: Bool?
         var allowOverscroll: Bool?
         var overscrollVisibleStripPercent: Int?
-        var shrinkToFit: Bool?
         var visibleContainerChangeAction: VisibleContainerChangeAction?
         var newWindowPlacement: NewWindowPlacement?
         var newWindowJoinsTabbedColumn: Bool?
