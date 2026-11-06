@@ -74,6 +74,10 @@ final class NiriSettings {
         didSet { onChange?() }
     }
 
+    var shrinkToFit = NiriSettings.defaults.shrinkToFit ?? false {
+        didSet { onChange?() }
+    }
+
     // OmniWM new features (hanswug/OmniWM fork).
     var visibleContainerChangeAction = VisibleContainerChangeAction.balance {
         didSet { onChange?() }
@@ -124,6 +128,7 @@ final class NiriSettings {
             moveWindowStacksIntoColumn: moveWindowStacksIntoColumn,
             allowOverscroll: allowOverscroll,
             overscrollVisibleStripPercent: overscrollVisibleStripPercent,
+            shrinkToFit: shrinkToFit,
             visibleContainerChangeAction: visibleContainerChangeAction == .balance ? nil : visibleContainerChangeAction,
             newWindowPlacement: newWindowPlacement == .right ? nil : newWindowPlacement,
             newWindowJoinsTabbedColumn: newWindowJoinsTabbedColumn ? true : nil
@@ -141,6 +146,7 @@ final class NiriSettings {
             ?? baseline.overscrollVisibleStripPercent ?? 5
         edgeGaps = niri.edgeGaps ?? baseline.edgeGaps ?? true
         moveWindowStacksIntoColumn = niri.moveWindowStacksIntoColumn ?? baseline.moveWindowStacksIntoColumn ?? true
+        shrinkToFit = niri.shrinkToFit ?? baseline.shrinkToFit ?? false
         visibleContainerChangeAction = niri.visibleContainerChangeAction
             ?? baseline.visibleContainerChangeAction ?? .balance
         newWindowPlacement = niri.newWindowPlacement ?? baseline.newWindowPlacement ?? .right

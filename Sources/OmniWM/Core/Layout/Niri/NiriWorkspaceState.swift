@@ -115,12 +115,20 @@ struct NiriRenderStyle {
     )
 }
 
+struct NiriShrinkToFitGeometry: Equatable {
+    let span: CGFloat
+    let gaps: CGFloat
+    let orientation: Monitor.Orientation
+}
+
 final class NiriWorkspaceState {
     let root: NiriRoot
     var nodesByToken: [WindowToken: NiriWindow] = [:]
     var attachedMonitorId: Monitor.ID?
     var manualWidthColumnCount: Int?
     var manualHeightColumnCount: Int?
+    var shrinkToFitColumnIds: Set<NodeId> = []
+    var shrinkToFitGeometry: NiriShrinkToFitGeometry?
 
     init(workspaceId: WorkspaceDescriptor.ID) {
         root = NiriRoot(workspaceId: workspaceId)

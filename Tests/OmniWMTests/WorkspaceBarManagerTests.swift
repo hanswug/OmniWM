@@ -40,7 +40,7 @@ final class WorkspaceBarManagerTests: XCTestCase {
     }
 
     func testPrimaryBarFrameChangesWithContent() async throws {
-        executionTimeAllowance = 60
+        executionTimeAllowance = failureBound
         let widget = controller.settings.settingsFileURL.deletingLastPathComponent()
             .appendingPathComponent("shell/widgets/count", isDirectory: true)
         try FileManager.default.createDirectory(at: widget, withIntermediateDirectories: true)
@@ -249,6 +249,104 @@ final class WorkspaceBarManagerTests: XCTestCase {
         XCTAssertEqual(placement.visibleFrame, monitor.visibleFrame)
         manager.apply([])
         XCTAssertNil(manager.hiddenBarPanelPlacement(on: monitor.id))
+    }
+
+    func testIconsOutsideTheBarPanelPreviewUnderTheIconAtTheirOwnWindowLevel() throws {
+        let screen = try XCTUnwrap(NSScreen.screens.first)
+        let display = Monitor(
+            id: .init(displayId: 92_200), displayId: 92_200,
+            frame: screen.frame, visibleFrame: screen.visibleFrame,
+            hasNotch: false, name: "Test"
+        )
+        let settings = controller.settings
+        settings.workspaceBar.enabled = true
+        let controller = WMController(settings: settings)
+        controller.workspaceManager.applyMonitorConfigurationChange([display])
+        let manager = controller.workspaceBarManager
+        manager.setup(controller: controller, settings: settings)
+        manager.panelFactory = { WorkspaceBarPanel.defaultPanel() }
+        manager.frameApplier = { _, _ in }
+        defer { manager.cleanup() }
+        manager.apply([DesiredBarSurface(monitor: display, visible: true, snapshot: snapshot(itemCount: 1))])
+        let instance = try XCTUnwrap(manager.barsByMonitor[display.id])
+        let panel = instance.primary.panel
+        let iconSide: CGFloat = 16
+        let barHeight = 2 * iconSide
+        panel.setFrame(
+            CGRect(
+                x: screen.frame.minX,
+                y: screen.frame.maxY - barHeight,
+                width: screen.frame.width,
+                height: barHeight
+            ),
+            display: false
+        )
+        panel.orderFront(nil)
+        defer { panel.orderOut(nil) }
+
+        let below = CGRect(x: screen.frame.midX, y: panel.frame.minY - 2 * iconSide, width: iconSide, height: iconSide)
+        let island = try XCTUnwrap(manager.hoverPlacement(
+            for: ShellAnchor(frame: below, level: .floating),
+            instance: instance
+        ))
+        XCTAssertEqual(island.attachment, PopupAttachment(
+            sourceFrame: below,
+            edge: .below,
+            alignment: CGPoint(x: below.midX, y: below.midY)
+        ))
+        XCTAssertEqual(island.level, .floating)
+        XCTAssertEqual(island.visibleFrame, display.visibleFrame)
+
+        let side = CGRect(x: screen.frame.minX, y: screen.frame.midY, width: iconSide, height: iconSide)
+        let strip = try XCTUnwrap(manager.hoverPlacement(
+            for: ShellAnchor(frame: side, level: .floating),
+            instance: instance
+        ))
+        XCTAssertEqual(strip.attachment.edge, .right)
+
+        let inside = CGRect(x: screen.frame.midX, y: panel.frame.minY, width: iconSide, height: iconSide)
+        let bar = try XCTUnwrap(manager.hoverPlacement(
+            for: ShellAnchor(frame: inside, level: .floating),
+            instance: instance
+        ))
+        XCTAssertEqual(bar.attachment, PopupAttachment(
+            sourceFrame: panel.frame,
+            edge: settings.workspaceBar.resolved(for: display).position.popupEdge,
+            alignment: CGPoint(x: inside.midX, y: inside.midY)
+        ))
+        XCTAssertEqual(bar.level, panel.level)
+    }
+
+    func testDragGhostShowsItsIconFromTheStartAndFitsItsWholeLabel() throws {
+        let ghost = WorkspaceBarDragGhost(icon: nil, ownedWindowRegistry: OwnedWindowRegistry())
+        defer { ghost.destroy() }
+        let content = try XCTUnwrap(ghost.contentView)
+        let icon = try XCTUnwrap(content.subviews.compactMap { $0 as? NSImageView }.first)
+        let label = try XCTUnwrap(content.subviews.compactMap { $0 as? NSTextField }.first)
+        XCTAssertFalse(icon.frame.isEmpty)
+        XCTAssertTrue(label.isHidden)
+        XCTAssertEqual(ghost.frame.width, icon.frame.maxX + icon.frame.minX)
+
+        ghost.update(label: "Stack with Finder", isValid: true)
+        XCTAssertFalse(label.isHidden)
+        XCTAssertGreaterThanOrEqual(label.frame.width, try XCTUnwrap(label.cell).cellSize.width)
+        XCTAssertGreaterThanOrEqual(ghost.frame.width, label.frame.maxX)
+    }
+
+    func testIslandDropOrientationFollowsTheIconsAwayFromTheMark() {
+        let mark = CGRect(x: 100, y: 100, width: 20, height: 20)
+        func icon(_ frame: CGRect) -> WorkspaceBarDropGeometry.Icon {
+            WorkspaceBarDropGeometry.Icon(tokens: [], frame: frame, appName: "", placement: nil)
+        }
+        XCTAssertEqual(
+            WorkspaceBarManager.islandOrientation(mark: mark, icons: [icon(mark.offsetBy(dx: 30, dy: 0))]),
+            .horizontal
+        )
+        XCTAssertEqual(
+            WorkspaceBarManager.islandOrientation(mark: mark, icons: [icon(mark.offsetBy(dx: 0, dy: -30))]),
+            .vertical
+        )
+        XCTAssertNil(WorkspaceBarManager.islandOrientation(mark: mark, icons: []))
     }
 
     func testIconClickOpensTheHiddenBarUnderTheIconWhileOtherTriggersJoinTheBar() throws {
