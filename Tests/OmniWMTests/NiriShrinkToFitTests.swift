@@ -195,6 +195,73 @@ final class NiriShrinkToFitTests: XCTestCase {
         )
     }
 
+    func testThreeColumnsShareTheChangeAroundTheMiddleOne() throws {
+        let fixture = try makeFixture(shrinkToFit: false)
+        fixture.controller.settings.niri.visibleContainerCount = 3
+        fixture.controller.updateNiriConfig(visibleContainerCount: 3)
+        try fixture.addWindow()
+        for index in 0 ..< 3 {
+            XCTAssertTrue(fixture.setSpan(.setProportion(100.0 / 3), onColumn: index))
+        }
+        try fixture.focus(column: 0)
+        fixture.controller.settings.niri.shrinkToFit = true
+
+        XCTAssertTrue(fixture.setSpan(.setProportion(50), onColumn: 1))
+        fixture.settle()
+
+        let columns = fixture.columns
+        let share = (fixture.available(3) - fixture.raw(0.5)) / 2
+        let tolerance = CGFloat.rounding(operations: 4, at: fixture.span)
+        XCTAssertEqual(columns[1].cachedWidth, fixture.raw(0.5))
+        XCTAssertEqual(columns[0].cachedWidth, share, accuracy: tolerance)
+        XCTAssertEqual(columns[2].cachedWidth, share, accuracy: tolerance)
+        let frames = try fixture.frames()
+        let pixel = 1 / fixture.scale
+        XCTAssertEqual(frames[0].minX, padding, accuracy: pixel)
+        XCTAssertEqual(frames[2].maxX, monitorFrame.width - padding, accuracy: pixel)
+    }
+
+    func testTabbedNeighbourFillsTheRest() throws {
+        let fixture = try makeFixture(shrinkToFit: true)
+        try fixture.addWindow()
+        try fixture.focus(column: 1)
+        XCTAssertTrue(fixture.controller.niriLayoutHandler.consumeWindowIntoColumn(
+            containing: try fixture.handle(ofColumn: 1)
+        ).didMutate)
+        XCTAssertTrue(fixture.controller.niriLayoutHandler.toggleColumnTabbed(
+            target: .window(try fixture.handle(ofColumn: 1))
+        ))
+        try fixture.focus(column: 0)
+        XCTAssertEqual(fixture.columns.count, 2)
+        XCTAssertTrue(fixture.columns[1].isTabbed)
+
+        XCTAssertTrue(fixture.setSpan(.setProportion(70), onColumn: 0))
+        fixture.settle()
+
+        XCTAssertNotNil(fixture.columns[1].fittedWidth)
+        let frames = try fixture.frames()
+        let pixel = 1 / fixture.scale
+        XCTAssertEqual(frames[0].minX, padding, accuracy: pixel)
+        XCTAssertEqual(frames[1].maxX, monitorFrame.width - padding, accuracy: pixel)
+    }
+
+    func testPortraitNeighbourFillsTheRest() throws {
+        let fixture = try makeFixture(shrinkToFit: true, portrait: true)
+        let neighbour = fixture.columns[1]
+        let spec = neighbour.height
+
+        XCTAssertTrue(fixture.setSpan(.setProportion(70), onColumn: 0))
+        fixture.settle()
+
+        XCTAssertEqual(neighbour.height, spec)
+        XCTAssertNotNil(neighbour.fittedHeight)
+        let frames = try fixture.frames()
+        let pixel = 1 / fixture.scale
+        let portrait = CGRect(x: 0, y: 0, width: monitorFrame.height, height: monitorFrame.width)
+        XCTAssertEqual(frames.map(\.minY).min() ?? 0, padding, accuracy: pixel)
+        XCTAssertEqual(frames.map(\.maxY).max() ?? 0, portrait.height - padding, accuracy: pixel)
+    }
+
     func testSettingDefaultsOffAndRoundTrips() throws {
         var legacy = SettingsExport.defaults()
         legacy.niri.shrinkToFit = nil
@@ -212,7 +279,10 @@ final class NiriShrinkToFitTests: XCTestCase {
         XCTAssertEqual(settings.export(), decoded.niri)
     }
 
-    private func makeFixture(shrinkToFit: Bool) throws -> Fixture {
+    private func makeFixture(shrinkToFit: Bool, portrait: Bool = false) throws -> Fixture {
+        let frame = portrait
+            ? CGRect(x: 0, y: 0, width: monitorFrame.height, height: monitorFrame.width)
+            : monitorFrame
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent("OmniWMNiriShrinkToFitTests-\(UUID().uuidString)", isDirectory: true)
         addTeardownBlock { try? FileManager.default.removeItem(at: root) }
@@ -231,17 +301,17 @@ final class NiriShrinkToFitTests: XCTestCase {
         settings.borders.enabled = false
         settings.workspaceBar.enabled = false
         settings.gaps.size = Double(gap)
-        settings.gaps.outerGapLeft = Double(padding)
-        settings.gaps.outerGapRight = Double(padding)
-        settings.gaps.outerGapTop = 0
-        settings.gaps.outerGapBottom = 0
+        settings.gaps.outerGapLeft = portrait ? 0 : Double(padding)
+        settings.gaps.outerGapRight = portrait ? 0 : Double(padding)
+        settings.gaps.outerGapTop = portrait ? Double(padding) : 0
+        settings.gaps.outerGapBottom = portrait ? Double(padding) : 0
         settings.niri.edgeGaps = false
         settings.niri.shrinkToFit = shrinkToFit
         let monitor = Monitor(
             id: .init(displayId: 1),
             displayId: 1,
-            frame: monitorFrame,
-            visibleFrame: monitorFrame,
+            frame: frame,
+            visibleFrame: frame,
             hasNotch: false,
             name: "Main"
         )
@@ -339,11 +409,30 @@ private final class Fixture {
         _ = try frames()
     }
 
+    func handle(ofColumn index: Int) throws -> WindowHandle {
+        let token = try XCTUnwrap(columns[index].windowNodes.first?.token)
+        return try XCTUnwrap(controller.workspaceManager.handle(for: token))
+    }
+
+    func setSpan(_ change: NiriSizeChange, onColumn index: Int) -> Bool {
+        guard let handle = try? handle(ofColumn: index) else { return false }
+        return controller.niriLayoutHandler.setContainerPrimarySpan(change, target: .window(handle))
+    }
+
+    func focus(column index: Int) throws {
+        let token = try XCTUnwrap(columns[index].windowNodes.first?.token)
+        try focus(token: token, columnIndex: index)
+    }
+
     func focus(_ index: Int) throws {
-        let node = try XCTUnwrap(engine.findNode(for: tokens[index], in: workspaceId))
+        try focus(token: tokens[index], columnIndex: index)
+    }
+
+    private func focus(token: WindowToken, columnIndex index: Int) throws {
+        let node = try XCTUnwrap(engine.findNode(for: token, in: workspaceId))
         _ = controller.workspaceManager.commitWorkspaceSelection(
             nodeId: node.id,
-            focusedToken: tokens[index],
+            focusedToken: token,
             in: workspaceId,
             onMonitor: monitor.id
         )
