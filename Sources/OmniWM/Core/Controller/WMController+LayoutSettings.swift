@@ -66,6 +66,8 @@ extension WMController {
             centerFocusedColumn: centerFocusedColumn,
             alwaysCenterSingleColumn: alwaysCenterSingleColumn
         )
+        niriEngine?.newWindowPlacement = settings.niri.newWindowPlacement
+        niriEngine?.newWindowJoinsTabbedColumn = settings.niri.newWindowJoinsTabbedColumn
     }
 
     func syncMonitorsToNiriEngine() {

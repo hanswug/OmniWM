@@ -4,6 +4,17 @@
 import CoreGraphics
 import Foundation
 
+enum NewWindowPlacement: String, CaseIterable, Codable, Identifiable {
+    case right
+    case left
+    case first
+    case last
+
+    var id: String {
+        rawValue
+    }
+}
+
 enum CenterFocusedColumn: String, CaseIterable, Codable, Identifiable {
     case never
     case always

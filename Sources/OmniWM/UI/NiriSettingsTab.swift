@@ -147,6 +147,27 @@ private struct GlobalNiriSettingsSection: View {
             )
             .id("Stack Moved Window Into Adjacent Column")
 
+            Picker(selection: Bindable(settings.niri).newWindowPlacement) {
+                Text(verbatim: "Right of Focused").tag(NewWindowPlacement.right)
+                Text(verbatim: "Left of Focused").tag(NewWindowPlacement.left)
+                Text(verbatim: "First").tag(NewWindowPlacement.first)
+                Text(verbatim: "Last").tag(NewWindowPlacement.last)
+            } label: {
+                Text(verbatim: "Open New Windows")
+            }
+            .id("Open New Windows")
+            .onChange(of: settings.niri.newWindowPlacement) { _, newValue in
+                controller.niriEngine?.newWindowPlacement = newValue
+            }
+
+            Toggle(isOn: Bindable(settings.niri).newWindowJoinsTabbedColumn) {
+                Text(verbatim: "New Windows Join a Tabbed Column There")
+            }
+            .id("New Windows Join a Tabbed Column There")
+            .onChange(of: settings.niri.newWindowJoinsTabbedColumn) { _, newValue in
+                controller.niriEngine?.newWindowJoinsTabbedColumn = newValue
+            }
+
             SingleWindowFitControls(
                 label: String(localized: "Single Window"),
                 fit: settings.niri.singleWindowFit,

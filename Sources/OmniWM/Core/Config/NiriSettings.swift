@@ -74,6 +74,15 @@ final class NiriSettings {
         didSet { onChange?() }
     }
 
+    // OmniWM new features (hanswug/OmniWM fork).
+    var newWindowPlacement = NewWindowPlacement.right {
+        didSet { onChange?() }
+    }
+
+    var newWindowJoinsTabbedColumn = false {
+        didSet { onChange?() }
+    }
+
     var overscrollVisibleStripPercent = NiriSettings.defaults.overscrollVisibleStripPercent ?? 5 {
         didSet {
             let validated = Self.validatedOverscrollVisibleStripPercent(overscrollVisibleStripPercent)
@@ -110,7 +119,9 @@ final class NiriSettings {
             resizeStepPercent: resizeStepPercent,
             moveWindowStacksIntoColumn: moveWindowStacksIntoColumn,
             allowOverscroll: allowOverscroll,
-            overscrollVisibleStripPercent: overscrollVisibleStripPercent
+            overscrollVisibleStripPercent: overscrollVisibleStripPercent,
+            newWindowPlacement: newWindowPlacement == .right ? nil : newWindowPlacement,
+            newWindowJoinsTabbedColumn: newWindowJoinsTabbedColumn ? true : nil
         )
     }
 
@@ -125,6 +136,8 @@ final class NiriSettings {
             ?? baseline.overscrollVisibleStripPercent ?? 5
         edgeGaps = niri.edgeGaps ?? baseline.edgeGaps ?? true
         moveWindowStacksIntoColumn = niri.moveWindowStacksIntoColumn ?? baseline.moveWindowStacksIntoColumn ?? true
+        newWindowPlacement = niri.newWindowPlacement ?? baseline.newWindowPlacement ?? .right
+        newWindowJoinsTabbedColumn = niri.newWindowJoinsTabbedColumn ?? baseline.newWindowJoinsTabbedColumn ?? false
         resizeStepPercent = niri.resizeStepPercent ?? baseline.resizeStepPercent ?? BuiltInSettingsDefaults
             .niriResizeStepPercent
         containerPrimarySpanPresets = NiriSettings.validatedContainerPrimarySpanPresets(

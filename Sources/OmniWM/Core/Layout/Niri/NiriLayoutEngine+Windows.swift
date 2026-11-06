@@ -95,13 +95,17 @@ extension NiriLayoutEngine {
             root.columns.last
         }
 
+        let placementNeighbour = placementNeighbour(of: referenceColumn, in: root)
+        if newWindowJoinsTabbedColumn, containerSizingState == nil, let tabbed = placementNeighbour, tabbed.isTabbed {
+            let windowNode = NiriWindow(token: token)
+            tabbed.insertChild(windowNode, at: min(tabbed.activeTileIdx + 1, tabbed.children.count))
+            state.index(windowNode)
+            return windowNode
+        }
+
         let newColumn = NiriContainer()
         initializeNewContainerSizing(newColumn, in: workspaceId, initialState: containerSizingState)
-        if let refCol = referenceColumn {
-            root.insertAfter(newColumn, reference: refCol)
-        } else {
-            root.appendChild(newColumn)
-        }
+        insertNewColumn(newColumn, nextTo: referenceColumn, in: root)
 
         let windowNode = NiriWindow(token: token)
         newColumn.appendChild(windowNode)
@@ -109,6 +113,48 @@ extension NiriLayoutEngine {
         state.index(windowNode)
 
         return windowNode
+    }
+
+    private func placementNeighbour(of referenceColumn: NiriContainer?, in root: NiriRoot) -> NiriContainer? {
+        let columns = root.columns
+        switch newWindowPlacement {
+        case .first:
+            return columns.first
+        case .last:
+            return columns.last
+        case .left,
+             .right:
+            guard let referenceColumn, let index = columns.firstIndex(where: { $0 === referenceColumn }) else {
+                return nil
+            }
+            let neighbourIndex = newWindowPlacement == .left ? index - 1 : index + 1
+            return columns.indices.contains(neighbourIndex) ? columns[neighbourIndex] : nil
+        }
+    }
+
+    private func insertNewColumn(_ column: NiriContainer, nextTo referenceColumn: NiriContainer?, in root: NiriRoot) {
+        switch newWindowPlacement {
+        case .right:
+            if let referenceColumn {
+                root.insertAfter(column, reference: referenceColumn)
+            } else {
+                root.appendChild(column)
+            }
+        case .left:
+            if let referenceColumn {
+                root.insertBefore(column, reference: referenceColumn)
+            } else {
+                root.appendChild(column)
+            }
+        case .first:
+            if let firstColumn = root.columns.first {
+                root.insertBefore(column, reference: firstColumn)
+            } else {
+                root.appendChild(column)
+            }
+        case .last:
+            root.appendChild(column)
+        }
     }
 
     func workspaceIds(containing token: WindowToken) -> [WorkspaceDescriptor.ID] {
