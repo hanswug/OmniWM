@@ -219,6 +219,10 @@ extension NiriLayoutHandler {
             snapshot: snapshot
         )
 
+        if controller?.settings.niri.shrinkToFitAutomatically == true {
+            pass.engine.autoFitVisibleColumns(context: pass.interactionContext, state: &state)
+        }
+
         var plan = computeLayoutPlan(
             pass: pass,
             state: state,

@@ -352,6 +352,15 @@ extension NiriLayoutHandler {
                 ),
                 state: &state
             )
+            if fillsUnusedSpace {
+                engine.autoFitVisibleColumns(
+                    context: .init(
+                        workspaceId: wsId, motion: motion, workingFrame: workingFrame, gaps: gaps,
+                        orientation: orientation
+                    ),
+                    state: &state
+                )
+            }
             recordLayoutOperation(.sizesBalanced, in: wsId)
             requestLayoutCommandRelayout(in: wsId)
             startScrollAnimationIfNeeded(for: wsId, state: state, engine: engine)
