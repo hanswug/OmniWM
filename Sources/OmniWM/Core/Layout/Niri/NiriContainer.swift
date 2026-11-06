@@ -86,6 +86,8 @@ class NiriContainer: NiriNode {
             size
         }
         let effectiveMaxConstraint = bounds.max.map { max($0, bounds.min) }
+        let viewportMaxSpan = availableSpace - gaps * 2
+        if viewportMaxSpan > 0, result > viewportMaxSpan { result = viewportMaxSpan }
         if result < bounds.min { result = bounds.min }
         if applyingPackingHints {
             result = packedPrimarySpan(
