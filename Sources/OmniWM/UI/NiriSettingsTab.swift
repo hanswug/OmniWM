@@ -147,6 +147,11 @@ private struct GlobalNiriSettingsSection: View {
             )
             .id("Stack Moved Window Into Adjacent Column")
 
+            Toggle(isOn: Bindable(settings.niri).shrinkToFit) {
+                Text(verbatim: "Shrink Visible Columns to Fit")
+            }
+            .id("Shrink Visible Columns to Fit")
+
             SingleWindowFitControls(
                 label: String(localized: "Single Window"),
                 fit: settings.niri.singleWindowFit,
