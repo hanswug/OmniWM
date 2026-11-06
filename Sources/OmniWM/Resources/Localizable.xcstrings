@@ -131516,6 +131516,12 @@
         }
       }
     },
+    "Shrink Visible Columns to Fit" : {
+
+    },
+    "Keyboard resizing also resizes the other visible columns to fill the view" : {
+
+    },
     "Stack above" : {
       "localizations" : {
         "ja" : {

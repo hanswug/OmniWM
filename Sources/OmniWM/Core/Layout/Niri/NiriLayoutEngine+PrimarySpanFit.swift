@@ -21,7 +21,8 @@ extension NiriLayoutEngine {
         let visibleCount = effectiveVisibleContainerCount(in: workspaceId)
         let exclusions = projectionExclusions(in: workspaceId)
         if exclusions.isEmpty, columns.count >= visibleCount, !hasPreviousFit,
-           workspace.manualWidthColumnCount == nil, workspace.manualHeightColumnCount == nil
+           workspace.manualWidthColumnCount == nil, workspace.manualHeightColumnCount == nil,
+           workspace.shrinkToFitColumnIds.isEmpty
         {
             return
         }
@@ -30,6 +31,15 @@ extension NiriLayoutEngine {
         let count = projected.count
         if workspace.manualWidthColumnCount != count { workspace.manualWidthColumnCount = nil }
         if workspace.manualHeightColumnCount != count { workspace.manualHeightColumnCount = nil }
+        dropStaleShrinkToFit(
+            columns,
+            in: workspace,
+            geometry: NiriShrinkToFitGeometry(
+                span: orientation == .horizontal ? workingFrame.width : workingFrame.height,
+                gaps: gaps,
+                orientation: orientation
+            )
+        )
         let isSingleWindow = count == 1 && projected[0].windows.count == 1
         let manual = workspace[keyPath: manualCountKey] != nil && !isSingleWindow
         let canFit = !manual && count > 0 && count < visibleCount && !isSingleWindow
@@ -102,6 +112,7 @@ extension NiriLayoutEngine {
         orientation: Monitor.Orientation
     ) {
         let workspace = ensureState(for: workspaceId)
+        releaseShrinkToFit(column, in: workspace)
         switch orientation {
         case .horizontal:
             if workspace.manualWidthColumnCount == nil {
@@ -209,7 +220,7 @@ extension NiriLayoutEngine {
         return targets
     }
 
-    private func applyPrimarySpanFitWidth(
+    func applyPrimarySpanFitWidth(
         _ target: CGFloat,
         fitted: Bool,
         to column: NiriContainer,
@@ -230,7 +241,7 @@ extension NiriLayoutEngine {
         )
     }
 
-    private func applyPrimarySpanFitHeight(
+    func applyPrimarySpanFitHeight(
         _ target: CGFloat,
         fitted: Bool,
         to column: NiriContainer,
