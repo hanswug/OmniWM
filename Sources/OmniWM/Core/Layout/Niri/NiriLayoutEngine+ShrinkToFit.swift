@@ -133,6 +133,6 @@ extension NiriLayoutEngine {
         let leading = projected[firstIndex ..< activeIndex].reduce(CGFloat(0)) { total, column in
             total + (horizontal ? column.column.settledWidth : column.column.settledHeight) + context.gaps
         }
-        state.jumpOffset(to: -leading - context.gaps)
+        state.springOffset(to: -leading - context.gaps)
     }
 }

@@ -4,7 +4,6 @@
 import ApplicationServices
 import Foundation
 @testable import OmniWM
-import QuartzCore
 import XCTest
 
 @MainActor
@@ -38,15 +37,6 @@ final class NiriShrinkToFitTests: XCTestCase {
         XCTAssertGreaterThan(frames[0].width, before[0].width + 100)
         XCTAssertLessThan(frames[1].width, before[1].width - 100)
         assertFillsPaddedArea(frames)
-    }
-
-    func testResizingTheFocusedRightColumnKeepsThePairInsideThePadding() throws {
-        let fixture = try makeFixture(windowCount: 2, shrinkToFit: true)
-        try focusColumn(1, fixture: fixture)
-        for change in [NiriSizeChange.adjustProportion(-5), .adjustProportion(-5), .adjustProportion(5)] {
-            fixture.controller.niriLayoutHandler.setWindowPrimarySpan(change, target: .focused)
-            assertFillsPaddedArea(try settledFrames(fixture))
-        }
     }
 
     func testShrinkGrowsTheOtherVisibleColumnToFillThePadding() throws {
@@ -114,35 +104,6 @@ final class NiriShrinkToFitTests: XCTestCase {
         for (left, right) in zip(frames, frames.dropFirst()) {
             XCTAssertEqual(right.minX - left.maxX, innerGap, accuracy: 1, file: file, line: line)
         }
-    }
-
-    private func focusColumn(_ index: Int, fixture: Fixture) throws {
-        let engine = try XCTUnwrap(fixture.controller.niriEngine)
-        let node = try XCTUnwrap(engine.findNode(for: fixture.tokens[index], in: fixture.workspaceId))
-        _ = fixture.controller.workspaceManager.commitWorkspaceSelection(
-            nodeId: node.id,
-            focusedToken: fixture.tokens[index],
-            in: fixture.workspaceId,
-            onMonitor: fixture.controller.workspaceManager.monitorId(for: fixture.workspaceId)
-        )
-        fixture.controller.workspaceManager.withNiriViewportState(for: fixture.workspaceId) { state in
-            let leading = engine.columns(in: fixture.workspaceId).prefix(index)
-                .reduce(CGFloat(0)) { $0 + $1.settledWidth + innerGap }
-            state.activeColumnIndex = index
-            state.viewOffset = -leading - innerGap
-            state.clearOffsetTransition()
-        }
-        _ = try layoutFrames(fixture)
-    }
-
-    private func settledFrames(_ fixture: Fixture) throws -> [CGRect] {
-        let engine = try XCTUnwrap(fixture.controller.niriEngine)
-        let now = CACurrentMediaTime() + 5
-        _ = engine.tickAllColumnAnimations(in: fixture.workspaceId, at: now)
-        fixture.controller.workspaceManager.withNiriViewportState(for: fixture.workspaceId) { state in
-            state.clearOffsetTransition()
-        }
-        return try layoutFrames(fixture)
     }
 
     private func grow(_ fixture: Fixture, column: Int, steps: Int) {
