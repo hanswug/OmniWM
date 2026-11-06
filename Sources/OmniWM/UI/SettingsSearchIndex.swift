@@ -98,12 +98,7 @@ enum SettingsSearchIndex {
             tab: "niri",
             anchor: "Stack Moved Window Into Adjacent Column"
         ),
-        setting(
-            "Shrink Visible Columns to Fit",
-            section: .layouts,
-            tab: "niri",
-            anchor: "Shrink Visible Columns to Fit"
-        ),
+        setting("Shrink Columns to Fit", section: .layouts, tab: "niri", anchor: "Shrink Columns to Fit"),
         setting("Single Window", section: .layouts, tab: "niri", anchor: "Niri Layout"),
         setting("Resize Increment", section: .layouts, tab: "niri", anchor: "Resize Increment"),
         setting(

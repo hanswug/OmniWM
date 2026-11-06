@@ -44,7 +44,7 @@ extension NiriLayoutEngine {
             workspace.shrinkToFitColumnIds.insert(column.id)
         }
         workspace.shrinkToFitGeometry = NiriShrinkToFitGeometry(
-            span: context.orientation == .horizontal ? context.workingFrame.width : context.workingFrame.height,
+            context.workingFrame,
             gaps: context.gaps,
             orientation: context.orientation
         )
@@ -112,7 +112,7 @@ extension NiriLayoutEngine {
     func dropStaleShrinkToFit(
         _ columns: [NiriContainer],
         in workspace: NiriWorkspaceState,
-        geometry: NiriShrinkToFitGeometry
+        _ geometry: NiriShrinkToFitGeometry
     ) {
         guard !workspace.shrinkToFitColumnIds.isEmpty else { return }
         let manualCount = geometry.orientation == .horizontal
