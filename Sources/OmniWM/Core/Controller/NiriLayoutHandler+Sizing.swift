@@ -147,6 +147,9 @@ extension NiriLayoutHandler {
     ) {
         guard let controller else { return }
         let horizontal = context.orientation == .horizontal
+        let shownSpan = shownPrimarySpan(of: column, engine: engine, context: context)
+        var retested = false
+        defer { if retested { anchorPrimarySpan(of: column, to: shownSpan, context: context) } }
         for window in column.windowNodes {
             let token = window.token
             guard var evidence = controller.workspaceManager.observedSizeEvidence(for: token),
@@ -158,6 +161,7 @@ extension NiriLayoutHandler {
                 evidence.minSize.height = 1
             }
             _ = controller.workspaceManager.setObservedSizeEvidence(evidence, for: token)
+            retested = true
             let declared = controller.workspaceManager.cachedConstraints(
                 for: token,
                 maxAge: .greatestFiniteMagnitude
@@ -178,6 +182,43 @@ extension NiriLayoutHandler {
                 in: context.workspaceId,
                 motion: context.motion
             )
+        }
+    }
+
+    private func shownPrimarySpan(
+        of column: NiriContainer,
+        engine: NiriLayoutEngine,
+        context: NiriInteractionContext
+    ) -> CGFloat? {
+        let horizontal = context.orientation == .horizontal
+        guard !(horizontal ? column.isFullWidth : column.isFullHeight) else { return nil }
+        return column.resolvedPrimarySpan(
+            horizontal ? column.width : column.height,
+            orientation: context.orientation,
+            availableSpace: horizontal ? context.workingFrame.width : context.workingFrame.height,
+            gaps: context.gaps,
+            contentInset: horizontal ? engine.tabContentInset(for: column) : 0,
+            applyingPackingHints: false
+        )
+    }
+
+    private func anchorPrimarySpan(of column: NiriContainer, to shownSpan: CGFloat?, context: NiriInteractionContext) {
+        guard let shownSpan else { return }
+        let horizontal = context.orientation == .horizontal
+        let axisSpan = horizontal ? context.workingFrame.width : context.workingFrame.height
+        let anchored: ProportionalSize
+        switch horizontal ? column.width : column.height {
+        case let .proportion(proportion):
+            guard (axisSpan - context.gaps) * proportion - context.gaps < shownSpan else { return }
+            anchored = .proportion((shownSpan + context.gaps) / (axisSpan - context.gaps))
+        case let .fixed(size):
+            guard size < shownSpan else { return }
+            anchored = .fixed(shownSpan)
+        }
+        if horizontal {
+            column.width = anchored
+        } else {
+            column.height = anchored
         }
     }
 
