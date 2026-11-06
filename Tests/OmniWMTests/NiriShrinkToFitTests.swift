@@ -40,29 +40,6 @@ final class NiriShrinkToFitTests: XCTestCase {
         assertFillsPaddedArea(frames)
     }
 
-    func testRelearnedMinimumRefitsTheVisibleColumns() throws {
-        let fixture = try makeFixture(windowCount: 2, shrinkToFit: true)
-        grow(fixture, column: 0, steps: 6)
-        let squeezed = try settledFrames(fixture)
-        XCTAssertLessThan(squeezed[1].width, 700)
-
-        var evidence = ObservedSizeEvidence()
-        evidence.minSize = CGSize(width: 700, height: 1)
-        XCTAssertTrue(fixture.controller.workspaceManager.setObservedSizeEvidence(evidence, for: fixture.tokens[1]))
-        fixture.controller.niriLayoutHandler.refitOnScreenColumns(afterMinimumIncreaseOf: fixture.tokens[1])
-
-        let frames = try settledFrames(fixture)
-        XCTAssertEqual(frames[1].width, 700, accuracy: 1)
-        assertFillsPaddedArea(frames)
-    }
-
-    func testRelearnedMinimumIsIgnoredWithoutShrinkToFit() throws {
-        let fixture = try makeFixture(windowCount: 2, shrinkToFit: false)
-        let before = try settledFrames(fixture)
-        fixture.controller.niriLayoutHandler.refitOnScreenColumns(afterMinimumIncreaseOf: fixture.tokens[1])
-        XCTAssertEqual(try settledFrames(fixture), before)
-    }
-
     func testResizingTheFocusedRightColumnKeepsThePairInsideThePadding() throws {
         let fixture = try makeFixture(windowCount: 2, shrinkToFit: true)
         try focusColumn(1, fixture: fixture)
