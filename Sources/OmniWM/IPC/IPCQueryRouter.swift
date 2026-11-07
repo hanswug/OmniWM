@@ -161,7 +161,8 @@ final class IPCQueryRouter {
             app: hosted.map { IPCAppRef(name: $0.title, bundleId: $0.appId) } ?? IPCAppRef(appInfo: appInfo),
             title: hosted?.title ?? AXWindowService.titlePreferFast(windowId: UInt32(entry.windowId)),
             frame: frame.map(IPCRect.init),
-            isFullscreen: controller.workspaceManager.layoutTopology(for: entry.workspaceId).isFullscreen(focusedToken)
+            isFullscreen: controller.isLayoutFullscreen(focusedToken),
+            isContainerFullPrimarySpan: controller.isContainerFullPrimarySpan(focusedToken)
         )
 
         return IPCFocusedWindowQueryResult(window: snapshot)

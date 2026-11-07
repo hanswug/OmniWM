@@ -158,7 +158,8 @@ final class IPCCommandBoundaryTests: XCTestCase {
         case .workspaceNumber,
              .columnIndex,
              .windowIndex,
-             .scratchpadIndex:
+             .scratchpadIndex,
+             .visibleContainerCount:
             .integer(1)
         case .layout:
             .layout(.niri)
@@ -170,6 +171,8 @@ final class IPCCommandBoundaryTests: XCTestCase {
             .resizeOperation(.grow)
         case .sizeChange:
             .sizeChange(.setFixed(100))
+        case .gapSize:
+            .number(8)
         }
     }
 }

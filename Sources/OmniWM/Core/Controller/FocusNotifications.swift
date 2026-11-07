@@ -40,6 +40,7 @@ final class FocusNotificationDispatcher {
     private var lastNotifiedMonitorId: Monitor.ID?
     private var lastNotifiedFocusedToken: WindowToken?
     private var lastNotifiedFocusedWindowId: Int?
+    private var lastNotifiedFocusedWindowLayout: FocusedWindowLayoutState?
 
     init(controller: WMController) {
         self.controller = controller
@@ -92,9 +93,20 @@ final class FocusNotificationDispatcher {
             )
             lastNotifiedFocusedToken = currentToken
             lastNotifiedFocusedWindowId = currentWindowId
+            lastNotifiedFocusedWindowLayout = controller.focusedWindowLayoutState()
             return true
         }
         return false
+    }
+
+    func focusedWindowLayoutStateChanged() -> Bool {
+        guard let controller,
+              controller.workspaceManager.nativeManagedFocusToken == lastNotifiedFocusedToken
+        else { return false }
+        let state = controller.focusedWindowLayoutState()
+        guard state != lastNotifiedFocusedWindowLayout else { return false }
+        lastNotifiedFocusedWindowLayout = state
+        return true
     }
 
     private func notifyWorkspaceIfNeeded(

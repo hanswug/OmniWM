@@ -181,6 +181,7 @@ public struct IPCFocusedWindowSnapshot: Codable, Equatable, Sendable {
     public let title: String?
     public let frame: IPCRect?
     public let isFullscreen: Bool?
+    public let isContainerFullPrimarySpan: Bool?
 
     public init(
         id: String,
@@ -190,7 +191,8 @@ public struct IPCFocusedWindowSnapshot: Codable, Equatable, Sendable {
         app: IPCAppRef?,
         title: String?,
         frame: IPCRect?,
-        isFullscreen: Bool? = nil
+        isFullscreen: Bool? = nil,
+        isContainerFullPrimarySpan: Bool? = nil
     ) {
         self.id = id
         self.pid = pid
@@ -200,6 +202,7 @@ public struct IPCFocusedWindowSnapshot: Codable, Equatable, Sendable {
         self.title = title
         self.frame = frame
         self.isFullscreen = isFullscreen
+        self.isContainerFullPrimarySpan = isContainerFullPrimarySpan
     }
 }
 

@@ -40,7 +40,8 @@ final class IPCCommandWireShapeTests: XCTestCase {
         case .workspaceNumber,
              .columnIndex,
              .windowIndex,
-             .scratchpadIndex:
+             .scratchpadIndex,
+             .visibleContainerCount:
             .integer(2)
         case .layout:
             .layout(.niri)
@@ -52,6 +53,8 @@ final class IPCCommandWireShapeTests: XCTestCase {
             .resizeOperation(.grow)
         case .sizeChange:
             .sizeChange(.setProportion(0.5))
+        case .gapSize:
+            .number(8)
         }
     }
 
@@ -116,6 +119,8 @@ final class IPCCommandWireShapeTests: XCTestCase {
         #"{"arguments":{"change":{"kind":"set-proportion","value":0.5}},"name":"set-container-primary-span"}"#,
         #"{"arguments":{"change":{"kind":"set-proportion","value":0.5}},"name":"set-window-primary-span"}"#,
         #"{"arguments":{"change":{"kind":"set-proportion","value":0.5}},"name":"set-window-secondary-span"}"#,
+        #"{"arguments":{"visibleContainerCount":2},"name":"set-visible-containers"}"#,
+        #"{"arguments":{"bottom":8,"left":8,"right":8,"top":8},"name":"set-outer-gaps"}"#,
         #"{"arguments":{"direction":"left"},"name":"swap-workspace-with-monitor"}"#,
         #"{"name":"balance-sizes"}"#,
         #"{"name":"reset-layout"}"#,
@@ -140,6 +145,7 @@ final class IPCCommandWireShapeTests: XCTestCase {
         #"{"name":"toggle-quake-terminal"}"#,
         #"{"name":"toggle-workspace-bar"}"#,
         #"{"name":"hidden-bar-panel"}"#,
+        #"{"name":"toggle-borders"}"#,
         #"{"name":"volume-up"}"#,
         #"{"name":"volume-down"}"#,
         #"{"name":"volume-mute"}"#,

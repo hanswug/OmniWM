@@ -40,6 +40,7 @@ public enum IPCCommandArgumentValue: Equatable, Sendable {
     case direction(IPCDirection)
     case appID(String)
     case integer(Int)
+    case number(Double)
     case layout(IPCWorkspaceLayout)
     case paletteMode(IPCCommandPaletteMode)
     case resizeAxis(IPCResizeAxis)

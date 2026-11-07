@@ -127,6 +127,11 @@ extension WMController {
         surfaceReconciler.noteBorderChanged()
     }
 
+    func toggleBorders() {
+        settings.borders.enabled.toggle()
+        borderSettingsChanged()
+    }
+
     func setGapSize(_ size: Double, publishChange: Bool = true) {
         workspaceManager.setGaps(to: size)
         if publishChange {

@@ -58,6 +58,8 @@ reset-window-secondary-span
 set-container-primary-span
 set-window-primary-span
 set-window-secondary-span
+set-visible-containers
+set-outer-gaps
 swap-workspace-with-monitor
 balance-sizes
 reset-layout
@@ -82,6 +84,7 @@ toggle-system-stats
 toggle-quake-terminal
 toggle-workspace-bar
 hidden-bar-panel
+toggle-borders
 volume-up
 volume-down
 volume-mute

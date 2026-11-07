@@ -150,6 +150,10 @@ extension IPCJSONWriter {
         }
         self.key("id", &first)
         try self.value(value.id)
+        if let fieldValue = value.isContainerFullPrimarySpan {
+            self.key("isContainerFullPrimarySpan", &first)
+            try self.value(fieldValue)
+        }
         if let fieldValue = value.isFullscreen {
             self.key("isFullscreen", &first)
             try self.value(fieldValue)

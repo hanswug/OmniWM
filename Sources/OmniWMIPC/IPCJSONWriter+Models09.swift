@@ -12,6 +12,21 @@ extension IPCJSONWriter {
             try argument("change", change, &first)
         case let .setWindowSecondarySpan(change):
             try argument("change", change, &first)
+        case let .setVisibleContainers(count):
+            try argument("visibleContainerCount", count, &first)
+        case let .setOuterGaps(left, right, top, bottom):
+            self.key("arguments", &first)
+            begin(123)
+            var argumentFirst = true
+            self.key("bottom", &argumentFirst)
+            try self.value(bottom)
+            self.key("left", &argumentFirst)
+            try self.value(left)
+            self.key("right", &argumentFirst)
+            try self.value(right)
+            self.key("top", &argumentFirst)
+            try self.value(top)
+            end(125)
         case .cycleSizeForward,
              .cycleSizeBackward,
              .cycleWindowPrimarySpanForward,

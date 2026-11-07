@@ -54,8 +54,18 @@ extension ActionCatalog {
                 keywords: ["layout", "niri", "dwindle"]
             ),
             IPCPresentationCommand.overview.actionSpec(),
-            IPCPresentationCommand.systemStats.actionSpec()
+            IPCPresentationCommand.systemStats.actionSpec(),
+            IPCPresentationCommand.borders.actionSpec()
         ])
+        specs.append(contentsOf: IPCSizingCommand.visibleContainerCountRange.map { count in
+            action(
+                id: "setVisibleContainers.\(count)",
+                command: .sizing(.setVisibleContainers(count)),
+                category: .layout,
+                binding: .unassigned,
+                keywords: ["visible containers", "columns"]
+            )
+        })
     }
 
     private static var toggleFloatingFocusActionSpec: ActionSpec {
