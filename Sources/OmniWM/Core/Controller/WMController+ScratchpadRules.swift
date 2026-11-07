@@ -101,12 +101,11 @@ struct ScratchpadQuitPlan {
     var close: [AXWindowRef] = []
 
     func apply() {
-        for window in minimize {
-            _ = AXWindowService.minimize(window)
-        }
-        for window in close {
-            _ = AXWindowService.pressCloseButton(window)
-        }
+        let minimized = minimize.filter { AXWindowService.minimize($0) }.count
+        let closed = close.filter { AXWindowService.pressCloseButton($0) }.count
+        Log.ax.notice(
+            "Scratchpad quit: minimized \(minimized)/\(minimize.count), closed \(closed)/\(close.count)"
+        )
     }
 }
 
