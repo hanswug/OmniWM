@@ -16,7 +16,7 @@ final class NiriAutoShrinkToFitTests: XCTestCase {
     func testAWideMinimumMakesTheOthersGiveWay() throws {
         let fixture = try makeEvenFixture(windowCount: 4, visibleContainerCount: 4)
         setMinimumWidth(900, for: fixture.tokens[3], fixture: fixture)
-        fixture.controller.settings.niri.shrinkToFitAutomatically = true
+        fixture.controller.settings.niri.shrinkToFit = true
 
         let frames = try settledFrames(fixture)
 
@@ -39,7 +39,7 @@ final class NiriAutoShrinkToFitTests: XCTestCase {
         for token in fixture.tokens {
             setMinimumWidth(800, for: token, fixture: fixture)
         }
-        fixture.controller.settings.niri.shrinkToFitAutomatically = true
+        fixture.controller.settings.niri.shrinkToFit = true
 
         let frames = try settledFrames(fixture)
 
@@ -59,16 +59,6 @@ final class NiriAutoShrinkToFitTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(frames.map(\.width).max() ?? 0, 900)
         XCTAssertEqual(frames[0].minX, sidePadding, accuracy: 1)
         XCTAssertEqual(frames[3].maxX, monitorFrame.width - sidePadding, accuracy: 1)
-    }
-
-    func testSettingRoundTrips() throws {
-        var export = SettingsExport.defaults()
-        XCTAssertNil(NiriSettings().export().shrinkToFitAutomatically)
-        export.niri.shrinkToFitAutomatically = true
-        let decoded = try SettingsTOMLCodec.decode(SettingsTOMLCodec.encode(export))
-        let settings = NiriSettings()
-        settings.apply(decoded.niri, baseline: .defaults())
-        XCTAssertTrue(settings.shrinkToFitAutomatically)
     }
 
     private func makeEvenFixture(windowCount: Int, visibleContainerCount: Int) throws -> Fixture {

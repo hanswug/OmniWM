@@ -120,7 +120,6 @@ struct SettingsExport: Equatable {
         var visibleContainerChangeAction: VisibleContainerChangeAction?
         var newWindowPlacement: NewWindowPlacement?
         var newWindowJoinsTabbedColumn: Bool?
-        var shrinkToFitAutomatically: Bool?
     }
 
     struct Dwindle: Codable, Equatable {
