@@ -24,6 +24,7 @@ extension NiriLayoutHandler {
     func cycleContainerPrimarySpan(forward: Bool, target: WindowTarget = .focused) -> Bool {
         performWindowSizing(on: target) { engine, windowNode, context, state in
             guard let column = engine.findColumn(containing: windowNode, in: context.workspaceId) else { return nil }
+            retestObservedPrimaryMinimums(in: column, engine: engine, context: context)
             engine.toggleContainerPrimarySpan(column, forwards: forward, context: context, state: &state)
             return .containerPrimarySpanChanged
         }
@@ -32,6 +33,9 @@ extension NiriLayoutHandler {
     @discardableResult
     func cycleWindowPrimarySpan(forward: Bool, target: WindowTarget = .focused) -> Bool {
         performWindowSizing(on: target) { engine, windowNode, context, state in
+            if let column = engine.findColumn(containing: windowNode, in: context.workspaceId) {
+                retestObservedPrimaryMinimums(in: column, engine: engine, context: context)
+            }
             engine.toggleWindowPrimarySpan(windowNode, forwards: forward, context: context, state: &state)
             return .windowSizeChanged(token: windowNode.token)
         }
@@ -119,6 +123,7 @@ extension NiriLayoutHandler {
     func setContainerPrimarySpan(_ change: NiriSizeChange, target: WindowTarget = .focused) -> Bool {
         performWindowSizing(on: target) { engine, windowNode, context, state in
             guard let column = engine.findColumn(containing: windowNode, in: context.workspaceId) else { return nil }
+            retestObservedPrimaryMinimums(in: column, engine: engine, context: context)
             engine.setContainerPrimarySpan(column, change: change, context: context, state: &state)
             return .containerPrimarySpanChanged
         }
@@ -127,8 +132,93 @@ extension NiriLayoutHandler {
     @discardableResult
     func setWindowPrimarySpan(_ change: NiriSizeChange, target: WindowTarget = .focused) -> Bool {
         performWindowSizing(on: target) { engine, windowNode, context, state in
+            if let column = engine.findColumn(containing: windowNode, in: context.workspaceId) {
+                retestObservedPrimaryMinimums(in: column, engine: engine, context: context)
+            }
             engine.setWindowPrimarySpan(windowNode, change: change, context: context, state: &state)
             return .windowSizeChanged(token: windowNode.token)
+        }
+    }
+
+    private func retestObservedPrimaryMinimums(
+        in column: NiriContainer,
+        engine: NiriLayoutEngine,
+        context: NiriInteractionContext
+    ) {
+        guard let controller else { return }
+        let horizontal = context.orientation == .horizontal
+        let shownSpan = shownPrimarySpan(of: column, engine: engine, context: context)
+        var retested = false
+        defer { if retested { anchorPrimarySpan(of: column, to: shownSpan, context: context) } }
+        for window in column.windowNodes {
+            let token = window.token
+            guard var evidence = controller.workspaceManager.observedSizeEvidence(for: token),
+                  (horizontal ? evidence.minSize.width : evidence.minSize.height) > 1
+            else { continue }
+            if horizontal {
+                evidence.minSize.width = 1
+            } else {
+                evidence.minSize.height = 1
+            }
+            _ = controller.workspaceManager.setObservedSizeEvidence(evidence, for: token)
+            retested = true
+            let declared = controller.workspaceManager.cachedConstraints(
+                for: token,
+                maxAge: .greatestFiniteMagnitude
+            )?.minSize
+            let ruleEffects = controller.workspaceManager.entry(for: token)?.ruleEffects
+            var constraints = window.constraints
+            if horizontal {
+                let floor = max(declared?.width ?? 1, ruleEffects?.minWidth ?? 1)
+                constraints.minSize.width = min(constraints.minSize.width, floor)
+            } else {
+                let floor = max(declared?.height ?? 1, ruleEffects?.minHeight ?? 1)
+                constraints.minSize.height = min(constraints.minSize.height, floor)
+            }
+            engine.updateWindowConstraints(
+                for: token,
+                constraints: constraints,
+                packingHints: window.packingHints,
+                in: context.workspaceId,
+                motion: context.motion
+            )
+        }
+    }
+
+    private func shownPrimarySpan(
+        of column: NiriContainer,
+        engine: NiriLayoutEngine,
+        context: NiriInteractionContext
+    ) -> CGFloat? {
+        let horizontal = context.orientation == .horizontal
+        guard !(horizontal ? column.isFullWidth : column.isFullHeight) else { return nil }
+        return column.resolvedPrimarySpan(
+            horizontal ? column.width : column.height,
+            orientation: context.orientation,
+            availableSpace: horizontal ? context.workingFrame.width : context.workingFrame.height,
+            gaps: context.gaps,
+            contentInset: horizontal ? engine.tabContentInset(for: column) : 0,
+            applyingPackingHints: false
+        )
+    }
+
+    private func anchorPrimarySpan(of column: NiriContainer, to shownSpan: CGFloat?, context: NiriInteractionContext) {
+        guard let shownSpan else { return }
+        let horizontal = context.orientation == .horizontal
+        let axisSpan = horizontal ? context.workingFrame.width : context.workingFrame.height
+        let anchored: ProportionalSize
+        switch horizontal ? column.width : column.height {
+        case let .proportion(proportion):
+            guard (axisSpan - context.gaps) * proportion - context.gaps < shownSpan else { return }
+            anchored = .proportion((shownSpan + context.gaps) / (axisSpan - context.gaps))
+        case let .fixed(size):
+            guard size < shownSpan else { return }
+            anchored = .fixed(shownSpan)
+        }
+        if horizontal {
+            column.width = anchored
+        } else {
+            column.height = anchored
         }
     }
 
