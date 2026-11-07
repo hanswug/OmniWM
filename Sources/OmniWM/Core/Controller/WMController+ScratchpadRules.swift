@@ -28,6 +28,9 @@ extension WMController {
               workspaceManager.scratchpadIndex(for: token) == nil
         else { return }
         let monitor = monitorForInteraction()
+        if reveals {
+            showSlotForArrival(index, on: monitor?.id)
+        }
         guard assignWindowToScratchpad(token, to: index, preferredMonitor: monitor) == .executed else {
             guard retries > 0 else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
@@ -35,11 +38,25 @@ extension WMController {
             }
             return
         }
-        guard reveals, workspaceManager.revealedScratchpadIndex() != index else { return }
-        revealScratchpadWindow(token, index: index, on: monitor?.id)
+        guard reveals else { return }
+        if workspaceManager.revealedScratchpadIndex() != index {
+            revealScratchpadWindow(token, index: index, on: monitor?.id)
+        }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
             self?.bringRevealedScratchpadWindowToFront(token, index: index)
         }
+    }
+
+    private func showSlotForArrival(_ index: ScratchpadIndex, on monitorId: Monitor.ID?) {
+        guard workspaceManager.revealedScratchpadIndex() != index else { return }
+        if !scratchpadEntries(in: index).isEmpty {
+            toggleScratchpad(index, on: monitorId)
+            return
+        }
+        if let revealed = workspaceManager.revealedScratchpadIndex() {
+            toggleScratchpad(revealed, on: monitorId)
+        }
+        workspaceManager.setRevealedScratchpad(index)
     }
 
     func bringRevealedScratchpadWindowToFront(_ token: WindowToken, index: ScratchpadIndex) {
