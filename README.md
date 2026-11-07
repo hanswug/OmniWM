@@ -15,11 +15,14 @@ Each change is a topic branch cut from upstream `main`, so it can be reviewed an
 | [Fullscreen toggle raises the window](#fullscreen-toggle-raises-the-window) | fix | [PR #1109](https://github.com/OmniNull/OmniWM/pull/1109), in review |
 | [Explicit resizes retest learned minimums](#explicit-resizes-retest-learned-minimums) | fix | not proposed yet |
 | [Keyboard resizes stay inside the working area](#keyboard-resizes-stay-inside-the-working-area) | fix | fork only |
-| [Shrink visible columns to fit](#shrink-visible-columns-to-fit) | setting | discussed in [#1110](https://github.com/OmniNull/OmniWM/issues/1110); a reworked version is being prepared as a PR |
+| [Columns end exactly on the outer gaps](#columns-end-exactly-on-the-outer-gaps) | fix | candidate, fails on clean upstream |
+| [Shrink visible columns to fit](#shrink-visible-columns-to-fit) | settings | keyboard part discussed in [#1110](https://github.com/OmniNull/OmniWM/issues/1110), PR being prepared; automatic part offered there |
 | [Reset Layout](#reset-layout) | command, setting | fork only |
 | [New window placement](#new-window-placement) | settings | fork only |
+| [Scratchpads from app rules, with slot modes](#scratchpads-from-app-rules-with-slot-modes) | settings | fork only for now |
+| [Focus clicked windows without scrolling](#focus-clicked-windows-without-scrolling) | setting | upstream [PR #1092](https://github.com/OmniNull/OmniWM/pull/1092) by ylorn, imported early |
 
-All new settings live in the `[niri]` table of `settings.toml` and in **Settings → Layouts → Niri**. Every one defaults to upstream's behaviour.
+New settings default to upstream's behaviour. Niri ones live in the `[niri]` table and in **Settings → Layouts → Niri**.
 
 ### Fullscreen toggle raises the window
 
@@ -33,14 +36,21 @@ OmniWM learns an app's minimum size when the app refuses to shrink, and then won
 
 Sizing commands (a fixed width, a proportion above 100%, repeated grow steps) are capped at a full-width column, the same bound mouse resizing already uses, so a column no longer runs past the screen into the outer gaps. A window's minimum size still wins.
 
+### Columns end exactly on the outer gaps
+
+Each column's width was rounded to whole pixels on its own, so two half-pixel columns both rounded up and the row ended a pixel into the right outer gap, or shifted a pixel when focus moved. Column edges are now rounded instead of widths: neighbours meet exactly, the last column ends on the gap, and widths stay fixed while the view scrolls.
+
 ### Shrink visible columns to fit
 
 ```toml
 [niri]
-shrinkToFit = true   # default false
+shrinkToFit = true                 # default false
+shrinkToFitAutomatically = true    # default false
 ```
 
-Upstream intentionally leaves the other columns alone when you resize one ([#615](https://github.com/OmniNull/OmniWM/pull/615)), so the row can extend into the outer gaps until you scroll. With this on, a keyboard resize (set, adjust or cycle a column's span) also resizes the other visible columns, so together they fill the working area, each within its size limits. Mouse resizing is unchanged. If a window turns out to need more room right after a resize (its learned minimum comes back), the visible columns are fitted again once.
+Upstream intentionally leaves the other columns alone when you resize one ([#615](https://github.com/OmniNull/OmniWM/pull/615)), so the row can extend into the outer gaps until you scroll. With `shrinkToFit`, a keyboard resize (set, adjust or cycle a column's span) also resizes the other visible columns, so together they fill the working area, each within its size limits. The other columns keep their own widths and get them back when the column count or the gaps change. Mouse resizing is unchanged.
+
+`shrinkToFitAutomatically` also fits the visible columns when windows open or close, a minimum size changes, or the visible container count changes, so an app with a wide minimum (Apple Music) is honoured on its first frame. When even the minimums can't fit, whole columns move out of view instead of into the outer gaps. Reset Layout honours minimums on the first press either way.
 
 ### Reset Layout
 
@@ -62,6 +72,34 @@ newWindowJoinsTabbedColumn = false     # default false
 ```
 
 `newWindowPlacement` sets where a new window's column opens: right or left of the focused column, or at the start or end of the workspace. With `newWindowJoinsTabbedColumn`, if the column on that side (or the first or last column) is tabbed, the new window joins it as a tab instead of opening a new column.
+
+### Scratchpads from app rules, with slot modes
+
+```toml
+[[appRules]]
+bundleId = "com.apple.Notes"
+assignToScratchpad = 4          # 1–10; also in Settings → App Rules
+
+[scratchpads.modes]             # also in Settings → Workspaces → Scratchpads
+4 = "persistent"
+7 = "volatile"
+```
+
+Quick-lookup apps (Finder, Notes, Calendar, an editor) go straight into their scratchpad slot instead of the tiled row: revealed when you open them, parked when OmniWM starts. Toggling an empty slot shows a macOS notification and does nothing else.
+
+Each slot can have a mode:
+- **persistent**: its windows rejoin the slot after OmniWM restarts, including windows you placed there by hand (matched by window, or by a unique title if the app restarted), and are minimized when OmniWM quits;
+- **volatile**: nothing is remembered, and its windows are closed when OmniWM quits (the apps keep running);
+- unset: upstream behaviour.
+
+### Focus clicked windows without scrolling
+
+```toml
+[focus]
+clickFocusWithoutScrolling = true   # default false
+```
+
+A click on a partially visible Niri window focuses it without scrolling the row, so the next click lands where you aimed. Keyboard navigation, gestures, Cmd-Tab and the Dock still scroll windows into view. This is [upstream PR #1092](https://github.com/OmniNull/OmniWM/pull/1092) by ylorn, imported before upstream merges it (planned after 0.8.0); the fork drops its copy once it lands.
 
 ## Building
 
