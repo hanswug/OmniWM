@@ -9,7 +9,6 @@ struct ComposedUserRules {
     private(set) var primary: CompiledWindowRule?
     private(set) var layout: CompiledWindowRule?
     private(set) var workspace: CompiledWindowRule?
-    private(set) var scratchpad: CompiledWindowRule?
     private(set) var minWidth: CompiledWindowRule?
     private(set) var minHeight: CompiledWindowRule?
     private(set) var initialContainerPrimarySpan: CompiledWindowRule?
@@ -26,9 +25,6 @@ struct ComposedUserRules {
         }
         if rule.assignToWorkspace?.isEmpty == false {
             Self.keepHigherRanked(&workspace, candidate)
-        }
-        if rule.validScratchpadSlot != nil {
-            Self.keepHigherRanked(&scratchpad, candidate)
         }
         if rule.minWidth != nil {
             Self.keepHigherRanked(&minWidth, candidate)
@@ -146,8 +142,7 @@ struct MatchedWindowRules {
             ),
             admissionHints: ManagedWindowAdmissionHints(
                 initialNiriContainerPrimarySpan: userRules.initialContainerPrimarySpan?.rule
-                    .validInitialContainerPrimarySpan,
-                scratchpadSlot: userRules.scratchpad?.rule.validScratchpadSlot
+                    .validInitialContainerPrimarySpan
             ),
             ruleProvenance: WindowRuleProvenance(
                 layout: layoutRuleId,

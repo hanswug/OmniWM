@@ -299,9 +299,6 @@ struct AppRuleSidebarRow: View {
                 accessibilityLabel: String(localized: "Assigned to workspace \(workspace)")
             )
         }
-        if let slot = rule.validScratchpadSlot {
-            RuleBadge(text: "SP\(slot)", color: .purple, accessibilityLabel: "Assigned to scratchpad \(slot)")
-        }
         if let width = rule.validInitialContainerPrimarySpan {
             let percent = AppRulePrimarySpanPercent.displayText(for: width)
             RuleBadge(

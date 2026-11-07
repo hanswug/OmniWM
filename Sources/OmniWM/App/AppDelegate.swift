@@ -465,12 +465,7 @@ extension AppDelegate {
                         application.reply(toApplicationShouldTerminate: false)
                         return
                     }
-                    controller.rememberScratchpadMemberships()
-                    let scratchpadQuitPlan = controller.scratchpadQuitPlan()
-                    controller.serviceLifecycleManager.stopRestoringWindows(forQuit: true) {
-                        scratchpadQuitPlan.apply()
-                        completion()
-                    }
+                    controller.serviceLifecycleManager.stopRestoringWindows(forQuit: true, completion: completion)
                 }
             },
             reply: {

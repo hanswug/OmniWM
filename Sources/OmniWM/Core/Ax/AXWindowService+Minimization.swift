@@ -22,17 +22,3 @@ extension AXWindowService {
         } succeeded: { $0 }
     }
 }
-
-extension AXWindowService {
-    static func minimize(_ window: AXWindowRef) -> Bool {
-        AXUIElementSetAttributeValue(window.element, kAXMinimizedAttribute as CFString, kCFBooleanTrue) == .success
-    }
-
-    static func pressCloseButton(_ window: AXWindowRef) -> Bool {
-        var button: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(window.element, kAXCloseButtonAttribute as CFString, &button) == .success,
-              let button = AXUIElement.from(button)
-        else { return false }
-        return AXUIElementPerformAction(button, kAXPressAction as CFString) == .success
-    }
-}

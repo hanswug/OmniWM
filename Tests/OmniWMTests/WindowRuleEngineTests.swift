@@ -312,16 +312,6 @@ final class WindowRuleEngineTests: XCTestCase {
         )
     }
 
-    func testScratchpadRuleFloatsTheWindowAndCarriesItsSlot() {
-        let engine = WindowRuleEngine()
-        engine.rebuild(rules: [AppRule(bundleId: "com.apple.Notes", assignToScratchpad: 4)])
-
-        let decision = evaluate(engine, facts(appName: "Notes", bundleId: "com.apple.Notes"))
-
-        XCTAssertEqual(decision.disposition, .floating)
-        XCTAssertEqual(decision.admissionHints.scratchpadSlot, 4)
-    }
-
     func testEachSettingTakesTheMostSpecificThenEarliestRule() {
         let engine = WindowRuleEngine()
         let early = AppRule(bundleId: "com.test.app", assignToWorkspace: "1", minWidth: 300)

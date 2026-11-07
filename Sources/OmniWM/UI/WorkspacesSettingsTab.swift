@@ -116,8 +116,6 @@ struct WorkspacesSettingsTab: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-
-            ScratchpadSettingsSection(settings: settings, controller: controller)
         }
         .formStyle(.grouped)
         .sheet(item: $editingConfig) { config in

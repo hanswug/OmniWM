@@ -66,27 +66,6 @@ final class AppRuleTests: XCTestCase {
         XCTAssertEqual(try SettingsTOMLCodec.decode(data).appRules.first?.initialContainerPrimarySpan, 0.5)
     }
 
-    func testScratchpadSlotRoundTripsThroughTOMLAndImpliesFloating() throws {
-        var export = SettingsExport.defaults()
-        export.appRules = [AppRule(bundleId: "com.apple.Notes", assignToScratchpad: 4)]
-
-        let data = try SettingsTOMLCodec.encode(export)
-        let toml = try XCTUnwrap(String(data: data, encoding: .utf8))
-        XCTAssertTrue(toml.contains("assignToScratchpad = 4"))
-        let rule = try XCTUnwrap(SettingsTOMLCodec.decode(data).appRules.first)
-        XCTAssertEqual(rule.assignToScratchpad, 4)
-        XCTAssertEqual(rule.effectiveLayoutAction, .float)
-        XCTAssertTrue(rule.hasEffect)
-    }
-
-    func testOutOfRangeScratchpadSlotHasNoEffect() {
-        let rule = AppRule(bundleId: "com.apple.Notes", assignToScratchpad: 11)
-
-        XCTAssertNil(rule.validScratchpadSlot)
-        XCTAssertEqual(rule.effectiveLayoutAction, .auto)
-        XCTAssertFalse(rule.hasEffect)
-    }
-
     func testNilInitialContainerPrimarySpanIsOmittedFromJSONAndTOML() throws {
         let rule = AppRule(bundleId: "com.test.app", layout: .float)
         let json = try XCTUnwrap(

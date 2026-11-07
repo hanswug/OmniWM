@@ -46,8 +46,6 @@ struct AppRuleDraft: Identifiable, Equatable {
     var layoutAction: WindowRuleLayoutAction
     var assignToWorkspaceEnabled: Bool
     var assignToWorkspace: String
-    var assignToScratchpadEnabled: Bool
-    var assignToScratchpad: Int
     var initialContainerPrimarySpanEnabled: Bool
     var initialContainerPrimarySpan: Double
     var minWidthEnabled: Bool
@@ -70,8 +68,6 @@ struct AppRuleDraft: Identifiable, Equatable {
         layoutAction = .auto
         assignToWorkspaceEnabled = false
         assignToWorkspace = ""
-        assignToScratchpadEnabled = false
-        assignToScratchpad = 1
         initialContainerPrimarySpanEnabled = false
         initialContainerPrimarySpan = 0.5
         minWidthEnabled = false
@@ -95,8 +91,6 @@ struct AppRuleDraft: Identifiable, Equatable {
         layoutAction = rule.effectiveLayoutAction
         assignToWorkspaceEnabled = rule.assignToWorkspace != nil
         assignToWorkspace = rule.assignToWorkspace ?? ""
-        assignToScratchpadEnabled = rule.assignToScratchpad != nil
-        assignToScratchpad = rule.assignToScratchpad ?? 1
         initialContainerPrimarySpanEnabled = rule.initialContainerPrimarySpan != nil
         initialContainerPrimarySpan = rule.initialContainerPrimarySpan ?? 0.5
         minWidthEnabled = rule.minWidth != nil
@@ -126,8 +120,6 @@ struct AppRuleDraft: Identifiable, Equatable {
             lhs.layoutAction == rhs.layoutAction &&
             lhs.assignToWorkspaceEnabled == rhs.assignToWorkspaceEnabled &&
             lhs.assignToWorkspace == rhs.assignToWorkspace &&
-            lhs.assignToScratchpadEnabled == rhs.assignToScratchpadEnabled &&
-            lhs.assignToScratchpad == rhs.assignToScratchpad &&
             lhs.initialContainerPrimarySpanEnabled == rhs.initialContainerPrimarySpanEnabled &&
             nanStableEqual(lhs.initialContainerPrimarySpan, rhs.initialContainerPrimarySpan) &&
             lhs.minWidthEnabled == rhs.minWidthEnabled &&
@@ -250,7 +242,6 @@ struct AppRuleDraft: Identifiable, Equatable {
             axSubrole: axSubroleEnabled ? trimmedRuleValue(axSubrole) : nil,
             layout: layoutAction == .auto ? nil : layoutAction,
             assignToWorkspace: assignToWorkspaceEnabled ? trimmedRuleValue(assignToWorkspace) : nil,
-            assignToScratchpad: assignToScratchpadEnabled ? assignToScratchpad : nil,
             initialContainerPrimarySpan: initialContainerPrimarySpanEnabled ? initialContainerPrimarySpan : nil,
             minWidth: minWidthEnabled ? minWidth : nil,
             minHeight: minHeightEnabled ? minHeight : nil

@@ -61,7 +61,6 @@ struct WindowRuleProvenance: Equatable, Sendable {
 
 struct ManagedWindowAdmissionHints: Equatable, Sendable {
     var initialNiriContainerPrimarySpan: Double?
-    var scratchpadSlot: Int?
 
     static let none = ManagedWindowAdmissionHints()
 }

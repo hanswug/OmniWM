@@ -256,16 +256,10 @@ extension CommandHandler {
         switch action {
         case let .assign(index):
             guard let index = ScratchpadIndex(index) else { return .invalidArguments }
-            let result = controller.assignFocusedWindowToScratchpad(index)
-            controller.rememberScratchpadMemberships()
-            return result
+            return controller.assignFocusedWindowToScratchpad(index)
         case let .toggle(index):
             guard let index = ScratchpadIndex(index) else { return .invalidArguments }
-            let result = controller.toggleScratchpad(index)
-            if result == .notFound {
-                controller.notifyScratchpadUnavailable(index)
-            }
-            return result
+            return controller.toggleScratchpad(index)
         }
     }
 

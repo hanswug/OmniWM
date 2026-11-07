@@ -9,14 +9,6 @@ extension SettingsStore {
         scratchpadLabels[String(index)]
     }
 
-    func scratchpadMode(for index: Int) -> ScratchpadMode? {
-        scratchpadModes[String(index)]
-    }
-
-    func setScratchpadMode(_ mode: ScratchpadMode?, for index: Int) {
-        scratchpadModes[String(index)] = mode
-    }
-
     static func normalizedScratchpadLabels(_ labels: [String: String]) -> [String: String] {
         labels.reduce(into: [:]) { normalized, entry in
             guard let index = Int(entry.key.trimmingCharacters(in: .whitespacesAndNewlines)),

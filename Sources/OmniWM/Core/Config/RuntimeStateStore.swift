@@ -79,7 +79,6 @@ struct RuntimeState: Codable, Equatable, Sendable {
     var launchOverlayPlayedVersion: String?
     var appVolumes: [String: AppVolumeSetting]?
     var menuBarHideHold: MenuBarHideHold?
-    var scratchpadMemberships: [PersistedScratchpadMembership]?
 }
 
 @MainActor
@@ -427,18 +426,6 @@ extension RuntimeStateStore {
         set {
             guard screenRecordingPromptDeclined != newValue else { return }
             state.screenRecordingPromptDeclined = newValue
-            scheduleSave()
-        }
-    }
-}
-
-extension RuntimeStateStore {
-    var scratchpadMemberships: [PersistedScratchpadMembership] {
-        get { state.scratchpadMemberships ?? [] }
-        set {
-            let stored = newValue.isEmpty ? nil : newValue
-            guard state.scratchpadMemberships != stored else { return }
-            state.scratchpadMemberships = stored
             scheduleSave()
         }
     }

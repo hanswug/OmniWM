@@ -23,10 +23,7 @@ extension SettingsStore {
             hyperKeyModifiers: hyperKeyModifiers,
             workspaceBar: workspaceBar.export(),
             island: island.export(),
-            scratchpads: SettingsExport.Scratchpads(
-                labels: scratchpadLabels,
-                modes: scratchpadModes.isEmpty ? nil : scratchpadModes
-            ),
+            scratchpads: SettingsExport.Scratchpads(labels: scratchpadLabels),
             monitorBarSettings: workspaceBar.monitorOverrides,
             appRules: appRules,
             monitorOrientationSettings: monitors.orientationOverrides,
