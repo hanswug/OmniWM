@@ -9,6 +9,7 @@ enum IPCCommandIntegerField {
     case columnIndex
     case scratchpadIndex
     case windowIndex
+    case visibleContainerCount
 }
 
 enum IPCCommandArgumentSource {
@@ -121,7 +122,29 @@ enum IPCCommandArgumentSource {
                 return try container.decode(IPCScratchpadIndexArguments.self, forKey: .arguments).scratchpadIndex
             case .windowIndex:
                 return try container.decode(IPCWindowIndexArguments.self, forKey: .arguments).windowIndex
+            case .visibleContainerCount:
+                return try container.decode(
+                    IPCVisibleContainerCountArguments.self,
+                    forKey: .arguments
+                ).visibleContainerCount
             }
+        }
+    }
+
+    func outerGaps() throws -> (left: Double, right: Double, top: Double, bottom: Double) {
+        switch self {
+        case let .values(arguments):
+            let values = arguments.compactMap { argument -> Double? in
+                guard case let .number(value) = argument else { return nil }
+                return value
+            }
+            guard arguments.count == 4, values.count == 4 else {
+                throw IPCCommandRequestConstructionError.invalidArgumentType
+            }
+            return (values[0], values[1], values[2], values[3])
+        case let .json(container):
+            let arguments = try container.decode(IPCOuterGapsArguments.self, forKey: .arguments)
+            return (arguments.left, arguments.right, arguments.top, arguments.bottom)
         }
     }
 
@@ -202,12 +225,24 @@ struct IPCCommandArgumentWriter {
             try container.encode(IPCScratchpadIndexArguments(scratchpadIndex: value), forKey: .arguments)
         case .windowIndex:
             try container.encode(IPCWindowIndexArguments(windowIndex: value), forKey: .arguments)
+        case .visibleContainerCount:
+            try container.encode(
+                IPCVisibleContainerCountArguments(visibleContainerCount: value),
+                forKey: .arguments
+            )
         }
     }
 
     mutating func encode(workspaceNumber: Int, direction: IPCDirection) throws {
         try container.encode(
             IPCWorkspaceOnMonitorArguments(workspaceNumber: workspaceNumber, direction: direction),
+            forKey: .arguments
+        )
+    }
+
+    mutating func encode(left: Double, right: Double, top: Double, bottom: Double) throws {
+        try container.encode(
+            IPCOuterGapsArguments(left: left, right: right, top: top, bottom: bottom),
             forKey: .arguments
         )
     }
@@ -243,6 +278,17 @@ private struct IPCScratchpadIndexArguments: Codable, Equatable, Sendable {
 
 private struct IPCWindowIndexArguments: Codable, Equatable, Sendable {
     let windowIndex: Int
+}
+
+private struct IPCVisibleContainerCountArguments: Codable, Equatable, Sendable {
+    let visibleContainerCount: Int
+}
+
+private struct IPCOuterGapsArguments: Codable, Equatable, Sendable {
+    let left: Double
+    let right: Double
+    let top: Double
+    let bottom: Double
 }
 
 private struct IPCWorkspaceOnMonitorArguments: Codable, Equatable, Sendable {

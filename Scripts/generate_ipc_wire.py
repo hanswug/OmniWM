@@ -175,7 +175,7 @@ def command():
                 transformed.append(line)
                 continue
             parameters = dict((part.strip().split(': ', 1) for part in found.group(1).split(',')))
-            types = {'direction': 'IPCDirection', 'layout': 'IPCWorkspaceLayout', 'paletteMode': 'IPCCommandPaletteMode', 'sizeChange': 'IPCSizeChange', 'resizeOperation': 'IPCResizeOperation', 'axis': 'IPCResizeAxis', 'operation': 'IPCResizeOperation', 'workspaceNumber': 'Int'}
+            types = {'direction': 'IPCDirection', 'layout': 'IPCWorkspaceLayout', 'paletteMode': 'IPCCommandPaletteMode', 'sizeChange': 'IPCSizeChange', 'resizeOperation': 'IPCResizeOperation', 'axis': 'IPCResizeAxis', 'operation': 'IPCResizeOperation', 'workspaceNumber': 'Int', 'left': 'Double', 'right': 'Double', 'top': 'Double', 'bottom': 'Double'}
             names = {'paletteMode': 'mode', 'sizeChange': 'change', 'resizeOperation': 'operation'}
             if 'integer' in parameters:
                 fields = {parameters['field'].removeprefix('.'): field(parameters['integer'], 'Int')}

@@ -27,6 +27,9 @@ extension IPCPresentationCommand {
                 "command.presentation.hiddenBar", defaultValue: "Toggle Hidden Icons Panel", table: "Commands",
                 bundle: .omniWM
             )
+        case .borders: LocalizedStringResource(
+                "command.presentation.borders", defaultValue: "Toggle Borders", table: "Commands", bundle: .omniWM
+            )
         }
     }
 
@@ -54,6 +57,10 @@ extension IPCPresentationCommand {
         case .hiddenBar:
             id = "toggleHiddenBarPanel"
             keywords = ["hidden bar", "icons", "menu bar"]
+            binding = .unassigned
+        case .borders:
+            id = "toggleBorders"
+            keywords = ["border", "borders", "outline"]
             binding = .unassigned
         }
         return ActionCatalog.action(

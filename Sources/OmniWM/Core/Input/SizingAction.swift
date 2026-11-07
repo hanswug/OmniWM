@@ -21,6 +21,8 @@ enum SizingAction: Equatable, Hashable {
     case setWindowPrimarySpan(NiriSizeChange)
     case setWindowSecondarySpan(NiriSizeChange)
     case balanceSizes
+    case setVisibleContainers(Int)
+    case setOuterGaps(left: Double, right: Double, top: Double, bottom: Double)
 }
 
 extension SizingAction {
@@ -50,6 +52,13 @@ extension SizingAction {
             )
         case .balanceSizes: LocalizedStringResource(
                 "command.sizing.balance", defaultValue: "Balance Sizes", table: "Commands", bundle: .omniWM
+            )
+        case let .setVisibleContainers(count): LocalizedStringResource(
+                "command.sizing.setVisibleContainers", defaultValue: "Set Visible Containers \(count)",
+                table: "Commands", bundle: .omniWM
+            )
+        case .setOuterGaps: LocalizedStringResource(
+                "command.sizing.setOuterGaps", defaultValue: "Set Outer Gaps", table: "Commands", bundle: .omniWM
             )
         case .toggleContainerFullPrimarySpan,
              .expandContainerToAvailablePrimarySpan,
@@ -103,7 +112,9 @@ extension SizingAction {
              .cycleWindowPrimarySpanBackward,
              .cycleWindowSecondarySpanForward,
              .cycleWindowSecondarySpanBackward,
-             .balanceSizes:
+             .balanceSizes,
+             .setVisibleContainers,
+             .setOuterGaps:
             actionDisplayName()
         }
     }
@@ -146,7 +157,9 @@ extension SizingAction {
              .setContainerPrimarySpan,
              .setWindowPrimarySpan,
              .setWindowSecondarySpan,
-             .balanceSizes:
+             .balanceSizes,
+             .setVisibleContainers,
+             .setOuterGaps:
             spanTitle()
         }
     }
@@ -183,6 +196,10 @@ extension SizingAction {
             .sizing(.setWindowSecondarySpan)
         case .balanceSizes:
             .dwindle(.balanceSizes)
+        case .setVisibleContainers:
+            .sizing(.setVisibleContainers)
+        case .setOuterGaps:
+            .sizing(.setOuterGaps)
         }
     }
 
@@ -190,7 +207,8 @@ extension SizingAction {
         switch self {
         case .cycleSizeForward,
              .cycleSizeBackward,
-             .balanceSizes:
+             .balanceSizes,
+             .setOuterGaps:
             .shared
         case .cycleWindowPrimarySpanForward,
              .cycleWindowPrimarySpanBackward,
@@ -204,7 +222,8 @@ extension SizingAction {
              .resizeWindowSecondarySpan,
              .setContainerPrimarySpan,
              .setWindowPrimarySpan,
-             .setWindowSecondarySpan:
+             .setWindowSecondarySpan,
+             .setVisibleContainers:
             .niri
         }
     }

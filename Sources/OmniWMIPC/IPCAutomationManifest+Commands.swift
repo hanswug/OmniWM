@@ -327,6 +327,17 @@ extension IPCAutomationManifest {
             layoutCompatibility: .niri
         ),
         .init(
+            name: .sizing(.setVisibleContainers),
+            summary: "Set the global number of visible Niri containers and re-lay out.",
+            arguments: [.visibleContainerCount],
+            layoutCompatibility: .niri
+        ),
+        .init(
+            name: .sizing(.setOuterGaps),
+            summary: "Set the global outer gaps: left, right, top, bottom.",
+            arguments: [.outerGapLeft, .outerGapRight, .outerGapTop, .outerGapBottom]
+        ),
+        .init(
             name: .swapWorkspaceWithMonitor,
             summary: "Swap the active workspace with the active workspace on an adjacent monitor.",
             arguments: [.direction]
@@ -423,6 +434,10 @@ extension IPCAutomationManifest {
         .init(
             name: .presentation(.workspaceBar),
             summary: "Toggle runtime workspace bar visibility."
+        ),
+        .init(
+            name: .presentation(.borders),
+            summary: "Toggle focused-window borders and save the setting."
         ),
         .init(
             commandWords: ["hidden-bar", "panel"],

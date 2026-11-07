@@ -14,6 +14,8 @@ public enum IPCSizingCommandName: String, CaseIterable, Hashable, Sendable {
     case setContainerPrimarySpan = "set-container-primary-span"
     case setWindowPrimarySpan = "set-window-primary-span"
     case setWindowSecondarySpan = "set-window-secondary-span"
+    case setVisibleContainers = "set-visible-containers"
+    case setOuterGaps = "set-outer-gaps"
 }
 
 public enum IPCSizingCommand: Equatable, Sendable {
@@ -29,6 +31,10 @@ public enum IPCSizingCommand: Equatable, Sendable {
     case setContainerPrimarySpan(change: IPCSizeChange)
     case setWindowPrimarySpan(change: IPCSizeChange)
     case setWindowSecondarySpan(change: IPCSizeChange)
+    case setVisibleContainers(count: Int)
+    case setOuterGaps(left: Double, right: Double, top: Double, bottom: Double)
+
+    public static let visibleContainerCountRange = 1 ... 5
 
     public var name: IPCSizingCommandName {
         switch self {
@@ -56,6 +62,10 @@ public enum IPCSizingCommand: Equatable, Sendable {
             .setWindowPrimarySpan
         case .setWindowSecondarySpan:
             .setWindowSecondarySpan
+        case .setVisibleContainers:
+            .setVisibleContainers
+        case .setOuterGaps:
+            .setOuterGaps
         }
     }
 
@@ -85,6 +95,18 @@ public enum IPCSizingCommand: Equatable, Sendable {
             self = try .setWindowPrimarySpan(change: arguments.sizeChange())
         case .setWindowSecondarySpan:
             self = try .setWindowSecondarySpan(change: arguments.sizeChange())
+        case .setVisibleContainers:
+            let count = try arguments.integer(.visibleContainerCount)
+            guard Self.visibleContainerCountRange.contains(count) else {
+                throw IPCCommandRequestConstructionError.invalidArgumentType
+            }
+            self = .setVisibleContainers(count: count)
+        case .setOuterGaps:
+            let gaps = try arguments.outerGaps()
+            guard [gaps.left, gaps.right, gaps.top, gaps.bottom].allSatisfy({ $0.isFinite && $0 >= 0 }) else {
+                throw IPCCommandRequestConstructionError.invalidArgumentType
+            }
+            self = .setOuterGaps(left: gaps.left, right: gaps.right, top: gaps.top, bottom: gaps.bottom)
         }
     }
 
@@ -96,6 +118,10 @@ public enum IPCSizingCommand: Equatable, Sendable {
             try writer.encode(sizeChange: change)
         case let .setWindowSecondarySpan(change):
             try writer.encode(sizeChange: change)
+        case let .setVisibleContainers(count):
+            try writer.encode(integer: count, field: .visibleContainerCount)
+        case let .setOuterGaps(left, right, top, bottom):
+            try writer.encode(left: left, right: right, top: top, bottom: bottom)
         case .cycleSizeForward,
              .cycleSizeBackward,
              .cycleWindowPrimarySpanForward,

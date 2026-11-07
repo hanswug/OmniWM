@@ -57,6 +57,8 @@ public enum IPCCommandArgumentKind: String, Codable, CaseIterable, Equatable, Se
     case resizeAxis = "resize-axis"
     case resizeOperation = "resize-operation"
     case sizeChange = "size-change"
+    case visibleContainerCount = "visible-container-count"
+    case gapSize = "gap-size"
 
     public var usagePlaceholder: String {
         switch self {
@@ -79,6 +81,10 @@ public enum IPCCommandArgumentKind: String, Codable, CaseIterable, Equatable, Se
             "<grow|shrink>"
         case .sizeChange:
             "<size-change>"
+        case .visibleContainerCount:
+            "<1-5>"
+        case .gapSize:
+            "<points>"
         }
     }
 }
@@ -161,6 +167,15 @@ public struct IPCCommandArgumentDescriptor: Codable, Equatable, Sendable {
         kind: .sizeChange,
         summary: "Size change such as 100, 50%, +10, or -10%."
     )
+
+    static let visibleContainerCount = Self(
+        kind: .visibleContainerCount,
+        summary: "Visible Niri containers from 1 to 5."
+    )
+    static let outerGapLeft = Self(kind: .gapSize, summary: "Left outer gap in points.")
+    static let outerGapRight = Self(kind: .gapSize, summary: "Right outer gap in points.")
+    static let outerGapTop = Self(kind: .gapSize, summary: "Top outer gap in points.")
+    static let outerGapBottom = Self(kind: .gapSize, summary: "Bottom outer gap in points.")
 
     public init(kind: IPCCommandArgumentKind, summary: String) {
         self.kind = kind

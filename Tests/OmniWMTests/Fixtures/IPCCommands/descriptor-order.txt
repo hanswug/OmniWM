@@ -58,6 +58,8 @@ reset-window-secondary-span
 set-container-primary-span
 set-window-primary-span
 set-window-secondary-span
+set-visible-containers
+set-outer-gaps
 swap-workspace-with-monitor
 balance-sizes
 move-to-root
@@ -78,6 +80,7 @@ scratchpad-assign
 scratchpad-toggle
 open-menu-anywhere
 toggle-workspace-bar
+toggle-borders
 hidden-bar-panel
 toggle-quake-terminal
 toggle-workspace-layout

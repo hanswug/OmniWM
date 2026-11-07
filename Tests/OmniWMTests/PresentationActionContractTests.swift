@@ -35,7 +35,9 @@ final class PresentationActionContractTests: XCTestCase {
     func testPresentationRegistrationKeepsInterleavedWorkspaceLayoutOrder() {
         let expectedTail = [
             "toggleWorkspaceBarVisibility", "toggleHiddenBarPanel", "toggleQuakeTerminal",
-            "toggleWorkspaceLayout", "toggleOverview", "toggleSystemStats"
+            "toggleWorkspaceLayout", "toggleOverview", "toggleSystemStats", "toggleBorders",
+            "setVisibleContainers.1", "setVisibleContainers.2", "setVisibleContainers.3",
+            "setVisibleContainers.4", "setVisibleContainers.5"
         ]
         XCTAssertEqual(Array(ActionCatalog.allSpecs().suffix(expectedTail.count).map(\.id)), expectedTail)
         XCTAssertEqual(
@@ -141,6 +143,13 @@ private struct PresentationExpectation {
                 command: .presentation(.hiddenBar),
                 id: "toggleHiddenBarPanel",
                 title: "Toggle Hidden Icons Panel",
+                binding: .unassigned
+            ),
+            PresentationExpectation(
+                ipc: .borders,
+                command: .presentation(.borders),
+                id: "toggleBorders",
+                title: "Toggle Borders",
                 binding: .unassigned
             )
         ]

@@ -221,11 +221,14 @@ enum CLICompletionCatalog {
             return ["grow", "shrink"]
         case .scratchpadIndex:
             return IPCScratchpadSlots.range.map(String.init)
+        case .visibleContainerCount:
+            return IPCSizingCommand.visibleContainerCountRange.map(String.init)
         case .appID,
              .workspaceNumber,
              .columnIndex,
              .windowIndex,
-             .sizeChange:
+             .sizeChange,
+             .gapSize:
             return nil
         }
     }

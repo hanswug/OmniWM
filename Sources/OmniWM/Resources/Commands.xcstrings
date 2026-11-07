@@ -9171,6 +9171,17 @@
         }
       }
     },
+    "command.presentation.borders" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Toggle Borders"
+          }
+        }
+      }
+    },
     "command.presentation.hiddenBar" : {
       "extractionState" : "extracted_with_value",
       "localizations" : {
@@ -11787,6 +11798,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "창의 보조 범위 초기화"
+          }
+        }
+      }
+    },
+    "command.sizing.setOuterGaps" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Set Outer Gaps"
+          }
+        }
+      }
+    },
+    "command.sizing.setVisibleContainers" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Set Visible Containers %lld"
           }
         }
       }

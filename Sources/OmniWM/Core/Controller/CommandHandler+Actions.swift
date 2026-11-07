@@ -222,6 +222,10 @@ extension CommandHandler {
             controller.niriLayoutHandler.setWindowSecondarySpan(change)
         case .balanceSizes:
             layoutHandler(as: LayoutSizable.self)?.balanceSizes()
+        case let .setVisibleContainers(count):
+            controller.setVisibleContainerCount(count)
+        case let .setOuterGaps(left, right, top, bottom):
+            controller.setOuterGaps(left: left, right: right, top: top, bottom: bottom)
         }
         return .executed
     }
@@ -282,6 +286,8 @@ extension CommandHandler {
         switch action {
         case .workspaceBar:
             controller.toggleWorkspaceBarVisibility()
+        case .borders:
+            controller.toggleBorders()
         case .hiddenBar:
             controller.toggleHiddenBarPanel()
         case .quakeTerminal:

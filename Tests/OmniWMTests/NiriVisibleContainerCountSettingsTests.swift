@@ -36,6 +36,19 @@ final class NiriVisibleContainerCountSettingsTests: XCTestCase {
         XCTAssertEqual(after.right, before.right)
     }
 
+    func testSetVisibleContainersCommandSavesTheCountAndRebalancesAutomaticSpans() throws {
+        let fixture = try makeFixture()
+        fixture.controller.settings.niri.defaultContainerPrimarySpan = nil
+        fixture.controller.updateNiriConfig(defaultContainerPrimarySpan: .some(nil))
+
+        fixture.controller.setVisibleContainerCount(4)
+
+        XCTAssertEqual(fixture.controller.settings.niri.visibleContainerCount, 4)
+        XCTAssertEqual(fixture.engine.visibleContainerCount, 4)
+        XCTAssertEqual(widths(fixture).left, [0.25, 0.25])
+        XCTAssertEqual(widths(fixture).right, [0.25, 0.25])
+    }
+
     func testAutoSpanPerMonitorChangeOnlyRebalancesThatMonitor() throws {
         let fixture = try makeFixture()
         fixture.controller.settings.niri.defaultContainerPrimarySpan = nil

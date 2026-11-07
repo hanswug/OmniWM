@@ -98,6 +98,21 @@ extension WMController {
         niriLayoutHandler.balanceSizesAllWorkspaces(on: monitorId, onlyAutomaticSpans: true)
     }
 
+    func setVisibleContainerCount(_ count: Int) {
+        guard settings.niri.visibleContainerCount != count else { return }
+        settings.niri.visibleContainerCount = count
+        updateNiriConfig(visibleContainerCount: count)
+        rebalanceNiriSizesForVisibleContainerCountChange()
+    }
+
+    func setOuterGaps(left: Double, right: Double, top: Double, bottom: Double) {
+        settings.gaps.outerGapLeft = left
+        settings.gaps.outerGapRight = right
+        settings.gaps.outerGapTop = top
+        settings.gaps.outerGapBottom = bottom
+        updateMonitorGapSettings()
+    }
+
     func enableDwindleLayout() {
         dwindleLayoutHandler.enableDwindleLayout()
     }
