@@ -48,20 +48,22 @@ extension WorkingAreaContext {
     ) -> CGRect {
         switch orientation {
         case .horizontal:
-            let width = span.roundedToPhysicalPixel(scale: scale)
+            let minX = (workingFrame.origin.x + position).roundedToPhysicalPixel(scale: scale)
+            let maxX = (workingFrame.origin.x + position + span).roundedToPhysicalPixel(scale: scale)
             return CGRect(
-                x: workingFrame.origin.x + position,
+                x: minX,
                 y: workingFrame.origin.y,
-                width: width,
+                width: maxX - minX,
                 height: workingFrame.height
             ).roundedToPhysicalPixels(scale: scale)
         case .vertical:
-            let height = span.roundedToPhysicalPixel(scale: scale)
+            let minY = (workingFrame.origin.y + position).roundedToPhysicalPixel(scale: scale)
+            let maxY = (workingFrame.origin.y + position + span).roundedToPhysicalPixel(scale: scale)
             return CGRect(
                 x: workingFrame.origin.x,
-                y: workingFrame.origin.y + position,
+                y: minY,
                 width: workingFrame.width,
-                height: height
+                height: maxY - minY
             ).roundedToPhysicalPixels(scale: scale)
         }
     }
