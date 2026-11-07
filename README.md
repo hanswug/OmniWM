@@ -80,7 +80,7 @@ A click on a partially visible Niri window focuses it without scrolling the row,
 
 ## Tried and dropped
 
-**Persistent scratchpads.** We tried it, but it's tricky: AppKit doesn't offer all the window metadata we need, and we avoid tricks.
+**Persistent scratchpads.** We tried it, but it's tricky: AppKit doesn't offer all the window metadata we need, and we avoid tricks. If you want to try: our attempt is on [`feat/scratchpad-app-rules`](https://github.com/hanswug/OmniWM/tree/feat/scratchpad-app-rules), and the findings are in [the revert](https://github.com/hanswug/OmniWM/commit/e94c0ddee840e49331b238e07b85176d2c7df879).
 
 ## Building
 
