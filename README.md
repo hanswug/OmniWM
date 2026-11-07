@@ -78,6 +78,10 @@ clickFocusWithoutScrolling = true   # default false
 
 A click on a partially visible Niri window focuses it without scrolling the row, so the next click lands where you aimed. Keyboard navigation, gestures, Cmd-Tab and the Dock still scroll windows into view. This is [upstream PR #1092](https://github.com/OmniNull/OmniWM/pull/1092) by ylorn, imported before upstream merges it (planned after 0.8.0); the fork drops its copy once it lands.
 
+## Tried and dropped
+
+**Persistent scratchpads.** We tried remembering which windows belong to which scratchpad across restarts. macOS (AppKit and the Accessibility API) gives another app's window no stable identity or metadata we can rely on: a window's ID ends with its app, titles change, and windows restored at launch race OmniWM's own bookkeeping. Every case needed another workaround, and this fork avoids tricks, so scratchpads stay exactly as upstream designs them.
+
 ## Building
 
 There are no releases of this fork. To try it, build it the way upstream documents in [CONTRIBUTING.md](CONTRIBUTING.md) (`make doctor`, `make setup`, then `make run`). `make run` installs a separate **OmniWM Dev** app in `~/Applications`, with its own settings in `~/.config/omniwm-dev/`, so your regular OmniWM install is left alone. Only one of the two runs at a time; `make use-release` switches back.
