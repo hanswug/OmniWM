@@ -38,7 +38,10 @@ extension WMController {
             }
             return
         }
-        guard reveals else { return }
+        guard reveals else {
+            ensureScratchpadWindowParked(token, attempts: 6)
+            return
+        }
         if workspaceManager.revealedScratchpadIndex() != index {
             revealScratchpadWindow(token, index: index, on: monitor?.id)
         }
@@ -173,14 +176,14 @@ extension WMController {
 extension WMController {
     private func afterUnminimized(
         _ token: WindowToken,
-        attempts: Int = 20,
+        attempts: Int = 30,
         _ action: @escaping @MainActor () -> Void
     ) {
         DispatchQueue.main.async { [weak self] in
             guard let self,
                   attempts > 0,
                   let axRef = workspaceManager.entry(for: token)?.axRef,
-                  AXWindowService.isMinimized(axRef) == true
+                  AXWindowService.isMinimized(axRef) == true || workspaceManager.isWindowSuppressedByMacOS(token)
             else {
                 action()
                 return
@@ -196,5 +199,24 @@ extension WMController {
               AXWindowService.isMinimized(axRef) == true
         else { return }
         _ = AXWindowService.unminimize(axRef)
+    }
+}
+
+extension WMController {
+    func ensureScratchpadWindowParked(_ token: WindowToken, attempts: Int) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [weak self] in
+            guard let self,
+                  attempts > 0,
+                  workspaceManager.hiddenState(for: token)?.isScratchpad == true,
+                  !workspaceManager.isWindowSuppressedByMacOS(token),
+                  let entry = workspaceManager.entry(for: token),
+                  let frame = liveFrame(for: entry),
+                  workspaceManager.monitors
+                      .contains(where: { $0.visibleFrame.insetBy(dx: 2, dy: 2).intersects(frame) }),
+                  let monitor = workspaceManager.monitor(for: entry.workspaceId) ?? monitorForInteraction()
+            else { return }
+            _ = parkScratchpadWindow(entry, monitor: monitor)
+            ensureScratchpadWindowParked(token, attempts: attempts - 1)
+        }
     }
 }
