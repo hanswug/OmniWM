@@ -95,7 +95,7 @@ struct WorkspaceBarScratchpadItem: Identifiable, Equatable {
     }
 
     var name: String {
-        label ?? String(index)
+        label.map { "\(index) \($0)" } ?? String(index)
     }
 
     var isFocused: Bool {
