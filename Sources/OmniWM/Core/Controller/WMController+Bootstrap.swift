@@ -101,6 +101,7 @@ extension WMController {
         workspaceManager.onWindowPresenceObserved = { [weak self] handle in
             self?.layoutRefreshController.recordWindowPresence(handle)
             self?.axEventHandler.probeUnresolvedNativeFocus(after: handle.token)
+            self?.applyScratchpadRule(to: handle.token)
         }
         workspaceManager.onWindowRemoved = { [weak self] entry in
             self?.windowMarkRegistry.retire(entry.token)

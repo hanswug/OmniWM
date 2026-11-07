@@ -229,6 +229,21 @@ struct RuleWindowBehaviorSection: View {
                 }
             }
 
+            Toggle(isOn: $draft.assignToScratchpadEnabled) {
+                Text(verbatim: "Assign to Scratchpad")
+            }
+
+            if draft.assignToScratchpadEnabled {
+                Picker(selection: $draft.assignToScratchpad) {
+                    ForEach(Array(ScratchpadIndex.range), id: \.self) { slot in
+                        Text(verbatim: "\(slot)").tag(slot)
+                    }
+                } label: {
+                    Text(verbatim: "Scratchpad")
+                }
+                SettingsCaption("New windows open in this slot, floating, instead of the layout.")
+            }
+
             Toggle("Initial Container Primary Span", isOn: $draft.initialContainerPrimarySpanEnabled)
             if draft.initialContainerPrimarySpanEnabled {
                 LabeledContent("Primary Span") {
