@@ -18,7 +18,7 @@ extension WMController {
         guard workspaceManager.scratchpadIndex(for: token) == nil else { return }
         let revealsOnArrival = layoutRefreshController.layoutState.hasCompletedInitialRefresh
         unminimizeForScratchpad(token)
-        DispatchQueue.main.async { [weak self] in
+        afterUnminimized(token) { [weak self] in
             self?.assignScratchpadRuleWindow(token, to: index, reveals: revealsOnArrival, retries: 3)
         }
     }
@@ -164,13 +164,33 @@ extension WMController {
         memberships.removeAll { $0 == match }
         settings.scratchpadMemberships = memberships
         unminimizeForScratchpad(token)
-        DispatchQueue.main.async { [weak self] in
+        afterUnminimized(token) { [weak self] in
             self?.assignScratchpadRuleWindow(token, to: index, reveals: false, retries: 3)
         }
     }
 }
 
 extension WMController {
+    private func afterUnminimized(
+        _ token: WindowToken,
+        attempts: Int = 20,
+        _ action: @escaping @MainActor () -> Void
+    ) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self,
+                  attempts > 0,
+                  let axRef = workspaceManager.entry(for: token)?.axRef,
+                  AXWindowService.isMinimized(axRef) == true
+            else {
+                action()
+                return
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                self?.afterUnminimized(token, attempts: attempts - 1, action)
+            }
+        }
+    }
+
     private func unminimizeForScratchpad(_ token: WindowToken) {
         guard let axRef = workspaceManager.entry(for: token)?.axRef,
               AXWindowService.isMinimized(axRef) == true
