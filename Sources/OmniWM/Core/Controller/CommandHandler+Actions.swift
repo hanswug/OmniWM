@@ -259,7 +259,11 @@ extension CommandHandler {
             return controller.assignFocusedWindowToScratchpad(index)
         case let .toggle(index):
             guard let index = ScratchpadIndex(index) else { return .invalidArguments }
-            return controller.toggleScratchpad(index)
+            let result = controller.toggleScratchpad(index)
+            if result == .notFound {
+                controller.notifyScratchpadUnavailable(index)
+            }
+            return result
         }
     }
 
