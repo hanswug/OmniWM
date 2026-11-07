@@ -19,7 +19,6 @@ Each change is a topic branch cut from upstream `main`, so it can be reviewed an
 | [Shrink visible columns to fit](#shrink-visible-columns-to-fit) | setting | offered upstream in [#1110](https://github.com/OmniNull/OmniWM/issues/1110) as one opt-in setting, waiting for the maintainer |
 | [Reset Layout](#reset-layout) | command, setting | fork only |
 | [New window placement](#new-window-placement) | settings | fork only |
-| [Scratchpads from app rules, with slot modes](#scratchpads-from-app-rules-with-slot-modes) | settings | fork only for now |
 | [Focus clicked windows without scrolling](#focus-clicked-windows-without-scrolling) | setting | upstream [PR #1092](https://github.com/OmniNull/OmniWM/pull/1092) by ylorn, imported early |
 
 New settings default to upstream's behaviour. Niri ones live in the `[niri]` table and in **Settings → Layouts → Niri**.
@@ -69,25 +68,6 @@ newWindowJoinsTabbedColumn = false     # default false
 ```
 
 `newWindowPlacement` sets where a new window's column opens: right or left of the focused column, or at the start or end of the workspace. With `newWindowJoinsTabbedColumn`, if the column on that side (or the first or last column) is tabbed, the new window joins it as a tab instead of opening a new column.
-
-### Scratchpads from app rules, with slot modes
-
-```toml
-[[appRules]]
-bundleId = "com.apple.Notes"
-assignToScratchpad = 4          # 1–10; also in Settings → App Rules
-
-[scratchpads.modes]             # also in Settings → Workspaces → Scratchpads
-4 = "persistent"
-7 = "volatile"
-```
-
-Quick-lookup apps (Finder, Notes, Calendar, an editor) go straight into their scratchpad slot instead of the tiled row: revealed when you open them, parked when OmniWM starts. Toggling an empty slot shows a macOS notification and does nothing else.
-
-Each slot can have a mode:
-- **persistent**: its windows rejoin the slot after OmniWM restarts, including windows you placed there by hand (matched by window, or by a unique title if the app restarted), and are minimized when OmniWM quits;
-- **volatile**: nothing is remembered, and its windows are closed when OmniWM quits (the apps keep running);
-- unset: upstream behaviour.
 
 ### Focus clicked windows without scrolling
 
