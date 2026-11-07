@@ -37,6 +37,19 @@ extension WMController {
         }
         guard reveals, workspaceManager.revealedScratchpadIndex() != index else { return }
         revealScratchpadWindow(token, index: index, on: monitor?.id)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+            self?.bringRevealedScratchpadWindowToFront(token, index: index)
+        }
+    }
+
+    func bringRevealedScratchpadWindowToFront(_ token: WindowToken, index: ScratchpadIndex) {
+        guard workspaceManager.revealedScratchpadIndex() == index,
+              workspaceManager.scratchpadIndex(for: token) == index,
+              workspaceManager.hiddenState(for: token) == nil,
+              let entry = workspaceManager.entry(for: token)
+        else { return }
+        performWindowOrdering(windowId: entry.windowId)
+        focusWindow(token, origin: .keyboardOrProgrammatic)
     }
 }
 
