@@ -16,7 +16,7 @@ Each change is a topic branch cut from upstream `main`, so it can be reviewed an
 | [Explicit resizes retest learned minimums](#explicit-resizes-retest-learned-minimums) | fix | not proposed yet |
 | [Keyboard resizes stay inside the working area](#keyboard-resizes-stay-inside-the-working-area) | fix | fork only |
 | [Columns end exactly on the outer gaps](#columns-end-exactly-on-the-outer-gaps) | fix | candidate, fails on clean upstream |
-| [Shrink visible columns to fit](#shrink-visible-columns-to-fit) | settings | keyboard part discussed in [#1110](https://github.com/OmniNull/OmniWM/issues/1110), PR being prepared; automatic part offered there |
+| [Shrink visible columns to fit](#shrink-visible-columns-to-fit) | setting | offered upstream in [#1110](https://github.com/OmniNull/OmniWM/issues/1110) as one opt-in setting, waiting for the maintainer |
 | [Reset Layout](#reset-layout) | command, setting | fork only |
 | [New window placement](#new-window-placement) | settings | fork only |
 | [Scratchpads from app rules, with slot modes](#scratchpads-from-app-rules-with-slot-modes) | settings | fork only for now |
@@ -44,13 +44,10 @@ Each column's width was rounded to whole pixels on its own, so two half-pixel co
 
 ```toml
 [niri]
-shrinkToFit = true                 # default false
-shrinkToFitAutomatically = true    # default false
+shrinkToFit = true   # default false
 ```
 
-Upstream intentionally leaves the other columns alone when you resize one ([#615](https://github.com/OmniNull/OmniWM/pull/615)), so the row can extend into the outer gaps until you scroll. With `shrinkToFit`, a keyboard resize (set, adjust or cycle a column's span) also resizes the other visible columns, so together they fill the working area, each within its size limits. The other columns keep their own widths and get them back when the column count or the gaps change. Mouse resizing is unchanged.
-
-`shrinkToFitAutomatically` also fits the visible columns when windows open or close, a minimum size changes, or the visible container count changes, so an app with a wide minimum (Apple Music) is honoured on its first frame. When even the minimums can't fit, whole columns move out of view instead of into the outer gaps. Reset Layout honours minimums on the first press either way.
+Upstream intentionally leaves the other columns alone when you resize one ([#615](https://github.com/OmniNull/OmniWM/pull/615)), so the row can extend into the outer gaps until you scroll. With `shrinkToFit` on, the visible columns always fill the working area, each within its size limits: after a keyboard resize (set, adjust or cycle a column's span), and when windows open or close, a minimum size changes, the gaps change, or the visible container count changes. An app with a wide minimum (Apple Music) is honoured on its first frame. When even the minimums can't fit, whole columns move out of view instead of into the outer gaps. The columns keep their own widths underneath, and mouse resizing is unchanged. Reset Layout honours minimums on the first press either way.
 
 ### Reset Layout
 
