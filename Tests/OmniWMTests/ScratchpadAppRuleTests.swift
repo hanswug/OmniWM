@@ -73,6 +73,84 @@ final class ScratchpadAppRuleTests: XCTestCase {
         XCTAssertEqual(notifications.first?.body, "It's empty.")
     }
 
+    func testSlotModesRoundTripThroughTOML() throws {
+        var export = SettingsExport.defaults()
+        export.scratchpads.modes = ["4": .persistent, "7": .volatile, "11": .volatile]
+
+        let decoded = try SettingsTOMLCodec.decode(SettingsTOMLCodec.encode(export))
+        let settings = try makeFixture().controller.settings
+        settings.applyExport(decoded)
+
+        XCTAssertEqual(settings.scratchpadMode(for: 4), .persistent)
+        XCTAssertEqual(settings.scratchpadMode(for: 7), .volatile)
+        XCTAssertNil(settings.scratchpadMode(for: 11))
+        XCTAssertNil(settings.scratchpadMode(for: 1))
+    }
+
+    func testQuitPlanFollowsTheSlotModes() throws {
+        let fixture = try makeFixture()
+        fixture.controller.settings.setScratchpadMode(.persistent, for: 1)
+        fixture.controller.settings.setScratchpadMode(.volatile, for: 2)
+        let persistent = fixture.addWindow(scratchpadSlot: 1)
+        let volatile = fixture.addWindow(scratchpadSlot: 2)
+        let unset = fixture.addWindow(scratchpadSlot: 3)
+        drainMainQueue()
+        XCTAssertEqual(fixture.controller.workspaceManager.scratchpadIndex(for: unset), 3)
+
+        let plan = fixture.controller.scratchpadQuitPlan()
+
+        XCTAssertEqual(plan.minimize.map(\.windowId), [persistent.windowId])
+        XCTAssertEqual(plan.close.map(\.windowId), [volatile.windowId])
+    }
+
+    func testOnlyPersistentSlotsAreRemembered() throws {
+        let fixture = try makeFixture()
+        fixture.controller.settings.setScratchpadMode(.persistent, for: 1)
+        fixture.controller.settings.setScratchpadMode(.volatile, for: 2)
+        _ = fixture.addWindow(scratchpadSlot: 1)
+        _ = fixture.addWindow(scratchpadSlot: 2)
+        drainMainQueue()
+
+        fixture.controller.rememberScratchpadMemberships()
+
+        XCTAssertEqual(fixture.controller.settings.scratchpadMemberships.map(\.slot), [1])
+    }
+
+    func testTitleMatchNeedsAUniqueTitle() {
+        let first = PersistedScratchpadMembership(
+            bundleId: "com.apple.Safari",
+            pid: 1,
+            windowId: 10,
+            title: "Docs",
+            slot: 2
+        )
+        let second = PersistedScratchpadMembership(
+            bundleId: "com.apple.Safari",
+            pid: 1,
+            windowId: 11,
+            title: "Docs",
+            slot: 3
+        )
+        let other = PersistedScratchpadMembership(
+            bundleId: "com.apple.Safari",
+            pid: 1,
+            windowId: 12,
+            title: "Mail",
+            slot: 4
+        )
+
+        XCTAssertEqual(
+            PersistedScratchpadMembership.titleMatch(in: [first, other], bundleId: "com.apple.Safari", title: "Docs"),
+            first
+        )
+        XCTAssertNil(PersistedScratchpadMembership.titleMatch(
+            in: [first, second],
+            bundleId: "com.apple.Safari",
+            title: "Docs"
+        ))
+        XCTAssertNil(PersistedScratchpadMembership.titleMatch(in: [first], bundleId: "com.apple.Notes", title: "Docs"))
+    }
+
     private func drainMainQueue() {
         let drained = expectation(description: "main queue drained")
         DispatchQueue.main.async { drained.fulfill() }

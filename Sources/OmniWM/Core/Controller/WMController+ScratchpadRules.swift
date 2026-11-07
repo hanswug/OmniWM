@@ -9,11 +9,15 @@ extension WMController {
         guard var hints = workspaceManager.admissionHints(for: token),
               let slot = hints.scratchpadSlot,
               let index = ScratchpadIndex(slot)
-        else { return }
+        else {
+            restoreRememberedScratchpad(for: token)
+            return
+        }
         hints.scratchpadSlot = nil
         workspaceManager.updateAdmissionHints(hints, for: token)
         guard workspaceManager.scratchpadIndex(for: token) == nil else { return }
         let revealsOnArrival = layoutRefreshController.layoutState.hasCompletedInitialRefresh
+        unminimizeForScratchpad(token)
         DispatchQueue.main.async { [weak self] in
             self?.assignScratchpadRuleWindow(token, to: index, reveals: revealsOnArrival, retries: 3)
         }
@@ -59,5 +63,89 @@ extension WMController {
               let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: rule.bundleId)
         else { return rule.displayLabel }
         return FileManager.default.displayName(atPath: url.path).replacingOccurrences(of: ".app", with: "")
+    }
+}
+
+struct ScratchpadQuitPlan {
+    var minimize: [AXWindowRef] = []
+    var close: [AXWindowRef] = []
+
+    func apply() {
+        for window in minimize {
+            _ = AXWindowService.minimize(window)
+        }
+        for window in close {
+            _ = AXWindowService.pressCloseButton(window)
+        }
+    }
+}
+
+extension WMController {
+    func scratchpadQuitPlan() -> ScratchpadQuitPlan {
+        var plan = ScratchpadQuitPlan()
+        for entry in workspaceManager.allEntries() {
+            guard let index = workspaceManager.scratchpadIndex(for: entry.token),
+                  let axRef = entry.axRef else { continue }
+            switch settings.scratchpadMode(for: index.rawValue) {
+            case .persistent: plan.minimize.append(axRef)
+            case .volatile: plan.close.append(axRef)
+            case nil: continue
+            }
+        }
+        return plan
+    }
+}
+
+extension WMController {
+    func rememberScratchpadMemberships() {
+        settings.scratchpadMemberships = workspaceManager.allEntries().compactMap { entry in
+            guard let index = workspaceManager.scratchpadIndex(for: entry.token),
+                  settings.scratchpadMode(for: index.rawValue) == .persistent,
+                  let metadata = workspaceManager.persistedRestoreMetadata(for: entry),
+                  let bundleId = metadata.bundleId
+            else { return nil }
+            return PersistedScratchpadMembership(
+                bundleId: bundleId,
+                pid: entry.pid,
+                windowId: entry.windowId,
+                title: metadata.title,
+                slot: index.rawValue
+            )
+        }
+    }
+
+    private func restoreRememberedScratchpad(for token: WindowToken) {
+        var memberships = settings.scratchpadMemberships
+        guard !memberships.isEmpty,
+              workspaceManager.scratchpadIndex(for: token) == nil,
+              let entry = workspaceManager.entry(for: token)
+        else { return }
+        let metadata = workspaceManager.persistedRestoreMetadata(for: entry)
+        let match = memberships.first { $0.matches(
+            bundleId: metadata?.bundleId,
+            pid: entry.pid,
+            windowId: entry.windowId
+        ) }
+            ?? PersistedScratchpadMembership.titleMatch(
+                in: memberships,
+                bundleId: metadata?.bundleId,
+                title: metadata?.title
+            )
+        guard let match, let index = ScratchpadIndex(match.slot) else { return }
+        memberships.removeAll { $0 == match }
+        settings.scratchpadMemberships = memberships
+        unminimizeForScratchpad(token)
+        DispatchQueue.main.async { [weak self] in
+            self?.assignScratchpadRuleWindow(token, to: index, reveals: false, retries: 3)
+        }
+    }
+}
+
+extension WMController {
+    private func unminimizeForScratchpad(_ token: WindowToken) {
+        guard let axRef = workspaceManager.entry(for: token)?.axRef,
+              AXWindowService.isMinimized(axRef) == true
+        else { return }
+        _ = AXWindowService.unminimize(axRef)
     }
 }

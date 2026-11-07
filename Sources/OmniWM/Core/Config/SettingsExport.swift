@@ -229,6 +229,7 @@ struct SettingsExport: Equatable {
 
     struct Scratchpads: Codable, Equatable {
         var labels: [String: String]
+        var modes: [String: ScratchpadMode]?
     }
 
     struct Clipboard: Codable, Equatable {
