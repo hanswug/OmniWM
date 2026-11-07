@@ -157,6 +157,9 @@ private struct GlobalNiriSettingsSection: View {
             Toggle("Shrink Columns to Fit", isOn: Bindable(settings.niri).shrinkToFit)
                 .id("Shrink Columns to Fit")
             SettingsCaption(localized: "Keyboard resizing also resizes the other visible columns to fill the view")
+            SettingsCaption(
+                "The visible columns are also fitted when windows open or close, a minimum size changes, or Visible Containers change. Columns that can't fit move out of view instead of into the outer gaps."
+            )
 
             Picker(selection: Bindable(settings.niri).visibleContainerChangeAction) {
                 Text(verbatim: "Balance Sizes").tag(VisibleContainerChangeAction.balance)
@@ -186,14 +189,6 @@ private struct GlobalNiriSettingsSection: View {
             .onChange(of: settings.niri.newWindowJoinsTabbedColumn) { _, newValue in
                 controller.niriEngine?.newWindowJoinsTabbedColumn = newValue
             }
-
-            Toggle(isOn: Bindable(settings.niri).shrinkToFitAutomatically) {
-                Text(verbatim: "Shrink Columns to Fit Automatically")
-            }
-            .id("Shrink Columns to Fit Automatically")
-            SettingsCaption(
-                "Also fits the visible columns when windows open or close, a minimum size changes, or Visible Containers change. Columns that can't fit move out of view instead of into the outer gaps."
-            )
 
             SingleWindowFitControls(
                 label: String(localized: "Single Window"),
