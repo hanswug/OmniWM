@@ -80,7 +80,7 @@ A click on a partially visible Niri window focuses it without scrolling the row,
 
 ## Tried and dropped
 
-**Persistent scratchpads.** We tried remembering which windows belong to which scratchpad across restarts. macOS (AppKit and the Accessibility API) gives another app's window no stable identity or metadata we can rely on: a window's ID ends with its app, titles change, and windows restored at launch race OmniWM's own bookkeeping. Every case needed another workaround, and this fork avoids tricks, so scratchpads stay exactly as upstream designs them.
+**Persistent scratchpads.** We tried it, but it's tricky: AppKit doesn't offer all the window metadata we need, and we avoid tricks.
 
 ## Building
 
