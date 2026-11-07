@@ -128,6 +128,7 @@ extension LayoutRefreshController {
             recordCompletedLayoutCycle()
             completeRefreshActions(completedRefresh, didExecuteEffectPlan: didExecuteEffectPlan)
             collectUnusedWorkspacesIfIdle()
+            controller?.publishFocusIfFocusedWindowLayoutChanged()
         }
 
         startNextRefreshIfNeeded()

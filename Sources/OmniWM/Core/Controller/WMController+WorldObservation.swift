@@ -24,12 +24,13 @@ extension WMController {
             surfaceReconciler.noteBorderChanged()
         }
         let changeSet = focusNotificationDispatcher.notifyFocusChangesIfNeeded()
+        let focusedWindowLayoutChanged = focusNotificationDispatcher.focusedWindowLayoutStateChanged()
         if statusBarRefreshIsEnabled {
             refreshStatusBar()
         }
         if let ipcApplicationBridge {
             Task {
-                if changeSet.focusChanged {
+                if changeSet.focusChanged || focusedWindowLayoutChanged {
                     await ipcApplicationBridge.publishEvent(.focus)
                 }
                 if changeSet.workspaceChanged || changeSet.monitorChanged {
