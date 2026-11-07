@@ -1,5 +1,7 @@
 # OmniWM (hanswug fork)
 
+**We respect macOS and push it to its limits.** No tricks: if macOS doesn't offer something, we don't fake it.
+
 This is a personal fork of **[OmniWM](https://github.com/OmniNull/OmniWM)**, the free, open-source tiling window manager for Apple Silicon Macs by [OmniNull](https://github.com/OmniNull) and its contributors.
 
 **If you're looking for OmniWM, use upstream:** [website](https://omniwm.app) · [documentation](https://omniwm.app/guides/quick-start/) · [install](https://omniwm.app/guides/install/) · [repository](https://github.com/OmniNull/OmniWM). Upstream is signed, notarized and actively maintained. This fork isn't.
