@@ -105,6 +105,7 @@ final class ScratchpadAppRuleTests: XCTestCase {
 
     func testOnlyPersistentSlotsAreRemembered() throws {
         let fixture = try makeFixture()
+        fixture.controller.workspaceManager.persistedRestoreBundleIdProvider = { _ in "com.test.app" }
         fixture.controller.settings.setScratchpadMode(.persistent, for: 1)
         fixture.controller.settings.setScratchpadMode(.volatile, for: 2)
         _ = fixture.addWindow(scratchpadSlot: 1)
