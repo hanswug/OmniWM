@@ -256,7 +256,9 @@ extension CommandHandler {
         switch action {
         case let .assign(index):
             guard let index = ScratchpadIndex(index) else { return .invalidArguments }
-            return controller.assignFocusedWindowToScratchpad(index)
+            let result = controller.assignFocusedWindowToScratchpad(index)
+            controller.rememberScratchpadMemberships()
+            return result
         case let .toggle(index):
             guard let index = ScratchpadIndex(index) else { return .invalidArguments }
             let result = controller.toggleScratchpad(index)

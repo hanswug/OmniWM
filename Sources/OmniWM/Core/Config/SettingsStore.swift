@@ -98,6 +98,21 @@ final class SettingsStore {
         didSet { scheduleSave() }
     }
 
+    var scratchpadModes: [String: ScratchpadMode] = [:] {
+        didSet { scheduleSave() }
+    }
+
+    func setScratchpadLabel(_ label: String, for index: Int) {
+        var labels = scratchpadLabels
+        labels[String(index)] = label
+        scratchpadLabels = SettingsStore.normalizedScratchpadLabels(labels)
+    }
+
+    var scratchpadMemberships: [PersistedScratchpadMembership] {
+        get { runtimeState.scratchpadMemberships }
+        set { runtimeState.scratchpadMemberships = newValue }
+    }
+
     private(set) var appRulesRevision: UInt64 = 0
     private(set) var appRulesDiagnosticSnapshot = WindowClassificationRulesSnapshot(
         revision: 0,
@@ -435,6 +450,7 @@ extension SettingsStore {
         workspaceBar.applyIdentity(export.workspaceBar)
         island.apply(export.island)
         scratchpadLabels = SettingsStore.normalizedScratchpadLabels(export.scratchpads.labels)
+        scratchpadModes = ScratchpadMode.normalized(export.scratchpads.modes ?? [:])
         workspaceBar.applyAppearance(export.workspaceBar, monitorOverrides: export.monitorBarSettings)
 
         appRules = export.appRules
