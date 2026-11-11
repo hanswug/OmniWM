@@ -1,0 +1,13 @@
+
+[profiles]
+
+[profiles.default]
+center = []
+leading = ["apple-menu", "app-menu", "omniwm", "workspaces", "scratchpads"]
+trailing = ["system-stats"]
+
+[profiles.default.workspaceBar]
+fullWidth = false
+notchMode = "rightOfNotch"
+reserveLayoutSpace = true
+transparentBackground = true
