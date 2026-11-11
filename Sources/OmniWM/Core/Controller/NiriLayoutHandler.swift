@@ -48,6 +48,8 @@ enum StructuralMutationOutcome: Equatable {
 
 @MainActor final class NiriLayoutHandler {
     weak var controller: WMController?
+    var lastPrimaryResizeTokens: Set<WindowToken> = []
+    var refusedPrimaryMinimums: [WindowToken: CGSize] = [:]
 
     struct NiriLayoutPass {
         let motion: MotionSnapshot

@@ -56,6 +56,34 @@ final class NiriObservedMinimumRetestTests: XCTestCase {
         }
     }
 
+    func testShrinkingAgainstAJustRefusedMinimumDoesNotAskAgain() throws {
+        for resizesWindow in [false, true] {
+            let fixture = try makeFixture()
+            let minimum = try layoutFrame(fixture).width - 100
+
+            adjust(-10, resizesWindow: resizesWindow, fixture: fixture)
+            try refuseBelow(minimum, fixture: fixture)
+            XCTAssertEqual(try layoutFrame(fixture).width, minimum)
+
+            for _ in 0 ..< 3 {
+                adjust(-10, resizesWindow: resizesWindow, fixture: fixture)
+                XCTAssertEqual(try layoutFrame(fixture).width, minimum)
+            }
+            XCTAssertEqual(fixture.controller.workspaceManager.observedSizeEvidence(for: fixture.token)?.minSize.width, minimum)
+        }
+    }
+
+    func testGrowingAfterARefusalRetestsTheMinimum() throws {
+        let fixture = try makeFixture()
+        let minimum = try layoutFrame(fixture).width - 100
+        adjust(-10, resizesWindow: false, fixture: fixture)
+        try refuseBelow(minimum, fixture: fixture)
+
+        adjust(10, resizesWindow: false, fixture: fixture)
+
+        XCTAssertNil(fixture.controller.workspaceManager.observedSizeEvidence(for: fixture.token))
+    }
+
     func testExplicitResizeKeepsTheAppsDeclaredMinimum() throws {
         let fixture = try makeFixture()
         fixture.controller.workspaceManager.setCachedConstraints(
@@ -103,6 +131,14 @@ final class NiriObservedMinimumRetestTests: XCTestCase {
         } else {
             handler.setContainerPrimarySpan(.adjustProportion(percent), target: .window(fixture.handle))
         }
+    }
+
+    private func refuseBelow(_ width: CGFloat, fixture: Fixture) throws {
+        var evidence = ObservedSizeEvidence()
+        evidence.minSize = CGSize(width: width, height: 1)
+        XCTAssertTrue(fixture.controller.workspaceManager.setObservedSizeEvidence(evidence, for: fixture.token))
+        fixture.controller.niriLayoutHandler.noteRefusedMinimum(for: fixture.token)
+        _ = try layoutFrame(fixture)
     }
 
     private func learnMinimumWidth(_ width: CGFloat, fixture: Fixture) throws {
