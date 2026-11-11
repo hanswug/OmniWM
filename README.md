@@ -16,10 +16,11 @@ Each change is a topic branch cut from upstream `main`, so it can be reviewed an
 |---|---|---|
 | [Explicit resizes retest learned minimums](#explicit-resizes-retest-learned-minimums) | fix | not proposed yet |
 | [Keyboard resizes stay inside the working area](#keyboard-resizes-stay-inside-the-working-area) | fix | fork only |
-| [Columns end exactly on the outer gaps](#columns-end-exactly-on-the-outer-gaps) | fix | candidate, fails on clean upstream |
+| [Columns end exactly on the outer gaps](#columns-end-exactly-on-the-outer-gaps) | fix | candidate, both parts fail on clean upstream |
 | [Shrink visible columns to fit](#shrink-visible-columns-to-fit) | setting | agreed in [#1110](https://github.com/OmniNull/OmniWM/issues/1110) as one opt-in setting in two PRs; first PR not opened yet |
 | [Reset Layout](#reset-layout) | command, setting | fork only |
 | [New window placement](#new-window-placement) | settings | fork only |
+| [IPC hooks for the companion](#ipc-hooks-for-the-companion) | commands, event | fork only |
 
 Merged upstream: [Fullscreen toggle raises the window](https://github.com/OmniNull/OmniWM/pull/1109), in upstream since 2026-11-08.
 
@@ -29,6 +30,8 @@ New settings default to upstream's behaviour. Niri ones live in the `[niri]` tab
 
 OmniWM learns an app's minimum size when the app refuses to shrink, and then won't size it smaller. Some apps' real minimum later drops (Safari is one), but the learned value stayed, so the column was held wider than it needed to be. Now a resize you ask for (keyboard resizing, Reset Layout) retests the learned minimum instead of trusting it forever. If the app really can't go narrower, the column keeps the width the app kept, so growing it back works on the first press.
 
+A minimum the app has just refused is trusted on the next shrink step for that window, so pressing shrink against it changes nothing instead of making the window and its neighbours jump on every press. Growing, setting or cycling the span, Reset Layout and a visible container change retest it again.
+
 ### Keyboard resizes stay inside the working area
 
 Sizing commands (a fixed width, a proportion above 100%, repeated grow steps) are capped at a full-width column, the same bound mouse resizing already uses, so a column no longer runs past the screen into the outer gaps. A window's minimum size still wins.
@@ -37,6 +40,8 @@ Sizing commands (a fixed width, a proportion above 100%, repeated grow steps) ar
 
 Each column's width was rounded to whole pixels on its own, so two half-pixel columns both rounded up and the row ended a pixel into the right outer gap, or shifted a pixel when focus moved. Column edges are now rounded instead of widths: neighbours meet exactly, the last column ends on the gap, and widths stay fixed while the view scrolls.
 
+The view is placed on whole pixels too. When the first column in view started at a fractional position (the second of two 1275.5 pt columns, say), the whole row sat a pixel into an outer gap, 641 to 3201 instead of 640 to 3200. Upstream has both problems.
+
 ### Shrink visible columns to fit
 
 ```toml
@@ -44,7 +49,14 @@ Each column's width was rounded to whole pixels on its own, so two half-pixel co
 shrinkToFit = true   # default false
 ```
 
-Upstream intentionally leaves the other columns alone when you resize one ([#615](https://github.com/OmniNull/OmniWM/pull/615)), so the row can extend into the outer gaps until you scroll. With `shrinkToFit` on, the visible columns always fill the working area, each within its size limits: after a keyboard resize (set, adjust or cycle a column's span), and when windows open or close, a minimum size changes, the gaps change, or the visible container count changes. An app with a wide minimum (Apple Music) is honoured on its first frame. When even the minimums can't fit, whole columns move out of view instead of into the outer gaps. The columns keep their own widths underneath, and mouse resizing is unchanged. Reset Layout honours minimums on the first press either way.
+Upstream intentionally leaves the other columns alone when you resize one ([#615](https://github.com/OmniNull/OmniWM/pull/615)), so the row can extend into the outer gaps until you scroll. With `shrinkToFit` on, the visible columns fill the working area and nothing sits in the outer gaps:
+
+- **Keyboard resizes** (set, adjust or cycle a span) fit the other columns of the visible group, as many as the visible container count, each within its size limits.
+- **Size events** fit the row again: a window opening or closing, an app refusing a size, a gap or visible container change. An app with a wide minimum (Apple Music) is honoured on its first frame.
+- **Moving focus never resizes.** Widths fitted for one pair can leave the next pair short or too wide; a column that would only partly show moves out of view instead of into the outer gaps. The strip it leaves stays empty until Reset Layout or a visible container change.
+- The row sits flush on the gaps, a full-span column fills the row on its own and gets its neighbours back unchanged, and when even the minimums can't fit, whole columns move out of view.
+
+The columns keep their own widths underneath, and mouse resizing is unchanged. Reset Layout honours minimums on the first press either way. With the setting off, everything behaves as upstream.
 
 ### Reset Layout
 
@@ -67,6 +79,18 @@ newWindowJoinsTabbedColumn = false     # default false
 
 `newWindowPlacement` sets where a new window's column opens: right or left of the focused column, or at the start or end of the workspace. With `newWindowJoinsTabbedColumn`, if the column on that side (or the first or last column) is tabbed, the new window joins it as a tab instead of opening a new column.
 
+### IPC hooks for the companion
+
+Commands that change settings live, so a client doesn't have to edit `settings.toml`, all bindable as hotkeys:
+
+```sh
+omniwmctl command set-visible-containers <1-5>
+omniwmctl command set-outer-gaps <left> <right> <top> <bottom>
+omniwmctl command toggle-borders
+```
+
+The `focus` event is also published when the focused window's fullscreen or full-span state changes, so a client needs no polling.
+
 ## Building
 
 There are no releases of this fork. To try it, build it the way upstream documents in [CONTRIBUTING.md](CONTRIBUTING.md) (`make doctor`, `make setup`, then `make run`). `make run` installs a separate **OmniWM Dev** app in `~/Applications`, with its own settings in `~/.config/omniwm-dev/`, so your regular OmniWM install is left alone. Only one of the two runs at a time; `make use-release` switches back.
@@ -80,7 +104,7 @@ There are no releases of this fork. To try it, build it the way upstream documen
 - **Borders toggle.**
 - **A live menu bar status** with the workspace, layout, visible-container dots and fullscreen state, plus a small HUD that confirms each command.
 
-It needs no Accessibility or Input Monitoring permission. It's a separate app for now; whether parts of it move into this fork is still open.
+It needs no Accessibility or Input Monitoring permission. With this fork it uses the [IPC hooks](#ipc-hooks-for-the-companion) instead of editing `settings.toml`. Its command HUD is planned to move into this fork, so commands that hit a limit (a window at its minimum) show why nothing moved.
 
 ## License and credit
 
