@@ -23,15 +23,27 @@ final class WindowSwitcherController {
     private var items: [WindowSwitcherItem] = []
     private var selection = WindowSwitcherSelection()
     private var workspaceId: WorkspaceDescriptor.ID?
+    private var visibleWorkspaceIds: Set<WorkspaceDescriptor.ID> = []
     private var scope = WindowSwitcherScope.allWorkspaces
     private var screenFrame = CGRect.zero
     private var scale: CGFloat = 2
     private let dismissalMonitor = PanelDismissalMonitor()
     private var generation: UInt64 = 0
+    private let modifierFlags: () -> CGEventFlags
+    private let armExternalSession: @MainActor (HotkeyCenter, CGEventFlags) -> UInt64?
     private(set) var isVisible = false
 
-    init(controller: WMController, previewCapture: OverviewThumbnailCapture? = nil) {
+    init(
+        controller: WMController,
+        previewCapture: OverviewThumbnailCapture? = nil,
+        modifierFlags: @escaping () -> CGEventFlags = { CGEventSource.flagsState(.combinedSessionState) },
+        armExternalSession: @escaping @MainActor (HotkeyCenter, CGEventFlags) -> UInt64? = {
+            $0.beginExternalWindowSwitcherSession(holding: $1)
+        }
+    ) {
         self.controller = controller
+        self.modifierFlags = modifierFlags
+        self.armExternalSession = armExternalSession
         panel = WindowSwitcherPanel(ownedWindowRegistry: controller.ownedWindowRegistry)
         capture = previewCapture ?? OverviewThumbnailCapture(consumer: .windowSwitcher)
         capture.onPreview = { [weak self] handle, frame in
@@ -45,7 +57,7 @@ final class WindowSwitcherController {
             self?.selection.select(token)
             self?.commit(focusOrigin: .pointerSelection)
         }
-        panel.onToggleScope = { [weak self] in self?.handle(.toggleScope) }
+        panel.onCycleScope = { [weak self] in self?.handle(.cycleScope) }
         panel.onClose = { [weak self] token in self?.close(token) }
         panel.onVisibleItemsChanged = { [weak self] displayed in self?.captureVisibleItems(displayed) }
     }
@@ -66,9 +78,9 @@ final class WindowSwitcherController {
             reconcileItems()
             if selection.selected == previous { selection.cycle(reverse: reverse) }
             render()
-        case .toggleScope:
+        case .cycleScope:
             guard isVisible else { return }
-            scope = scope == .allWorkspaces ? .activeWorkspace : .allWorkspaces
+            scope = scope.next(offeringVisibleWorkspaces: visibleWorkspaceIds.count > 1)
             controller?.settings.windowSwitcher.scope = scope
             reconcileItems()
             render()
@@ -87,7 +99,7 @@ final class WindowSwitcherController {
     }
 
     private func begin(reverse: Bool, initialScope: WindowSwitcherScope?) {
-        guard let controller, controller.hotkeysEnabled, controller.settings.windowSwitcher.enabled,
+        guard let controller, controller.settings.windowSwitcher.enabled,
               !controller.isLockScreenActive,
               !controller.isOverviewOpen(), !controller.commandPaletteController.isVisible,
               let monitor = controller.monitorForInteraction()
@@ -96,6 +108,7 @@ final class WindowSwitcherController {
             return
         }
         workspaceId = controller.activeWorkspace()?.id
+        visibleWorkspaceIds = controller.workspaceManager.visibleWorkspaceIds()
         scope = initialScope ?? controller.settings.windowSwitcher.scope
         screenFrame = monitor.visibleFrame
         scale = NSScreen.screens.first { $0.displayId == monitor.displayId }?.backingScaleFactor ?? 2
@@ -143,26 +156,32 @@ final class WindowSwitcherController {
         guard let controller else { return [] }
         let manager = controller.workspaceManager
         let byToken = Dictionary(uniqueKeysWithValues: items.map { ($0.handle.id, $0) })
-        let scoped = manager.workspaces.filter { scope == .allWorkspaces || $0.id == workspaceId }
-            .flatMap { workspace in
-                orderedEntries(in: workspace.id, manager: manager).compactMap { entry -> WindowSwitcherItem? in
-                    guard !entry.observedState.isNativeWithdrawn,
-                          var item = byToken[entry.token],
-                          manager.handle(for: entry.token) === item.handle
-                    else { return nil }
-                    item.workspaceName = controller.settings.workspaces.displayName(for: workspace.name)
-                    item.isMinimized = entry.observedState.isMinimized
-                    if let metadata = entry.target.hostedMetadata {
-                        item.title = metadata.title
-                        if metadata.role == .main,
-                           controller.shellAppWindowManager.activeSheet(for: entry.token) != nil
-                        {
-                            item.title += " — " + String(localized: "Dialog open")
-                        }
-                    }
-                    return item
-                }
+        let scoped = manager.workspaces.filter { workspace in
+            switch scope {
+            case .allWorkspaces: true
+            case .visibleWorkspaces: visibleWorkspaceIds.contains(workspace.id)
+            case .activeWorkspace: workspace.id == workspaceId
             }
+        }
+        .flatMap { workspace in
+            orderedEntries(in: workspace.id, manager: manager).compactMap { entry -> WindowSwitcherItem? in
+                guard !entry.observedState.isNativeWithdrawn,
+                      var item = byToken[entry.token],
+                      manager.handle(for: entry.token) === item.handle
+                else { return nil }
+                item.workspaceName = controller.settings.workspaces.displayName(for: workspace.name)
+                item.isMinimized = entry.observedState.isMinimized
+                if let metadata = entry.target.hostedMetadata {
+                    item.title = metadata.title
+                    if metadata.role == .main,
+                       controller.shellAppWindowManager.activeSheet(for: entry.token) != nil
+                    {
+                        item.title += " — " + String(localized: "Dialog open")
+                    }
+                }
+                return item
+            }
+        }
         guard controller.settings.windowSwitcher.order == .lastUsed else { return scoped }
         return WindowSwitcherOrder.lastUsed.orderedItems(scoped, recent: listedRecency(manager: manager))
     }
@@ -304,5 +323,20 @@ final class WindowSwitcherController {
         panel.hide()
         controller?.focusPolicyEngine.endLease(owner: .windowSwitcher)
         dismissalMonitor.stop()
+    }
+}
+
+extension WindowSwitcherController {
+    func advanceFromAutomation(reverse: Bool, scope: WindowSwitcherScope?) {
+        guard !isVisible else {
+            handle(.cycle(reverse: reverse))
+            return
+        }
+        guard let hotkeys = controller?.hotkeys else { return }
+        let held = modifierFlags().intersection(WindowSwitcherInput.releaseModifiers)
+        let sessionGeneration = held.isEmpty ? nil : armExternalSession(hotkeys, held)
+        handle(.begin(reverse: reverse, scope: scope), generation: sessionGeneration)
+        let releasedBeforeTapArmed = !modifierFlags().contains(held)
+        if sessionGeneration == nil || releasedBeforeTapArmed { handle(.commit) }
     }
 }

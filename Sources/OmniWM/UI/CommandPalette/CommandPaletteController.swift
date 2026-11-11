@@ -5,7 +5,6 @@ import AppKit
 import ApplicationServices
 import Carbon
 import Observation
-import SwiftUI
 
 @MainActor
 @Observable
@@ -54,20 +53,32 @@ final class CommandPaletteController: NSObject, NSWindowDelegate {
     }
 
     var windows: [CommandPaletteWindowItem] = [] {
-        didSet { filterInputDidChange() }
+        didSet {
+            shellRowCache.removeAll(keepingCapacity: true)
+            filterInputDidChange()
+        }
     }
 
     private(set) var menuItems: [MenuItemModel] = [] {
-        didSet { filterInputDidChange() }
+        didSet {
+            shellMenuRowCache.removeAll(keepingCapacity: true)
+            filterInputDidChange()
+        }
     }
 
     private(set) var isMenuLoading = false
     var clipboardItems: [ClipboardPaletteItem] = [] {
-        didSet { filterInputDidChange() }
+        didSet {
+            shellClipboardRowCache.removeAll(keepingCapacity: true)
+            filterInputDidChange()
+        }
     }
 
     private(set) var commandItems: [CommandPaletteCommandItem] = [] {
-        didSet { filterInputDidChange() }
+        didSet {
+            shellCommandRowCache.removeAll(keepingCapacity: true)
+            filterInputDidChange()
+        }
     }
 
     private(set) var filteredItems = CommandPaletteFilteredItems.windows([])
@@ -79,10 +90,16 @@ final class CommandPaletteController: NSObject, NSWindowDelegate {
     var clipboardErrorText: String?
     var selectionScrollRequest = 0
 
-    var applicationSections: [LauncherSection<LauncherApplicationResult>] = []
+    var applicationSections: [LauncherSection<LauncherApplicationResult>] = [] {
+        didSet { shellUnifiedRowCache.removeAll(keepingCapacity: true) }
+    }
+
     var launcherFilter: LauncherFilter = .all
     var savedApplicationIdentifiers: [UUID: String] = [:]
-    var fileSections: [LauncherSection<LauncherFileResult>] = []
+    var fileSections: [LauncherSection<LauncherFileResult>] = [] {
+        didSet { shellUnifiedRowCache.removeAll(keepingCapacity: true) }
+    }
+
     var applicationChips: [LauncherChip] = []
     var fileChips: [LauncherChip] = []
     var selectedApplicationChip: LauncherChip?
@@ -91,7 +108,7 @@ final class CommandPaletteController: NSObject, NSWindowDelegate {
     var fileViewStyle: LauncherViewStyle = .grid
     var isApplicationLoading = false
     var isFileLoading = false
-    var launcherColumnCount = 1
+    @ObservationIgnored var launcherColumnCount = 1
     var launcherScopeChipIndex = 0
     var launcherResultsFocused = false
     var launcherShowsPaths = false
@@ -112,12 +129,34 @@ final class CommandPaletteController: NSObject, NSWindowDelegate {
     var isConfirmingClipboardClear = false
     var isPresentingModalPrompt = false
     var clipboardPreviewGeneration = 0
+    @ObservationIgnored var shellObservationGeneration = 0
+    @ObservationIgnored var shellRowCache: [WindowToken: ShellCommandPaletteData.Row] = [:]
+    @ObservationIgnored var shellCommandRowCache: [String: ShellCommandPaletteData.Row] = [:]
+    @ObservationIgnored var shellMenuRowCache: [UUID: ShellCommandPaletteData.Row] = [:]
+    @ObservationIgnored var shellClipboardRowCache: [UUID: ShellCommandPaletteData.Row] = [:]
+    @ObservationIgnored let nativeMenu = CommandPaletteNativeMenu()
+    @ObservationIgnored var shellPreviewCache: CommandPaletteShellPreviewCache?
+    @ObservationIgnored var shellUnifiedRowCache: [CommandPaletteSelectionID: ShellCommandPaletteData.Row] = [:]
+    @ObservationIgnored var shellRowKeys: [CommandPaletteSelectionID: String] = [:]
+    @ObservationIgnored var shellUnifiedKeySequence = 0
+    @ObservationIgnored var shellSelectionIndex: [String: CommandPaletteSelectionID] = [:]
+    @ObservationIgnored var shellImageCache: [CommandPaletteSelectionID: CommandPaletteShellImage] = [:]
+    @ObservationIgnored var shellImageSequence = 0
+    @ObservationIgnored var shellFileIconRequests: [CommandPaletteShellFileIconRequest] = []
+    @ObservationIgnored var shellHeaderCache: CommandPaletteShellHeader?
+    @ObservationIgnored var shellLauncherRowCache: [CommandPaletteSelectionID: CommandPaletteShellLauncherRow] = [:]
+    @ObservationIgnored var shellGridKeys: [String: String] = [:]
+    @ObservationIgnored var shellLauncherToolbarCache: CommandPaletteShellLauncherToolbar?
+    @ObservationIgnored var shellFilePreviewCache: CommandPaletteShellFilePreviewCache?
+    @ObservationIgnored var launcherQuickLook: ShellDesktopPlatform.Presentation?
+    @ObservationIgnored weak var deferredShellSource: WorkspaceBarManager?
 
     enum DismissReason {
         case cancel
         case selection
         case deactivation
         case superseded
+        case failure
     }
 
     init(
@@ -132,11 +171,6 @@ final class CommandPaletteController: NSObject, NSWindowDelegate {
         actionExecutor = CommandPaletteActionExecutor(environment: environment, focusSession: focusSession)
         presentation = CommandPalettePanel(motionPolicy: motionPolicy, ownedWindowRegistry: ownedWindowRegistry)
         super.init()
-    }
-
-    var isCurrentWorkspaceEmpty: Bool {
-        guard let wmController, let workspaceId = focusSession.workspaceId else { return false }
-        return wmController.workspaceManager.windowCount(in: workspaceId) == 0
     }
 
     func toggle(wmController: WMController, mode: CommandPaletteMode? = nil) {
@@ -178,11 +212,8 @@ final class CommandPaletteController: NSObject, NSWindowDelegate {
         selectedItemID = nil
         menuSession.invalidate()
 
-        if presentation.panel == nil {
-            presentation.create(controller: self)
-        }
-
-        guard let panel = presentation.panel else { return }
+        guard let panel = preparePresentation(wmController) else { return }
+        presentation.shell?.beginSession()
 
         presentation.position(panel)
         isExpanded = false
@@ -192,6 +223,7 @@ final class CommandPaletteController: NSObject, NSWindowDelegate {
         }
 
         installEventMonitor()
+        syncLauncherPaths()
 
         isVisible = true
         claimPaletteInput(wmController)
@@ -202,6 +234,7 @@ final class CommandPaletteController: NSObject, NSWindowDelegate {
         }
         updateSelectionAfterFilterChange()
         loadSelectedClipboardPreview()
+        syncShellContent()
         panel.orderFrontRegardless()
         panel.makeKey()
         presentation.reveal(panel)
@@ -214,11 +247,16 @@ final class CommandPaletteController: NSObject, NSWindowDelegate {
         }
     }
 
-    func windowDidResignKey(_: Notification) {
-        guard isVisible, !isProgrammaticDismiss, !isConfirmingClipboardClear, !isPresentingModalPrompt else {
-            return
+    private func preparePresentation(_ wmController: WMController) -> NSPanel? {
+        if presentation.panel == nil {
+            presentation.create(controller: self)
         }
-        dismiss(reason: .deactivation)
+        guard presentation.prepareShell(from: wmController.workspaceBarManager, controller: self, checksFiles: false)
+        else {
+            dismiss(reason: .failure)
+            return nil
+        }
+        return presentation.panel
     }
 
     func activateSelectedMode() {
@@ -226,6 +264,9 @@ final class CommandPaletteController: NSObject, NSWindowDelegate {
             selectedMode = .windows
             return
         }
+        closeLauncherQuickLook()
+        presentation.shell?.beginSession()
+        finishShellFileIconDemand([])
         refreshFilteredItems()
         invalidateLauncherSearch()
         launcherResultsFocused = false
@@ -240,6 +281,7 @@ final class CommandPaletteController: NSObject, NSWindowDelegate {
             startLauncherSearch()
         }
         updateSelectionAfterFilterChange()
+        if isVisible { syncShellContent() }
     }
 
     func filterInputDidChange() {
@@ -290,7 +332,9 @@ final class CommandPaletteController: NSObject, NSWindowDelegate {
             }
         })
     }
+}
 
+extension CommandPaletteController {
     func dismissForLauncherSelection() {
         dismiss(reason: .selection)
     }
@@ -302,22 +346,21 @@ final class CommandPaletteController: NSObject, NSWindowDelegate {
 
     func expandResults() {
         guard isVisible, !isExpanded, let panel = presentation.panel else { return }
-        if presentation.animatesPresentation {
-            withAnimation(.easeOut(duration: CommandPalettePanel.expansionDuration)) {
-                isExpanded = true
-            }
-        } else {
-            isExpanded = true
-        }
+        isExpanded = true
         presentation.expand(panel)
     }
-}
 
-extension CommandPaletteController {
     func dismiss(reason: DismissReason) {
+        let wasVisible = isVisible
+        if reason == .failure { deferredShellSource = nil }
+        nativeMenu.cancel()
+        shellPreviewCache = nil
+        shellImageCache.removeAll(keepingCapacity: true)
+        finishShellFileIconDemand([])
         removeEventMonitor()
         invalidateLauncherSearch()
         isVisible = false
+        closeLauncherQuickLook()
         clipboardPreviewGeneration &+= 1
         clipboardPreview = nil
         clipboardPreviewImage = nil
@@ -328,6 +371,10 @@ extension CommandPaletteController {
             environment.observeClipboardItems(wmController, nil)
             releasePaletteInput(wmController)
         }
+        if let shell = presentation.shell {
+            shell.publish(shellData(size: presentation.shellLayoutSize(expanded: false)))
+            shell.setVisible(false)
+        }
 
         var defersContentClear = false
         if let panel = presentation.panel {
@@ -335,9 +382,7 @@ extension CommandPaletteController {
             isProgrammaticDismiss = true
             if case .cancel = reason, presentation.animatesPresentation {
                 defersContentClear = true
-                withAnimation(.easeOut(duration: CommandPalettePanel.dismissalDuration)) {
-                    isExpanded = false
-                }
+                isExpanded = false
                 presentation.dismiss(panel) { [weak self] in
                     self?.clearPresentedContent()
                 }
@@ -348,7 +393,8 @@ extension CommandPaletteController {
             isProgrammaticDismiss = false
         }
 
-        let restoreTarget = reason == .cancel ? focusSession.restoreFocusTarget : nil
+        let restoresFocus = reason == .cancel || (reason == .failure && wasVisible)
+        let restoreTarget = restoresFocus ? focusSession.restoreFocusTarget : nil
 
         focusSession.clear()
         wmController = nil
@@ -389,13 +435,26 @@ extension CommandPaletteController {
         menuItems = []
         clipboardItems = []
         commandItems = []
+        shellRowKeys.removeAll(keepingCapacity: true)
+        shellGridKeys.removeAll(keepingCapacity: true)
+        clearShellLauncherRows()
         isClipboardHistoryEnabled = false
+        if let source = deferredShellSource {
+            prewarmShell(from: source)
+        }
     }
 
     private func installEventMonitor() {
         removeEventMonitor()
-        eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            guard let self, isVisible, !isPresentingModalPrompt else { return event }
+        eventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .flagsChanged]) { [weak self] event in
+            guard let self, isVisible else { return event }
+            if event.type == .flagsChanged {
+                syncLauncherPaths(event.modifierFlags)
+                return event
+            }
+            guard !isPresentingModalPrompt, !nativeMenu.isTracking,
+                  launcherQuickLook == nil || event.window === presentation.panel
+            else { return event }
             return handleKeyDown(event) ? nil : event
         }
     }
@@ -411,5 +470,28 @@ extension CommandPaletteController {
         if isVisible {
             presentation.panel?.makeKey()
         }
+    }
+}
+
+extension CommandPaletteController {
+    func windowDidChangeBackingProperties(_: Notification) {
+        guard let panel = presentation.panel else { return }
+        presentation.backingPropertiesChanged(panel)
+        if isVisible { publishShellData() }
+    }
+
+    func windowDidResize(_: Notification) {
+        guard isVisible, let panel = presentation.panel else { return }
+        presentation.liveResized(panel, expanded: isExpanded)
+        publishShellData()
+    }
+
+    func windowDidResignKey(_: Notification) {
+        guard isVisible, !isProgrammaticDismiss, !isConfirmingClipboardClear, !isPresentingModalPrompt,
+              !nativeMenu.isTracking, launcherQuickLook == nil
+        else {
+            return
+        }
+        dismiss(reason: .deactivation)
     }
 }

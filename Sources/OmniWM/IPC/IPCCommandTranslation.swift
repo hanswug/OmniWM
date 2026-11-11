@@ -240,3 +240,16 @@ extension CommandPaletteMode {
         }
     }
 }
+
+extension WindowSwitcherScope {
+    init(ipc value: IPCWindowSwitcherScope) {
+        switch value {
+        case .activeWorkspace:
+            self = .activeWorkspace
+        case .visibleWorkspaces:
+            self = .visibleWorkspaces
+        case .allWorkspaces:
+            self = .allWorkspaces
+        }
+    }
+}

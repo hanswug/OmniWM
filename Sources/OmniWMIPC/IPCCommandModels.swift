@@ -43,6 +43,8 @@ public enum IPCCommandArgumentValue: Equatable, Sendable {
     case number(Double)
     case layout(IPCWorkspaceLayout)
     case paletteMode(IPCCommandPaletteMode)
+    case switcherDirection(IPCWindowSwitcherDirection)
+    case switcherScope(IPCWindowSwitcherScope)
     case resizeAxis(IPCResizeAxis)
     case resizeOperation(IPCResizeOperation)
     case sizeChange(IPCSizeChange)
@@ -64,6 +66,7 @@ public enum IPCCommandRequest: Equatable, Sendable {
     case dwindle(IPCDwindleCommand)
     case openCommandPalette
     case openCommandPaletteMode(mode: IPCCommandPaletteMode)
+    case windowSwitcher(direction: IPCWindowSwitcherDirection, scope: IPCWindowSwitcherScope?)
     case raiseAllFloatingWindows
     case toggleFloatingFocus
     case rescueOffscreenWindows
@@ -100,6 +103,8 @@ public enum IPCCommandRequest: Equatable, Sendable {
             .openCommandPalette
         case .openCommandPaletteMode:
             .openCommandPaletteMode
+        case .windowSwitcher:
+            .windowSwitcher
         case .raiseAllFloatingWindows:
             .raiseAllFloatingWindows
         case .toggleFloatingFocus:

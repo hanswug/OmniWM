@@ -5,18 +5,17 @@ import AppKit
 import ApplicationServices
 import Carbon
 import Observation
-import SwiftUI
 
 struct CommandPaletteWindowItem: Identifiable {
     let id: WindowToken
     let handle: WindowHandle
     let title: String
     let appName: String
-    let appIcon: NSImage?
     let workspaceName: String
     let isAppHidden: Bool
     let markNames: [String]
     var bundleIdentifier: String?
+    var hostedSymbol: String?
 }
 
 struct CommandPaletteCommandItem: Identifiable {

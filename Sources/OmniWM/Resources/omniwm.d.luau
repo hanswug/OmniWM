@@ -168,6 +168,90 @@ export type HiddenBar = {
     menu: HiddenBarMenu?,
 }
 
+export type CommandPaletteBadge = {
+    text: string,
+    tone: "neutral" | "accent" | "danger" | "warning" | "shortcut" | "shortcutMuted",
+    symbol: string?,
+}
+
+export type CommandPaletteChoice = {
+    id: string,
+    title: string,
+    symbol: string,
+    shortcut: string,
+    selected: boolean,
+    enabled: boolean,
+}
+
+export type CommandPaletteAction = { id: string, title: string, symbol: string, shortcut: string }
+
+export type CommandPaletteRow = {
+    id: string,
+    kind: "window" | "command" | "heading" | "menu" | "clipboard" | "application" | "file" | "saved" | "showAll"
+        | "executable" | "gridRow",
+    title: string,
+    subtitle: string,
+    icon: { app: string?, pid: number?, symbol: string?, bitmap: string? },
+    badges: { CommandPaletteBadge },
+    marks: { CommandPaletteBadge },
+    hint: string?,
+    hintShortcut: string?,
+    selected: boolean,
+    enabled: boolean,
+    pinned: boolean,
+    actions: { CommandPaletteAction },
+    cells: { CommandPaletteRow },
+}
+
+export type CommandPalettePreview = {
+    id: string,
+    state: "loading" | "text" | "image" | "unavailable" | "file" | "blank",
+    text: string?,
+    image: string?,
+    width: number,
+    height: number,
+    title: string?,
+    symbol: string?,
+    details: { { label: string, value: string } },
+}
+
+export type CommandPaletteLauncher = {
+    filters: { CommandPaletteChoice },
+    chips: { CommandPaletteChoice },
+    views: { CommandPaletteChoice },
+    add: CommandPaletteAction?,
+    columns: number,
+    grid: boolean,
+}
+
+export type CommandPalette = {
+    open: boolean,
+    expanded: boolean,
+    width: number,
+    height: number,
+    mode: string,
+    modes: { CommandPaletteChoice },
+    placeholder: string,
+    query: string,
+    state: "results" | "empty" | "loading" | "disabled" | "blank",
+    emptyText: string,
+    emptySymbol: string,
+    feedback: string?,
+    actions: { CommandPaletteAction },
+    rows: { CommandPaletteRow },
+    selected: string,
+    first: number,
+    total: number,
+    before: number,
+    after: number,
+    unified: boolean,
+    browseModes: boolean,
+    error: string?,
+    preview: CommandPalettePreview?,
+    launcher: CommandPaletteLauncher?,
+    emptyAction: CommandPaletteAction?,
+}
+
 export type BarDrag = {
     sources: { string },
     workspaces: { string },
@@ -579,6 +663,7 @@ export type Data = {
     microphone: Microphone?,
     brightness: Brightness?,
     connection: Connection?,
+    commandPalette: CommandPalette?,
 }
 
 export type Format = {
@@ -807,7 +892,7 @@ export type Props = {
     pressOpacity: number?,
     pressFill: Color?,
     pressAnimate: Animate?,
-    onHover: InputHandler?,
+    onHover: (InputHandler | string)?,
     hoverDelay: number?,
     hoverGrace: number?,
     gesture: Gesture?,
@@ -855,6 +940,8 @@ export type TextInputProps = Props & {
     text: string?,
     placeholder: string?,
     multiline: boolean?,
+    editable: boolean?,
+    wrap: boolean?,
     maxLength: number?,
     focus: boolean?,
     style: TextStyle?,

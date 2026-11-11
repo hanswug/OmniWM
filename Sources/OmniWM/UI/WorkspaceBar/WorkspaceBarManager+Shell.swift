@@ -51,7 +51,11 @@ extension WorkspaceBarManager {
     func shellConfigurationSaved(_ config: ShellConfig) {
         if let shellHost {
             shellHost.applyConfig(config, problems: shellConfiguration.configProblems)
-        } else { applyShellProfile(config) }
+        } else {
+            applyShellProfile(config)
+            commandPaletteConfigCache = nil
+        }
+        controller?.commandPaletteController.prewarmShell(from: self)
     }
 
     func toggleShellSystemStats(preferring monitors: [Monitor]) -> Bool {
@@ -138,6 +142,7 @@ extension WorkspaceBarManager {
         shellPermissionPrompts?.observe(host)
         setShellLocked(controller?.isLockScreenActive == true)
         host.start()
+        controller?.commandPaletteController.prewarmShell(from: self)
     }
 
     private func makeShellHost(configDirectory: URL) -> ShellWidgetHost {
@@ -181,7 +186,7 @@ extension WorkspaceBarManager {
         )
     }
 
-    private func makeShellResources() -> ShellResources {
+    func makeShellResources() -> ShellResources {
         ShellResources(
             motion: motionPolicy,
             appVolumes: controller?.appVolumeMixer,
@@ -218,6 +223,7 @@ extension WorkspaceBarManager {
                 self?.controller?.surfaceReconciler.noteWorldChanged()
             }
             self?.controller?.mouseEventHandler.reconcileMouseMoveSubscription()
+            self?.controller?.commandPaletteController.prewarmShell(from: self)
         }
     }
 

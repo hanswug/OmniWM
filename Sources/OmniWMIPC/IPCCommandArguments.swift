@@ -79,6 +79,23 @@ enum IPCCommandArgumentSource {
         }
     }
 
+    func windowSwitcher() throws -> IPCCommandRequest {
+        switch self {
+        case let .values(arguments):
+            guard (1 ... 2).contains(arguments.count), case let .switcherDirection(direction) = arguments[0] else {
+                throw IPCCommandRequestConstructionError.invalidArgumentType
+            }
+            guard arguments.count == 2 else { return .windowSwitcher(direction: direction, scope: nil) }
+            guard case let .switcherScope(scope) = arguments[1] else {
+                throw IPCCommandRequestConstructionError.invalidArgumentType
+            }
+            return .windowSwitcher(direction: direction, scope: scope)
+        case let .json(container):
+            let arguments = try container.decode(IPCWindowSwitcherArguments.self, forKey: .arguments)
+            return .windowSwitcher(direction: arguments.direction, scope: arguments.scope)
+        }
+    }
+
     func sizeChange() throws -> IPCSizeChange {
         switch self {
         case let .values(arguments):
@@ -205,6 +222,13 @@ struct IPCCommandArgumentWriter {
         try container.encode(IPCPaletteModeArguments(mode: value), forKey: .arguments)
     }
 
+    mutating func encode(
+        switcherDirection direction: IPCWindowSwitcherDirection,
+        scope: IPCWindowSwitcherScope?
+    ) throws {
+        try container.encode(IPCWindowSwitcherArguments(direction: direction, scope: scope), forKey: .arguments)
+    }
+
     mutating func encode(sizeChange value: IPCSizeChange) throws {
         try container.encode(IPCSizeChangeArguments(change: value), forKey: .arguments)
     }
@@ -302,6 +326,11 @@ private struct IPCLayoutArguments: Codable, Equatable, Sendable {
 
 private struct IPCPaletteModeArguments: Codable, Equatable, Sendable {
     let mode: IPCCommandPaletteMode
+}
+
+private struct IPCWindowSwitcherArguments: Codable, Equatable, Sendable {
+    let direction: IPCWindowSwitcherDirection
+    let scope: IPCWindowSwitcherScope?
 }
 
 private struct IPCResizeArguments: Codable, Equatable, Sendable {

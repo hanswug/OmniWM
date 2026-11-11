@@ -5,7 +5,6 @@ import AppKit
 import ApplicationServices
 import Carbon
 import Observation
-import SwiftUI
 
 private final class CommandPaletteActionBox: @unchecked Sendable {
     let action: () -> Void
@@ -37,6 +36,12 @@ struct CommandPaletteEnvironment {
     var requestWindowMarkName: () -> String? = { CommandPaletteMarkNamePrompt.requestName() }
     var chooseWindowMarkNameToRemove: ([String]) -> String? = { markNames in
         CommandPaletteMarkRemovalPrompt.requestName(from: markNames)
+    }
+
+    var quickLook: (
+        [URL], ShellDesktopSource, @escaping ShellDesktopPlatform.PresentationCompletion
+    ) throws -> ShellDesktopPlatform.Presentation = { urls, source, completion in
+        try ShellDesktopPlatform.appKit.quicklook(urls, 1, source, completion)
     }
 
     var frontmostApplication: () -> NSRunningApplication? = { NSWorkspace.shared.frontmostApplication }
