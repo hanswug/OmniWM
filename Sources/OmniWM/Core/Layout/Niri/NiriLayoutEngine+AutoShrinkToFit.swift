@@ -21,7 +21,10 @@ extension NiriLayoutEngine {
             context: context,
             state: state
         )
-        guard !window.isEmpty else { return false }
+        let isFullSpan = { (column: NiriContainer) in
+            context.orientation == .horizontal ? column.isFullWidth : column.isFullHeight
+        }
+        guard !window.isEmpty, !window.contains(where: { isFullSpan($0.column) }) else { return false }
         let wantsFullCount = window.count == min(visibleCount, projected.count)
         guard autoFitNeeded(window, wantsFullCount: wantsFullCount, context: context) else {
             guard wantsFullCount,

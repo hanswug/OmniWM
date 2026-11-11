@@ -149,6 +149,33 @@ final class NiriAutoShrinkToFitTests: XCTestCase {
         XCTAssertEqual(try settledFrames(fixture), before)
     }
 
+    func testAFullSpanColumnLeavesItsNeighboursAlone() throws {
+        let fixture = try makeFixture(windowCount: 3, visibleContainerCount: 2)
+        fixture.controller.settings.niri.shrinkToFit = true
+        try focusColumn(2, fixture)
+        let before = try settledFrames(fixture)
+
+        XCTAssertTrue(fixture.controller.niriLayoutHandler.toggleContainerFullPrimarySpan())
+
+        let full = try settledFrames(fixture)
+        let workingWidth = monitorFrame.width - 2 * sidePadding
+        let neighbourWidths = before.map(\.width).filter { $0 < workingWidth }
+        XCTAssertEqual(full.map(\.width).sorted(), (neighbourWidths.prefix(2) + [workingWidth]).sorted())
+    }
+
+    func testAFullSpanRoundTripRestoresTheRow() throws {
+        let fixture = try makeFixture(windowCount: 3, visibleContainerCount: 2)
+        fixture.controller.settings.niri.shrinkToFit = true
+        try focusColumn(2, fixture)
+        let before = try settledFrames(fixture)
+
+        XCTAssertTrue(fixture.controller.niriLayoutHandler.toggleContainerFullPrimarySpan())
+        _ = try settledFrames(fixture)
+        XCTAssertTrue(fixture.controller.niriLayoutHandler.toggleContainerFullPrimarySpan())
+
+        XCTAssertEqual(try settledFrames(fixture), before)
+    }
+
     private func focusColumn(_ index: Int, _ fixture: Fixture) throws {
         let frames = try settledFrames(fixture)
         fixture.controller.workspaceManager.withNiriViewportState(for: fixture.workspaceId) { state in
