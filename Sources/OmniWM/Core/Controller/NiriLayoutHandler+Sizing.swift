@@ -437,8 +437,8 @@ extension NiriLayoutHandler {
     }
 }
 
-private extension NiriSizeChange {
-    var shrinks: Bool {
+extension NiriSizeChange {
+    fileprivate var shrinks: Bool {
         switch self {
         case let .adjustFixed(delta),
              let .adjustProportion(delta):
