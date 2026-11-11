@@ -102,7 +102,41 @@ final class NiriResetRetestsMinimumsTests: XCTestCase {
         )
 
         XCTAssertEqual(neighbour.fittedWidth, fitted)
-        XCTAssertTrue(fixture.controller.niriLayoutHandler.shrinkToFitRetests.isEmpty)
+        XCTAssertNil(fixture.controller.niriLayoutHandler.shrinkToFitRetests[fixture.tokens[0]])
+    }
+
+    func testShrinkToFitRefitsWhenASqueezedNeighbourRefuses() throws {
+        let fixture = try makeFixture(windowCount: 2, visibleContainerCount: 3)
+        fixture.controller.settings.niri.shrinkToFit = true
+        XCTAssertTrue(fixture.controller.niriLayoutHandler.setWindowPrimarySpan(
+            .setProportion(80),
+            target: .window(fixture.handles[0])
+        ))
+        let refusedWidth = try settledFrames(fixture)[1].width + 200
+
+        try regrowMinimumWidth(refusedWidth, for: fixture.tokens[1], fixture: fixture)
+
+        let frames = try settledFrames(fixture)
+        XCTAssertGreaterThanOrEqual(frames[1].width, refusedWidth)
+        XCTAssertEqual(frames[0].minX, sidePadding, accuracy: 1)
+        XCTAssertEqual(frames[1].maxX, monitorFrame.width - sidePadding, accuracy: 1)
+    }
+
+    func testShrinkToFitWindowSpanRespectsANeighboursLearnedMinimum() throws {
+        let fixture = try makeFixture(windowCount: 2, visibleContainerCount: 3)
+        fixture.controller.settings.niri.shrinkToFit = true
+        let neighbourMinimum = try settledFrames(fixture)[0].width - 100
+        try learnMinimumWidth(neighbourMinimum, for: fixture.tokens[0], fixture: fixture)
+
+        XCTAssertTrue(fixture.controller.niriLayoutHandler.setWindowPrimarySpan(
+            .setProportion(85),
+            target: .window(fixture.handles[1])
+        ))
+
+        let frames = try settledFrames(fixture)
+        XCTAssertGreaterThanOrEqual(frames[0].width, neighbourMinimum)
+        XCTAssertEqual(frames[0].minX, sidePadding, accuracy: 1)
+        XCTAssertEqual(frames[1].maxX, monitorFrame.width - sidePadding, accuracy: 1)
     }
 
     private func regrowMinimumWidth(

@@ -49,6 +49,7 @@ extension NiriLayoutHandler {
     static let shrinkToFitRetestWindow: CFTimeInterval = 2
 
     func refitAfterRetestedMinimumGrew(for token: WindowToken, now: CFTimeInterval = CACurrentMediaTime()) {
+        let anchorId = shrinkToFitRefitAnchors.removeValue(forKey: token)
         guard let retestedAt = shrinkToFitRetests.removeValue(forKey: token),
               now - retestedAt <= Self.shrinkToFitRetestWindow,
               let controller,
@@ -76,7 +77,8 @@ extension NiriLayoutHandler {
                 in: context.workspaceId,
                 motion: context.motion
             )
-            engine.shrinkVisibleColumnsToFit(around: column, onScreen: onScreen, context: context, state: &state)
+            let anchor = anchorId.flatMap { id in onScreen.first { $0.column.id == id }?.column } ?? column
+            engine.shrinkVisibleColumnsToFit(around: anchor, onScreen: onScreen, context: context, state: &state)
             return .containerPrimarySpanChanged
         }
     }
@@ -94,6 +96,13 @@ extension NiriLayoutHandler {
         resize(&state)
         guard let column, !onScreen.isEmpty else { return }
         engine.shrinkVisibleColumnsToFit(around: column, onScreen: onScreen, context: context, state: &state)
+        let now = CACurrentMediaTime()
+        for neighbour in onScreen where neighbour.column !== column {
+            for window in neighbour.column.windowNodes {
+                shrinkToFitRetests[window.token] = now
+                shrinkToFitRefitAnchors[window.token] = column.id
+            }
+        }
     }
 
     @discardableResult
@@ -217,7 +226,10 @@ extension NiriLayoutHandler {
         forShrinkToFit: Bool = false
     ) {
         guard let controller else { return }
-        if forShrinkToFit { shrinkToFitRetests.removeAll() }
+        if forShrinkToFit {
+            shrinkToFitRetests.removeAll()
+            shrinkToFitRefitAnchors.removeAll()
+        }
         let horizontal = context.orientation == .horizontal
         for window in column.windowNodes {
             let token = window.token
