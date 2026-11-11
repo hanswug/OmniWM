@@ -89,12 +89,7 @@ extension WMController {
     }
 
     private func adoptObservedSizeEvidence(_ evidence: ObservedSizeEvidence, for entry: WindowState) {
-        let previousMinimum = workspaceManager.observedSizeEvidence(for: entry.token)?.minSize
-            ?? CGSize(width: 1, height: 1)
         guard workspaceManager.setObservedSizeEvidence(evidence, for: entry.token) else { return }
-        if evidence.minSize.width > previousMinimum.width || evidence.minSize.height > previousMinimum.height {
-            niriLayoutHandler.refitAfterRetestedMinimumGrew(for: entry.token)
-        }
         workspaceManager.invalidateLayout(for: [entry.workspaceId])
         layoutRefreshController.requestRelayout(
             reason: .observedConstraintsChanged,

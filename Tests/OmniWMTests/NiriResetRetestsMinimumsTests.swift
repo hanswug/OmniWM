@@ -52,93 +52,6 @@ final class NiriResetRetestsMinimumsTests: XCTestCase {
         XCTAssertNotNil(fixture.controller.workspaceManager.observedSizeEvidence(for: fixture.tokens[0]))
     }
 
-    func testShrinkToFitRefitsWhenARetestedMinimumComesBack() throws {
-        let fixture = try makeFixture(windowCount: 2, visibleContainerCount: 2)
-        fixture.controller.settings.niri.shrinkToFit = true
-        try learnMinimumWidth(1000, for: fixture.tokens[0], fixture: fixture)
-        XCTAssertTrue(fixture.controller.niriLayoutHandler.setContainerPrimarySpan(
-            .setProportion(30),
-            target: .window(fixture.handles[0])
-        ))
-        XCTAssertLessThan(try settledFrames(fixture)[0].width, 1000)
-
-        try regrowMinimumWidth(1000, for: fixture.tokens[0], fixture: fixture)
-
-        let frames = try settledFrames(fixture)
-        XCTAssertGreaterThanOrEqual(frames[0].width, 1000)
-        XCTAssertEqual(frames[0].minX, sidePadding, accuracy: 1)
-        XCTAssertEqual(frames[1].maxX, monitorFrame.width - sidePadding, accuracy: 1)
-    }
-
-    func testShrinkToFitDoesNotRefitWithoutAKeyboardRetest() throws {
-        let fixture = try makeFixture(windowCount: 2, visibleContainerCount: 2)
-        fixture.controller.settings.niri.shrinkToFit = true
-
-        try regrowMinimumWidth(1000, for: fixture.tokens[0], fixture: fixture)
-
-        let engine = try XCTUnwrap(fixture.controller.niriEngine)
-        XCTAssertTrue(engine.ensureState(for: fixture.workspaceId).shrinkToFitColumnIds.isEmpty)
-        XCTAssertTrue(engine.columns(in: fixture.workspaceId).allSatisfy { $0.fittedWidth == nil })
-    }
-
-    func testShrinkToFitRefitExpires() throws {
-        let fixture = try makeFixture(windowCount: 2, visibleContainerCount: 2)
-        fixture.controller.settings.niri.shrinkToFit = true
-        try learnMinimumWidth(1000, for: fixture.tokens[0], fixture: fixture)
-        XCTAssertTrue(fixture.controller.niriLayoutHandler.setContainerPrimarySpan(
-            .setProportion(30),
-            target: .window(fixture.handles[0])
-        ))
-        _ = try settledFrames(fixture)
-        let engine = try XCTUnwrap(fixture.controller.niriEngine)
-        let neighbour = try XCTUnwrap(engine.columns(in: fixture.workspaceId).last)
-        let fitted = neighbour.fittedWidth
-
-        try regrowMinimumWidth(
-            1000,
-            for: fixture.tokens[0],
-            fixture: fixture,
-            at: CACurrentMediaTime() + 2 * NiriLayoutHandler.shrinkToFitRetestWindow
-        )
-
-        XCTAssertEqual(neighbour.fittedWidth, fitted)
-        XCTAssertNil(fixture.controller.niriLayoutHandler.shrinkToFitRetests[fixture.tokens[0]])
-    }
-
-    func testShrinkToFitRefitsWhenASqueezedNeighbourRefuses() throws {
-        let fixture = try makeFixture(windowCount: 2, visibleContainerCount: 3)
-        fixture.controller.settings.niri.shrinkToFit = true
-        XCTAssertTrue(fixture.controller.niriLayoutHandler.setWindowPrimarySpan(
-            .setProportion(80),
-            target: .window(fixture.handles[0])
-        ))
-        let refusedWidth = try settledFrames(fixture)[1].width + 200
-
-        try regrowMinimumWidth(refusedWidth, for: fixture.tokens[1], fixture: fixture)
-
-        let frames = try settledFrames(fixture)
-        XCTAssertGreaterThanOrEqual(frames[1].width, refusedWidth)
-        XCTAssertEqual(frames[0].minX, sidePadding, accuracy: 1)
-        XCTAssertEqual(frames[1].maxX, monitorFrame.width - sidePadding, accuracy: 1)
-    }
-
-    func testShrinkToFitWindowSpanRespectsANeighboursLearnedMinimum() throws {
-        let fixture = try makeFixture(windowCount: 2, visibleContainerCount: 3)
-        fixture.controller.settings.niri.shrinkToFit = true
-        let neighbourMinimum = try settledFrames(fixture)[0].width - 100
-        try learnMinimumWidth(neighbourMinimum, for: fixture.tokens[0], fixture: fixture)
-
-        XCTAssertTrue(fixture.controller.niriLayoutHandler.setWindowPrimarySpan(
-            .setProportion(85),
-            target: .window(fixture.handles[1])
-        ))
-
-        let frames = try settledFrames(fixture)
-        XCTAssertGreaterThanOrEqual(frames[0].width, neighbourMinimum)
-        XCTAssertEqual(frames[0].minX, sidePadding, accuracy: 1)
-        XCTAssertEqual(frames[1].maxX, monitorFrame.width - sidePadding, accuracy: 1)
-    }
-
     func testShrinkToFitGrowsRightAwayAfterRefusedShrinks() throws {
         let fixture = try makeFixture(windowCount: 2, visibleContainerCount: 2)
         fixture.controller.settings.niri.shrinkToFit = true
@@ -148,7 +61,7 @@ final class NiriResetRetestsMinimumsTests: XCTestCase {
                 .adjustProportion(-10),
                 target: .window(fixture.handles[0])
             ))
-            try regrowMinimumWidth(1000, for: fixture.tokens[0], fixture: fixture)
+            try learnMinimumWidth(1000, for: fixture.tokens[0], fixture: fixture)
         }
         XCTAssertEqual(try settledFrames(fixture)[0].width, 1000, accuracy: 1)
 
@@ -160,18 +73,6 @@ final class NiriResetRetestsMinimumsTests: XCTestCase {
         let frames = try settledFrames(fixture)
         XCTAssertGreaterThan(frames[0].width, 1000 + 100)
         XCTAssertEqual(frames[1].maxX, monitorFrame.width - sidePadding, accuracy: 1)
-    }
-
-    private func regrowMinimumWidth(
-        _ width: CGFloat,
-        for token: WindowToken,
-        fixture: Fixture,
-        at now: CFTimeInterval = CACurrentMediaTime()
-    ) throws {
-        var evidence = ObservedSizeEvidence()
-        evidence.minSize = CGSize(width: width, height: 1)
-        XCTAssertTrue(fixture.controller.workspaceManager.setObservedSizeEvidence(evidence, for: token))
-        fixture.controller.niriLayoutHandler.refitAfterRetestedMinimumGrew(for: token, now: now)
     }
 
     private func learnMinimumWidth(_ width: CGFloat, for token: WindowToken, fixture: Fixture) throws {
