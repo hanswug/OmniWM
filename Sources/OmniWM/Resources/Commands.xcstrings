@@ -9182,6 +9182,17 @@
         }
       }
     },
+    "command.presentation.cycleNewWindowJoin" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Cycle New Window Join Mode"
+          }
+        }
+      }
+    },
     "command.presentation.hiddenBar" : {
       "extractionState" : "extracted_with_value",
       "localizations" : {
@@ -9309,6 +9320,39 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "Hidden Bar 전환"
+          }
+        }
+      }
+    },
+    "command.presentation.newWindowJoinNewColumn" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "New Windows: New Column"
+          }
+        }
+      }
+    },
+    "command.presentation.newWindowJoinStacked" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "New Windows: Stacked"
+          }
+        }
+      }
+    },
+    "command.presentation.newWindowJoinTabbed" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "New Windows: Tabbed"
           }
         }
       }

@@ -8,4 +8,8 @@ public enum IPCPresentationCommand: String, CaseIterable, Hashable, Sendable {
     case workspaceBar = "toggle-workspace-bar"
     case hiddenBar = "hidden-bar-panel"
     case borders = "toggle-borders"
+    case newWindowJoinNewColumn = "new-window-join-new-column"
+    case newWindowJoinTabbed = "new-window-join-tabbed"
+    case newWindowJoinStacked = "new-window-join-stacked"
+    case cycleNewWindowJoin = "cycle-new-window-join"
 }

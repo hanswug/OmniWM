@@ -182,12 +182,16 @@ private struct GlobalNiriSettingsSection: View {
                 controller.niriEngine?.newWindowPlacement = newValue
             }
 
-            Toggle(isOn: Bindable(settings.niri).newWindowJoinsTabbedColumn) {
-                Text(verbatim: "New Windows Join a Tabbed Column There")
+            Picker(selection: Bindable(settings.niri).newWindowJoin) {
+                Text(verbatim: "New Column").tag(NewWindowJoin.newColumn)
+                Text(verbatim: "Tabbed").tag(NewWindowJoin.tabbed)
+                Text(verbatim: "Stacked").tag(NewWindowJoin.stacked)
+            } label: {
+                Text(verbatim: "New Windows Join")
             }
-            .id("New Windows Join a Tabbed Column There")
-            .onChange(of: settings.niri.newWindowJoinsTabbedColumn) { _, newValue in
-                controller.niriEngine?.newWindowJoinsTabbedColumn = newValue
+            .id("New Windows Join")
+            .onChange(of: settings.niri.newWindowJoin) { _, newValue in
+                controller.niriEngine?.newWindowJoin = newValue
             }
 
             SingleWindowFitControls(

@@ -95,10 +95,20 @@ extension NiriLayoutEngine {
             root.columns.last
         }
 
-        let placementNeighbour = placementNeighbour(of: referenceColumn, in: root)
-        if newWindowJoinsTabbedColumn, containerSizingState == nil, let tabbed = placementNeighbour, tabbed.isTabbed {
+        if newWindowJoin != .newColumn, containerSizingState == nil,
+           let target = placementNeighbour(of: referenceColumn, in: root) ?? referenceColumn
+        {
+            if newWindowJoin == .tabbed, !target.isTabbed {
+                setColumnDisplay(
+                    .tabbed,
+                    for: target,
+                    in: workspaceId,
+                    motion: .disabled,
+                    orientation: monitorForWorkspace(workspaceId)?.orientation ?? .horizontal
+                )
+            }
             let windowNode = NiriWindow(token: token)
-            tabbed.insertChild(windowNode, at: min(tabbed.activeTileIdx + 1, tabbed.children.count))
+            target.insertChild(windowNode, at: min(target.activeTileIdx + 1, target.children.count))
             state.index(windowNode)
             return windowNode
         }

@@ -24,6 +24,16 @@ enum NewWindowPlacement: String, CaseIterable, Codable, Identifiable {
     }
 }
 
+enum NewWindowJoin: String, CaseIterable, Codable, Identifiable {
+    case newColumn
+    case tabbed
+    case stacked
+
+    var id: String {
+        rawValue
+    }
+}
+
 enum CenterFocusedColumn: String, CaseIterable, Codable, Identifiable {
     case never
     case always

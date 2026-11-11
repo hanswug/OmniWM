@@ -68,7 +68,7 @@ extension WMController {
             alwaysCenterSingleColumn: alwaysCenterSingleColumn
         )
         niriEngine?.newWindowPlacement = settings.niri.newWindowPlacement
-        niriEngine?.newWindowJoinsTabbedColumn = settings.niri.newWindowJoinsTabbedColumn
+        niriEngine?.newWindowJoin = settings.niri.newWindowJoin
     }
 
     func syncMonitorsToNiriEngine() {
@@ -110,6 +110,17 @@ extension WMController {
         settings.niri.visibleContainerCount = count
         updateNiriConfig(visibleContainerCount: count)
         rebalanceNiriSizesForVisibleContainerCountChange()
+    }
+
+    func setNewWindowJoin(_ join: NewWindowJoin) {
+        settings.niri.newWindowJoin = join
+        niriEngine?.newWindowJoin = join
+    }
+
+    func cycleNewWindowJoin() {
+        let modes = NewWindowJoin.allCases
+        let index = modes.firstIndex(of: settings.niri.newWindowJoin) ?? 0
+        setNewWindowJoin(modes[(index + 1) % modes.count])
     }
 
     func setOuterGaps(left: Double, right: Double, top: Double, bottom: Double) {

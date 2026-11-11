@@ -444,6 +444,22 @@ extension IPCAutomationManifest {
             summary: "Toggle focused-window borders and save the setting."
         ),
         .init(
+            name: .presentation(.newWindowJoinNewColumn),
+            summary: "Open new Niri windows in a new column and save the setting."
+        ),
+        .init(
+            name: .presentation(.newWindowJoinTabbed),
+            summary: "Make new Niri windows join the placement column as tabs and save the setting."
+        ),
+        .init(
+            name: .presentation(.newWindowJoinStacked),
+            summary: "Make new Niri windows join the placement column stacked and save the setting."
+        ),
+        .init(
+            name: .presentation(.cycleNewWindowJoin),
+            summary: "Cycle the new Niri window join mode: new column, tabbed, stacked."
+        ),
+        .init(
             commandWords: ["hidden-bar", "panel"],
             name: .presentation(.hiddenBar),
             summary: "Toggle the hidden-bar items panel."

@@ -85,6 +85,10 @@ toggle-quake-terminal
 toggle-workspace-bar
 hidden-bar-panel
 toggle-borders
+new-window-join-new-column
+new-window-join-tabbed
+new-window-join-stacked
+cycle-new-window-join
 volume-up
 volume-down
 volume-mute

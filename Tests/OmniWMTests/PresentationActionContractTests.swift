@@ -37,7 +37,8 @@ final class PresentationActionContractTests: XCTestCase {
             "toggleWorkspaceBarVisibility", "toggleHiddenBarPanel", "toggleQuakeTerminal",
             "toggleWorkspaceLayout", "toggleOverview", "toggleSystemStats", "toggleBorders",
             "setVisibleContainers.1", "setVisibleContainers.2", "setVisibleContainers.3",
-            "setVisibleContainers.4", "setVisibleContainers.5"
+            "setVisibleContainers.4", "setVisibleContainers.5",
+            "newWindowJoin.newColumn", "newWindowJoin.tabbed", "newWindowJoin.stacked", "cycleNewWindowJoin"
         ]
         XCTAssertEqual(Array(ActionCatalog.allSpecs().suffix(expectedTail.count).map(\.id)), expectedTail)
         XCTAssertEqual(
@@ -150,6 +151,34 @@ private struct PresentationExpectation {
                 command: .presentation(.borders),
                 id: "toggleBorders",
                 title: "Toggle Borders",
+                binding: .unassigned
+            ),
+            PresentationExpectation(
+                ipc: .newWindowJoinNewColumn,
+                command: .presentation(.newWindowJoinNewColumn),
+                id: "newWindowJoin.newColumn",
+                title: "New Windows: New Column",
+                binding: .unassigned
+            ),
+            PresentationExpectation(
+                ipc: .newWindowJoinTabbed,
+                command: .presentation(.newWindowJoinTabbed),
+                id: "newWindowJoin.tabbed",
+                title: "New Windows: Tabbed",
+                binding: .unassigned
+            ),
+            PresentationExpectation(
+                ipc: .newWindowJoinStacked,
+                command: .presentation(.newWindowJoinStacked),
+                id: "newWindowJoin.stacked",
+                title: "New Windows: Stacked",
+                binding: .unassigned
+            ),
+            PresentationExpectation(
+                ipc: .cycleNewWindowJoin,
+                command: .presentation(.cycleNewWindowJoin),
+                id: "cycleNewWindowJoin",
+                title: "Cycle New Window Join Mode",
                 binding: .unassigned
             )
         ]

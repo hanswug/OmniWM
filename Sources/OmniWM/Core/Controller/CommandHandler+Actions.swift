@@ -290,6 +290,14 @@ extension CommandHandler {
             controller.toggleWorkspaceBarVisibility()
         case .borders:
             controller.toggleBorders()
+        case .newWindowJoinNewColumn:
+            controller.setNewWindowJoin(.newColumn)
+        case .newWindowJoinTabbed:
+            controller.setNewWindowJoin(.tabbed)
+        case .newWindowJoinStacked:
+            controller.setNewWindowJoin(.stacked)
+        case .cycleNewWindowJoin:
+            controller.cycleNewWindowJoin()
         case .hiddenBar:
             controller.toggleHiddenBarPanel()
         case .quakeTerminal:

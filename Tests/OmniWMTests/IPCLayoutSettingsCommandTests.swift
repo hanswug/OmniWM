@@ -46,6 +46,22 @@ final class IPCLayoutSettingsCommandTests: XCTestCase {
         XCTAssertNil(IPCCommandRequest(commandWords: ["toggle-borders", "on"]))
     }
 
+    func testNewWindowJoinCommandsTakeNoArguments() throws {
+        let commands: [(String, IPCPresentationCommand)] = [
+            ("new-window-join-new-column", .newWindowJoinNewColumn),
+            ("new-window-join-tabbed", .newWindowJoinTabbed),
+            ("new-window-join-stacked", .newWindowJoinStacked),
+            ("cycle-new-window-join", .cycleNewWindowJoin)
+        ]
+        for (word, command) in commands {
+            XCTAssertEqual(IPCCommandRequest(commandWords: [word]), .presentation(command))
+            XCTAssertNil(IPCCommandRequest(commandWords: [word, "on"]))
+            let descriptor = try XCTUnwrap(IPCAutomationManifest.commandDescriptor(for: .presentation(command)))
+            XCTAssertEqual(descriptor.path, "command \(word)")
+            XCTAssertEqual(descriptor.layoutCompatibility, .shared)
+        }
+    }
+
     func testManifestDescribesTheNewCommands() throws {
         let visible = try XCTUnwrap(IPCAutomationManifest.commandDescriptor(for: .sizing(.setVisibleContainers)))
         XCTAssertEqual(visible.path, "command set-visible-containers <1-5>")
@@ -61,7 +77,9 @@ final class IPCLayoutSettingsCommandTests: XCTestCase {
 
     func testNewHotkeyActionsAreAppendedAfterEveryExistingAction() throws {
         let ids = ActionCatalog.defaultHotkeyBindings().map(\.id)
-        let added = ["toggleBorders"] + (1 ... 5).map { "setVisibleContainers.\($0)" }
+        let added = ["toggleBorders"] + (1 ... 5).map { "setVisibleContainers.\($0)" } + [
+            "newWindowJoin.newColumn", "newWindowJoin.tabbed", "newWindowJoin.stacked", "cycleNewWindowJoin"
+        ]
         XCTAssertEqual(Array(ids.suffix(added.count)), added)
 
         let three = try XCTUnwrap(ActionCatalog.spec(for: "setVisibleContainers.3"))

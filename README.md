@@ -19,7 +19,7 @@ Each change is a topic branch cut from upstream `main`, so it can be reviewed an
 | [Columns end exactly on the outer gaps](#columns-end-exactly-on-the-outer-gaps) | fix | candidate, both parts fail on clean upstream |
 | [Shrink visible columns to fit](#shrink-visible-columns-to-fit) | setting | agreed in [#1110](https://github.com/OmniNull/OmniWM/issues/1110) as one opt-in setting in two PRs; first PR not opened yet |
 | [Reset Layout](#reset-layout) | command, setting | fork only |
-| [New window placement](#new-window-placement) | settings | fork only |
+| [New window placement](#new-window-placement) | settings, commands | fork only |
 | [IPC hooks for the companion](#ipc-hooks-for-the-companion) | commands, event | fork only |
 
 Merged upstream: [Fullscreen toggle raises the window](https://github.com/OmniNull/OmniWM/pull/1109), in upstream since 2026-11-08.
@@ -73,11 +73,21 @@ Chooses what happens when you change the visible container count: upstream's Bal
 
 ```toml
 [niri]
-newWindowPlacement = "right"           # "right" (default), "left", "first" or "last"
-newWindowJoinsTabbedColumn = false     # default false
+newWindowPlacement = "right"   # "right" (default), "left", "first" or "last"
+newWindowJoin = "newColumn"    # "newColumn" (default), "tabbed" or "stacked"
 ```
 
-`newWindowPlacement` sets where a new window's column opens: right or left of the focused column, or at the start or end of the workspace. With `newWindowJoinsTabbedColumn`, if the column on that side (or the first or last column) is tabbed, the new window joins it as a tab instead of opening a new column.
+`newWindowPlacement` sets where a new window goes: next to the focused column on the right or left, or at the start or end of the workspace.
+
+`newWindowJoin` sets how it arrives there:
+
+- **New column** (default): it opens its own column, as upstream.
+- **Tabbed**: it joins that column as a tab, and the column becomes tabbed if it isn't.
+- **Stacked**: it joins that column below its other windows. A column that's already tabbed stays tabbed.
+
+With Right or Left and no column on that side, it joins the focused column. While Tabbed or Stacked is on, every new window joins, so switch back to New column when you want columns again. Windows restored with their own size and the first window of a workspace always get their own column.
+
+Switch it from the command palette or a hotkey: **New Windows: New Column / Tabbed / Stacked**, or **Cycle New Window Join Mode** (`omniwmctl command new-window-join-tabbed`, `cycle-new-window-join`, …). The older `newWindowJoinsTabbedColumn = true` is read as `"tabbed"`.
 
 ### IPC hooks for the companion
 

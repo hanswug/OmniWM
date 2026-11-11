@@ -66,6 +66,12 @@ extension ActionCatalog {
                 keywords: ["visible containers", "columns"]
             )
         })
+        specs.append(contentsOf: [
+            IPCPresentationCommand.newWindowJoinNewColumn.actionSpec(),
+            IPCPresentationCommand.newWindowJoinTabbed.actionSpec(),
+            IPCPresentationCommand.newWindowJoinStacked.actionSpec(),
+            IPCPresentationCommand.cycleNewWindowJoin.actionSpec()
+        ])
     }
 
     private static var toggleFloatingFocusActionSpec: ActionSpec {

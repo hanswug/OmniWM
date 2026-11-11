@@ -87,7 +87,7 @@ final class NiriSettings {
         didSet { onChange?() }
     }
 
-    var newWindowJoinsTabbedColumn = false {
+    var newWindowJoin = NewWindowJoin.newColumn {
         didSet { onChange?() }
     }
 
@@ -131,7 +131,7 @@ final class NiriSettings {
             shrinkToFit: shrinkToFit,
             visibleContainerChangeAction: visibleContainerChangeAction == .balance ? nil : visibleContainerChangeAction,
             newWindowPlacement: newWindowPlacement == .right ? nil : newWindowPlacement,
-            newWindowJoinsTabbedColumn: newWindowJoinsTabbedColumn ? true : nil
+            newWindowJoin: newWindowJoin == .newColumn ? nil : newWindowJoin
         )
     }
 
@@ -150,7 +150,9 @@ final class NiriSettings {
         visibleContainerChangeAction = niri.visibleContainerChangeAction
             ?? baseline.visibleContainerChangeAction ?? .balance
         newWindowPlacement = niri.newWindowPlacement ?? baseline.newWindowPlacement ?? .right
-        newWindowJoinsTabbedColumn = niri.newWindowJoinsTabbedColumn ?? baseline.newWindowJoinsTabbedColumn ?? false
+        newWindowJoin = niri.newWindowJoin
+            ?? (niri.newWindowJoinsTabbedColumn == true ? .tabbed : nil)
+            ?? baseline.newWindowJoin ?? .newColumn
         resizeStepPercent = niri.resizeStepPercent ?? baseline.resizeStepPercent ?? BuiltInSettingsDefaults
             .niriResizeStepPercent
         containerPrimarySpanPresets = NiriSettings.validatedContainerPrimarySpanPresets(

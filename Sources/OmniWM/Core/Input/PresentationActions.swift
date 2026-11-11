@@ -30,13 +30,29 @@ extension IPCPresentationCommand {
         case .borders: LocalizedStringResource(
                 "command.presentation.borders", defaultValue: "Toggle Borders", table: "Commands", bundle: .omniWM
             )
+        case .newWindowJoinNewColumn: LocalizedStringResource(
+                "command.presentation.newWindowJoinNewColumn", defaultValue: "New Windows: New Column",
+                table: "Commands", bundle: .omniWM
+            )
+        case .newWindowJoinTabbed: LocalizedStringResource(
+                "command.presentation.newWindowJoinTabbed", defaultValue: "New Windows: Tabbed",
+                table: "Commands", bundle: .omniWM
+            )
+        case .newWindowJoinStacked: LocalizedStringResource(
+                "command.presentation.newWindowJoinStacked", defaultValue: "New Windows: Stacked",
+                table: "Commands", bundle: .omniWM
+            )
+        case .cycleNewWindowJoin: LocalizedStringResource(
+                "command.presentation.cycleNewWindowJoin", defaultValue: "Cycle New Window Join Mode",
+                table: "Commands", bundle: .omniWM
+            )
         }
     }
 
     func actionSpec() -> ActionSpec {
         let id: String
         let keywords: [String]
-        let binding: KeyBinding
+        var binding = KeyBinding.unassigned
         switch self {
         case .overview:
             id = "toggleOverview"
@@ -61,7 +77,18 @@ extension IPCPresentationCommand {
         case .borders:
             id = "toggleBorders"
             keywords = ["border", "borders", "outline"]
-            binding = .unassigned
+        case .newWindowJoinNewColumn:
+            id = "newWindowJoin.newColumn"
+            keywords = ["new window", "join", "column"]
+        case .newWindowJoinTabbed:
+            id = "newWindowJoin.tabbed"
+            keywords = ["new window", "join", "tab", "tabbed"]
+        case .newWindowJoinStacked:
+            id = "newWindowJoin.stacked"
+            keywords = ["new window", "join", "stack", "stacked"]
+        case .cycleNewWindowJoin:
+            id = "cycleNewWindowJoin"
+            keywords = ["new window", "join", "cycle", "tab", "stack"]
         }
         return ActionCatalog.action(
             id: id,

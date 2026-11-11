@@ -56,7 +56,7 @@ final class NiriLayoutEngine {
     var isMutationSanctioned = true
     // OmniWM new features (hanswug/OmniWM fork).
     var newWindowPlacement = NewWindowPlacement.right
-    var newWindowJoinsTabbedColumn = false
+    var newWindowJoin = NewWindowJoin.newColumn
 
     func assertSanctionedMutation(_ operation: StaticString = #function) {
         assert(

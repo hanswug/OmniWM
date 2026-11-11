@@ -82,6 +82,10 @@ scratchpad-toggle
 open-menu-anywhere
 toggle-workspace-bar
 toggle-borders
+new-window-join-new-column
+new-window-join-tabbed
+new-window-join-stacked
+cycle-new-window-join
 hidden-bar-panel
 toggle-quake-terminal
 toggle-workspace-layout
