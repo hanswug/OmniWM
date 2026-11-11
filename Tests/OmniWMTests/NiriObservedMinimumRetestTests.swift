@@ -69,7 +69,10 @@ final class NiriObservedMinimumRetestTests: XCTestCase {
                 adjust(-10, resizesWindow: resizesWindow, fixture: fixture)
                 XCTAssertEqual(try layoutFrame(fixture).width, minimum)
             }
-            XCTAssertEqual(fixture.controller.workspaceManager.observedSizeEvidence(for: fixture.token)?.minSize.width, minimum)
+            XCTAssertEqual(
+                fixture.controller.workspaceManager.observedSizeEvidence(for: fixture.token)?.minSize.width,
+                minimum
+            )
         }
     }
 
