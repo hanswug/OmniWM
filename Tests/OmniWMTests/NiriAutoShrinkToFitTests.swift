@@ -61,6 +61,69 @@ final class NiriAutoShrinkToFitTests: XCTestCase {
         XCTAssertEqual(frames[3].maxX, monitorFrame.width - sidePadding, accuracy: 1)
     }
 
+    func testARefusingNeighbourFitsWithFewerColumnsThanVisibleContainers() throws {
+        let fixture = try makeFixture(windowCount: 2, visibleContainerCount: 3)
+        fixture.controller.settings.niri.shrinkToFit = true
+        XCTAssertTrue(fixture.controller.niriLayoutHandler.setWindowPrimarySpan(
+            .setProportion(80),
+            target: .window(fixture.handles[0])
+        ))
+        let refusedWidth = try settledFrames(fixture)[1].width + 200
+
+        learnMinimumWidth(refusedWidth, for: fixture.tokens[1], fixture: fixture)
+
+        let frames = try settledFrames(fixture)
+        XCTAssertGreaterThanOrEqual(frames[1].width, refusedWidth)
+        XCTAssertEqual(frames[0].minX, sidePadding, accuracy: 1)
+        XCTAssertEqual(frames[1].maxX, monitorFrame.width - sidePadding, accuracy: 1)
+    }
+
+    func testAResizedWindowThatRefusesFitsWithFewerColumnsThanVisibleContainers() throws {
+        let fixture = try makeFixture(windowCount: 2, visibleContainerCount: 3)
+        fixture.controller.settings.niri.shrinkToFit = true
+        try focus(fixture.tokens[1], fixture: fixture)
+        let minimum = try settledFrames(fixture)[1].width - 300
+        learnMinimumWidth(minimum, for: fixture.tokens[1], fixture: fixture)
+
+        for _ in 0 ..< 4 {
+            XCTAssertTrue(fixture.controller.niriLayoutHandler.setWindowPrimarySpan(
+                .adjustProportion(-5),
+                target: .window(fixture.handles[1])
+            ))
+            learnMinimumWidth(minimum, for: fixture.tokens[1], fixture: fixture)
+        }
+
+        let frames = try settledFrames(fixture)
+        XCTAssertGreaterThanOrEqual(frames[1].width, minimum)
+        XCTAssertEqual(frames[1].maxX - frames[0].minX, monitorFrame.width - 2 * sidePadding, accuracy: 1)
+    }
+
+    func testFewerColumnsThatFitAreLeftAlone() throws {
+        let fixture = try makeEvenFixture(windowCount: 2, visibleContainerCount: 3)
+        let before = try settledFrames(fixture)
+
+        fixture.controller.settings.niri.shrinkToFit = true
+
+        XCTAssertEqual(try settledFrames(fixture), before)
+    }
+
+    private func focus(_ token: WindowToken, fixture: Fixture) throws {
+        let engine = try XCTUnwrap(fixture.controller.niriEngine)
+        let node = try XCTUnwrap(engine.findNode(for: token, in: fixture.workspaceId))
+        _ = fixture.controller.workspaceManager.commitWorkspaceSelection(
+            nodeId: node.id,
+            focusedToken: token,
+            in: fixture.workspaceId,
+            onMonitor: try XCTUnwrap(fixture.controller.workspaceManager.monitor(for: fixture.workspaceId)).id
+        )
+    }
+
+    private func learnMinimumWidth(_ width: CGFloat, for token: WindowToken, fixture: Fixture) {
+        var evidence = ObservedSizeEvidence()
+        evidence.minSize = CGSize(width: width, height: 1)
+        _ = fixture.controller.workspaceManager.setObservedSizeEvidence(evidence, for: token)
+    }
+
     private func makeEvenFixture(windowCount: Int, visibleContainerCount: Int) throws -> Fixture {
         let fixture = try makeFixture(windowCount: windowCount, visibleContainerCount: visibleContainerCount)
         for handle in fixture.handles {

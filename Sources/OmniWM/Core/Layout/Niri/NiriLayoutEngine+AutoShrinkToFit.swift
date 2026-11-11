@@ -13,9 +13,7 @@ extension NiriLayoutEngine {
         else { return false }
         let projected = projectedColumns(in: context.workspaceId).filter { !$0.windows.isEmpty }
         let visibleCount = effectiveVisibleContainerCount(in: context.workspaceId)
-        guard projected.count >= visibleCount,
-              let focusIndex = focusedProjectedIndex(projected, context: context, state: state)
-        else { return false }
+        guard let focusIndex = focusedProjectedIndex(projected, context: context, state: state) else { return false }
         let window = autoFitWindow(
             projected,
             focusIndex: focusIndex,
