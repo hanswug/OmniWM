@@ -340,7 +340,10 @@ final class UpdateCoordinatorTests: XCTestCase {
         await fulfillment(of: [shown], timeout: failureBound)
 
         XCTAssertEqual(window.configuration?.latestVersion, "0.7.7")
-        XCTAssertEqual(window.configuration?.homebrewUpdateCommand, "open https://github.com/hanswug/OmniWM/releases/latest")
+        XCTAssertEqual(
+            window.configuration?.homebrewUpdateCommand,
+            "open https://github.com/hanswug/OmniWM/releases/latest"
+        )
     }
 
     func testMissingPublishedCanaryShowsUpToDateWithoutPopup() async {
