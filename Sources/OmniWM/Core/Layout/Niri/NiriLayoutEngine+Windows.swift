@@ -98,9 +98,10 @@ extension NiriLayoutEngine {
         if newWindowJoin != .newColumn, containerSizingState == nil,
            let target = placementNeighbour(of: referenceColumn, in: root) ?? referenceColumn
         {
-            if newWindowJoin == .tabbed, !target.isTabbed {
+            let display: ColumnDisplay = newWindowJoin == .tabbed ? .tabbed : .normal
+            if target.displayMode != display {
                 setColumnDisplay(
-                    .tabbed,
+                    display,
                     for: target,
                     in: workspaceId,
                     motion: .disabled,

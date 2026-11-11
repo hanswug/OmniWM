@@ -55,7 +55,7 @@ final class NiriNewWindowPlacementTests: XCTestCase {
         XCTAssertEqual(order(left, leftWorkspace), [[a, new], [b], [c]])
     }
 
-    func testStackedJoinsTheColumnWithoutChangingItsMode() {
+    func testStackedJoinsTheColumnAndMakesItStacked() {
         let (engine, workspaceId) = makeEngine(placement: .right, join: .stacked)
         _ = engine.addWindow(token: new, to: workspaceId, afterSelection: nil, focusedToken: a)
         XCTAssertEqual(order(engine, workspaceId), [[a], [b, new], [c]])
@@ -65,7 +65,7 @@ final class NiriNewWindowPlacementTests: XCTestCase {
         tabbed.columns(in: tabbedWorkspace)[1].displayMode = .tabbed
         _ = tabbed.addWindow(token: new, to: tabbedWorkspace, afterSelection: nil, focusedToken: a)
         XCTAssertEqual(order(tabbed, tabbedWorkspace), [[a], [b, new], [c]])
-        XCTAssertTrue(tabbed.columns(in: tabbedWorkspace)[1].isTabbed)
+        XCTAssertFalse(tabbed.columns(in: tabbedWorkspace)[1].isTabbed)
     }
 
     func testWithoutAColumnOnThatSideTheFocusedColumnTakesTheWindow() {

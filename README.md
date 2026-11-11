@@ -83,7 +83,9 @@ newWindowJoin = "newColumn"    # "newColumn" (default), "tabbed" or "stacked"
 
 - **New column** (default): it opens its own column, as upstream.
 - **Tabbed**: it joins that column as a tab, and the column becomes tabbed if it isn't.
-- **Stacked**: it joins that column below its other windows. A column that's already tabbed stays tabbed.
+- **Stacked**: it joins that column below its other windows, and a tabbed column becomes stacked.
+
+The mode only changes a column when a window joins it; switching modes changes nothing on its own.
 
 With Right or Left and no column on that side, it joins the focused column. While Tabbed or Stacked is on, every new window joins, so switch back to New column when you want columns again. Windows restored with their own size and the first window of a workspace always get their own column.
 
