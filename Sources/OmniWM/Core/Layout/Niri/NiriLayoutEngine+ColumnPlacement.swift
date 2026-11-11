@@ -221,6 +221,7 @@ extension NiriLayoutEngine {
                 renderedContainerRect = layoutArea.settledRenderedContainerRect(
                     visibilityRect,
                     contentFrame: settledContentFrame,
+                    spillLimit: parksPartialColumns ? layoutArea.workingFrame : nil,
                     orientation: orientation
                 )
             } else {

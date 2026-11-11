@@ -5,6 +5,8 @@ import AppKit
 import Foundation
 
 final class NiriLayoutEngine {
+    var parksPartialColumns = false
+
     enum NewContainerSizingPolicy {
         case workspaceDefault
         case inheritSource

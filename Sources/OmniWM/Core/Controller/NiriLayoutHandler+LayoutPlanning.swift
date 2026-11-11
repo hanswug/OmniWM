@@ -219,7 +219,9 @@ extension NiriLayoutHandler {
             snapshot: snapshot
         )
 
-        if controller?.settings.niri.shrinkToFit == true {
+        let shrinkToFit = controller?.settings.niri.shrinkToFit == true
+        pass.engine.parksPartialColumns = shrinkToFit
+        if shrinkToFit {
             pass.engine.autoFitVisibleColumns(context: pass.interactionContext, state: &state)
         }
 
