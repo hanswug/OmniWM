@@ -21,12 +21,16 @@ extension NiriLayoutEngine {
             context: context,
             state: state
         )
-        guard !window.isEmpty, autoFitNeeded(
-            window,
-            wantsFullCount: window.count == min(visibleCount, projected.count),
-            context: context
-        ) else {
-            return false
+        guard !window.isEmpty else { return false }
+        let wantsFullCount = window.count == min(visibleCount, projected.count)
+        guard autoFitNeeded(window, wantsFullCount: wantsFullCount, context: context) else {
+            guard wantsFullCount,
+                  window.count > 1,
+                  autoFitFills(window, context: context),
+                  effectiveSettings(in: context.workspaceId).centerFocusedColumn != .always
+            else { return false }
+            alignAutoFitViewport(toFirstOf: window, context: context, state: &state)
+            return true
         }
         let focused = projected[focusIndex].column
         if window.count > 1 {
@@ -100,6 +104,14 @@ extension NiriLayoutEngine {
             + CGFloat(window.count + 1) * context.gaps
         let tolerance = 1 / displayScale(in: context.workspaceId)
         return wantsFullCount ? used > span + tolerance : abs(used - span) > tolerance
+    }
+
+    private func autoFitFills(_ window: [NiriProjectedColumn], context: NiriInteractionContext) -> Bool {
+        let keyPath = context.orientation.settledSpanKeyPath
+        let span = context.orientation == .horizontal ? context.workingFrame.width : context.workingFrame.height
+        let used = window.reduce(CGFloat(0)) { $0 + $1.column[keyPath: keyPath] }
+            + CGFloat(window.count + 1) * context.gaps
+        return abs(used - span) <= 1 / displayScale(in: context.workspaceId)
     }
 
     private func alignAutoFitViewport(
