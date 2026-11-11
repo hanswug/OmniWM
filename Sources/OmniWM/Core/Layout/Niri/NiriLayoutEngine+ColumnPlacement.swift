@@ -74,7 +74,12 @@ extension NiriLayoutEngine {
         )
         let activeColumn = prepared[activeIndex]
         let activePosition = activeColumn.position
-        let viewPosition = activePosition + sampling.viewOffset
+        let viewPosition = pixelAlignedViewPosition(
+            activePosition + sampling.viewOffset,
+            prepared: prepared,
+            area: context.area,
+            orientation: context.orientation
+        )
         let viewPositions = sampling.settledVisibilityOffset
             .map { [activePosition + $0, viewPosition] } ?? [viewPosition]
         let revealMargin: CGFloat = switch context.orientation {
@@ -93,6 +98,20 @@ extension NiriLayoutEngine {
             settledContentFrame: sampling.isSettled
                 ? settledContentFrame(context: context, activeSpan: activeColumn.span) : nil
         )
+    }
+
+    private func pixelAlignedViewPosition(
+        _ viewPosition: CGFloat,
+        prepared: borrowing [NiriPreparedLayoutColumn],
+        area: WorkingAreaContext,
+        orientation: Monitor.Orientation
+    ) -> CGFloat {
+        let origin = orientation == .horizontal ? area.workingFrame.origin.x : area.workingFrame.origin.y
+        for index in prepared.indices where prepared[index].position + prepared[index].span > viewPosition {
+            let edge = origin + prepared[index].position
+            return viewPosition + edge.roundedToPhysicalPixel(scale: area.scale) - edge
+        }
+        return viewPosition
     }
 
     private func settledContentFrame(context: NiriCalculationContext, activeSpan: CGFloat) -> CGRect {

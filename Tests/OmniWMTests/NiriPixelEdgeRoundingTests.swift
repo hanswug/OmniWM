@@ -36,6 +36,40 @@ final class NiriPixelEdgeRoundingTests: XCTestCase {
         XCTAssertEqual(try fixture.frames().map(\.width), settled)
     }
 
+    func testAColumnAtAFractionalPositionStartsOnTheWorkingArea() throws {
+        let fixture = try makeFixture()
+        fixture.tokens.append(fixture.controller.workspaceManager.addWindow(
+            AXWindowRef(element: AXUIElementCreateApplication(pid_t(932)), windowId: 932),
+            pid: pid_t(932),
+            windowId: 932,
+            to: fixture.workspaceId
+        ))
+        _ = try fixture.frames()
+        let engine = try XCTUnwrap(fixture.controller.niriEngine)
+        _ = engine.tickAllColumnAnimations(in: fixture.workspaceId, at: .infinity)
+        let scale = engine.displayScale(in: fixture.workspaceId)
+        let spans = fixture.columns.map(\.cachedWidth)
+        let secondPosition = spans[0] + gap
+        XCTAssertNotEqual((secondPosition * scale).rounded(), secondPosition * scale)
+
+        let last = try XCTUnwrap(fixture.columns.last?.windowNodes.first)
+        _ = fixture.controller.workspaceManager.commitWorkspaceSelection(
+            nodeId: last.id,
+            focusedToken: last.token,
+            in: fixture.workspaceId,
+            onMonitor: try XCTUnwrap(fixture.controller.workspaceManager.monitor(for: fixture.workspaceId)).id
+        )
+        fixture.controller.workspaceManager.withNiriViewportState(for: fixture.workspaceId) { state in
+            state.activeColumnIndex = 2
+            state.viewOffset = -(spans[1] + gap) - gap
+            state.clearOffsetTransition()
+        }
+
+        let frames = try fixture.frames().filter { $0.maxX > padding }.sorted { $0.minX < $1.minX }
+        XCTAssertEqual(try XCTUnwrap(frames.first).minX, padding)
+        XCTAssertEqual(try XCTUnwrap(frames.last).maxX, monitorFrame.width - padding)
+    }
+
     private func makeFixture() throws -> Fixture {
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent("OmniWMNiriPixelEdgeRoundingTests-\(UUID().uuidString)", isDirectory: true)
