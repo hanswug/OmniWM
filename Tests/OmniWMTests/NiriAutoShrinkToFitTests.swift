@@ -211,6 +211,28 @@ final class NiriAutoShrinkToFitTests: XCTestCase {
         }
     }
 
+    func testNavigatingToAnOverflowingPairNeverResizesColumns() throws {
+        let fixture = try makeFixture(windowCount: 3, visibleContainerCount: 2)
+        fixture.controller.settings.niri.shrinkToFit = true
+        try revealColumn(2, atLeadingEdge: false, fixture)
+        try revealColumn(1, atLeadingEdge: true, fixture)
+        XCTAssertTrue(fixture.controller.niriLayoutHandler.setWindowPrimarySpan(.adjustProportion(20)))
+        _ = try settledFrames(fixture)
+        let engine = try XCTUnwrap(fixture.controller.niriEngine)
+        let widths = engine.columns(in: fixture.workspaceId).map(\.cachedWidth)
+
+        try revealColumn(0, atLeadingEdge: true, fixture)
+
+        let frames = try settledFrames(fixture)
+        XCTAssertEqual(engine.columns(in: fixture.workspaceId).map(\.cachedWidth), widths)
+        let working = sidePadding ... monitorFrame.width - sidePadding
+        for frame in frames {
+            let inside = working.contains(frame.minX) && working.contains(frame.maxX)
+            let outside = frame.maxX <= working.lowerBound || frame.minX >= working.upperBound
+            XCTAssertTrue(inside || outside, "\(frame) straddles an outer gap")
+        }
+    }
+
     func testOffLeavesThePeekingColumnToUpstream() throws {
         let fixture = try makeFixture(windowCount: 3, visibleContainerCount: 2)
         try revealColumn(2, atLeadingEdge: false, fixture)

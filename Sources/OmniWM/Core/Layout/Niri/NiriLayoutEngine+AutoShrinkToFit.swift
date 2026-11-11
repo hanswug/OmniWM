@@ -13,6 +13,10 @@ extension NiriLayoutEngine {
         else { return false }
         let projected = projectedColumns(in: context.workspaceId).filter { !$0.windows.isEmpty }
         let visibleCount = effectiveVisibleContainerCount(in: context.workspaceId)
+        let signature = autoFitSignature(projected, visibleCount: visibleCount, context: context)
+        let workspace = ensureState(for: context.workspaceId)
+        let sizesChanged = workspace.autoFitSignature != signature
+        workspace.autoFitSignature = signature
         guard let focusIndex = focusedProjectedIndex(projected, context: context, state: state) else { return false }
         let window = autoFitWindow(
             projected,
@@ -35,18 +39,36 @@ extension NiriLayoutEngine {
             alignAutoFitViewport(toFirstOf: window, context: context, state: &state)
             return true
         }
+        guard sizesChanged else { return false }
         let focused = projected[focusIndex].column
         if window.count > 1 {
             shrinkVisibleColumnsToFit(around: focused, onScreen: window, context: context, state: &state)
         } else {
             alignAutoFitViewport(toFirstOf: window, context: context, state: &state)
         }
-        let workspace = ensureState(for: context.workspaceId)
         switch context.orientation {
         case .horizontal: workspace.manualWidthColumnCount = projected.count
         case .vertical: workspace.manualHeightColumnCount = projected.count
         }
         return true
+    }
+
+    private func autoFitSignature(
+        _ projected: [NiriProjectedColumn],
+        visibleCount: Int,
+        context: NiriInteractionContext
+    ) -> NiriAutoFitSignature {
+        NiriAutoFitSignature(
+            columnIds: projected.map(\.column.id),
+            minimums: projected.map {
+                constrainedProjectedPrimarySpan(
+                    0, for: $0, workingFrame: context.workingFrame, gap: context.gaps, orientation: context.orientation
+                )
+            },
+            visibleCount: visibleCount,
+            workingFrame: context.workingFrame,
+            gaps: context.gaps
+        )
     }
 
     private func focusedProjectedIndex(
@@ -139,4 +161,12 @@ extension NiriLayoutEngine {
             )
         }
     }
+}
+
+struct NiriAutoFitSignature: Equatable {
+    let columnIds: [NodeId]
+    let minimums: [CGFloat]
+    let visibleCount: Int
+    let workingFrame: CGRect
+    let gaps: CGFloat
 }
