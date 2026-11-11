@@ -106,12 +106,22 @@ extension NiriLayoutEngine {
         area: WorkingAreaContext,
         orientation: Monitor.Orientation
     ) -> CGFloat {
-        let origin = orientation == .horizontal ? area.workingFrame.origin.x : area.workingFrame.origin.y
-        for index in prepared.indices where prepared[index].position + prepared[index].span > viewPosition {
-            let edge = origin + prepared[index].position
-            return viewPosition + edge.roundedToPhysicalPixel(scale: area.scale) - edge
+        let horizontal = orientation == .horizontal
+        let origin = horizontal ? area.workingFrame.origin.x : area.workingFrame.origin.y
+        let viewEnd = viewPosition + (horizontal ? area.workingFrame.width : area.workingFrame.height)
+        let tolerance = 1 / area.scale
+        guard let first = prepared.indices.first(where: {
+            prepared[$0].position + prepared[$0].span > viewPosition
+        }) else { return viewPosition }
+        var edge = origin + prepared[first].position
+        if prepared[first].position < viewPosition - tolerance,
+           let last = prepared.indices.last(where: {
+               prepared[$0].position + prepared[$0].span <= viewEnd + tolerance
+           })
+        {
+            edge = origin + prepared[last].position + prepared[last].span
         }
-        return viewPosition
+        return viewPosition + edge.roundedToPhysicalPixel(scale: area.scale) - edge
     }
 
     private func settledContentFrame(context: NiriCalculationContext, activeSpan: CGFloat) -> CGRect {
