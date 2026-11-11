@@ -14,20 +14,16 @@ Each change is a topic branch cut from upstream `main`, so it can be reviewed an
 
 | Change | Kind | Upstream |
 |---|---|---|
-| [Fullscreen toggle raises the window](#fullscreen-toggle-raises-the-window) | fix | [PR #1109](https://github.com/OmniNull/OmniWM/pull/1109), in review |
 | [Explicit resizes retest learned minimums](#explicit-resizes-retest-learned-minimums) | fix | not proposed yet |
 | [Keyboard resizes stay inside the working area](#keyboard-resizes-stay-inside-the-working-area) | fix | fork only |
 | [Columns end exactly on the outer gaps](#columns-end-exactly-on-the-outer-gaps) | fix | candidate, fails on clean upstream |
-| [Shrink visible columns to fit](#shrink-visible-columns-to-fit) | setting | offered upstream in [#1110](https://github.com/OmniNull/OmniWM/issues/1110) as one opt-in setting, waiting for the maintainer |
+| [Shrink visible columns to fit](#shrink-visible-columns-to-fit) | setting | agreed in [#1110](https://github.com/OmniNull/OmniWM/issues/1110) as one opt-in setting in two PRs; first PR not opened yet |
 | [Reset Layout](#reset-layout) | command, setting | fork only |
 | [New window placement](#new-window-placement) | settings | fork only |
-| [Focus clicked windows without scrolling](#focus-clicked-windows-without-scrolling) | setting | upstream [PR #1092](https://github.com/OmniNull/OmniWM/pull/1092) by ylorn, imported early |
+
+Merged upstream: [Fullscreen toggle raises the window](https://github.com/OmniNull/OmniWM/pull/1109), in upstream since 2026-11-08.
 
 New settings default to upstream's behaviour. Niri ones live in the `[niri]` table and in **Settings → Layouts → Niri**.
-
-### Fullscreen toggle raises the window
-
-`toggle-fullscreen` now focuses and raises the window it changes. Before, a window selected without being raised (for example after Niri keyboard navigation, or among several windows of one app such as Safari) could go fullscreen *behind* the tiles it now covers, and wasn't key until you clicked it.
 
 ### Explicit resizes retest learned minimums
 
@@ -70,15 +66,6 @@ newWindowJoinsTabbedColumn = false     # default false
 ```
 
 `newWindowPlacement` sets where a new window's column opens: right or left of the focused column, or at the start or end of the workspace. With `newWindowJoinsTabbedColumn`, if the column on that side (or the first or last column) is tabbed, the new window joins it as a tab instead of opening a new column.
-
-### Focus clicked windows without scrolling
-
-```toml
-[focus]
-clickFocusWithoutScrolling = true   # default false
-```
-
-A click on a partially visible Niri window focuses it without scrolling the row, so the next click lands where you aimed. Keyboard navigation, gestures, Cmd-Tab and the Dock still scroll windows into view. This is [upstream PR #1092](https://github.com/OmniNull/OmniWM/pull/1092) by ylorn, imported before upstream merges it (planned after 0.8.0); the fork drops its copy once it lands.
 
 ## Building
 
