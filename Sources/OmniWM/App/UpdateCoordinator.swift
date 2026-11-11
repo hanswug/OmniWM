@@ -126,7 +126,9 @@ struct GitHubRelease: Equatable {
     }
 
     var homebrewUpdateCommand: String {
-        Self.isCanaryTag(tagName) ? "brew upgrade --cask omniwm@canary" : "brew upgrade omniwm"
+        Self.isCanaryTag(tagName)
+            ? "brew upgrade --cask omniwm@canary"
+            : "open https://github.com/hanswug/OmniWM/releases/latest"
     }
 
     func matches(installedVersion: String) -> Bool {

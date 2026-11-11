@@ -5,7 +5,7 @@ import Foundation
 
 struct GitHubReleaseService: GitHubReleaseFetching, Sendable {
     var session: URLSession = .shared
-    var repositoryURL = URL(string: "https://api.github.com/repos/OmniNull/OmniWM")!
+    var repositoryURL = URL(string: "https://api.github.com/repos/hanswug/OmniWM")!
     var userAgent = "OmniWM"
 
     func fetchLatestRelease(forCanary: Bool) async throws -> GitHubRelease? {

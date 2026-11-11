@@ -54,7 +54,7 @@ final class GitHubReleaseUpdateTests: XCTestCase {
         XCTAssertFalse(canary.isNewer(than: "0.7.6"))
         XCTAssertFalse(canary.isNewer(than: "canary-invalid"))
         XCTAssertFalse(makeRelease(nextCanaryTag, published: 300, draft: true).isNewer(than: installedCanaryTag))
-        XCTAssertEqual(stable.homebrewUpdateCommand, "brew upgrade omniwm")
+        XCTAssertEqual(stable.homebrewUpdateCommand, "open https://github.com/hanswug/OmniWM/releases/latest")
         XCTAssertEqual(stable.skipKey, "0.7.10")
     }
 
@@ -340,7 +340,7 @@ final class UpdateCoordinatorTests: XCTestCase {
         await fulfillment(of: [shown], timeout: failureBound)
 
         XCTAssertEqual(window.configuration?.latestVersion, "0.7.7")
-        XCTAssertEqual(window.configuration?.homebrewUpdateCommand, "brew upgrade omniwm")
+        XCTAssertEqual(window.configuration?.homebrewUpdateCommand, "open https://github.com/hanswug/OmniWM/releases/latest")
     }
 
     func testMissingPublishedCanaryShowsUpToDateWithoutPopup() async {

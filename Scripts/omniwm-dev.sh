@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DEV_APP_NAME="${OMNIWM_DEV_APP_NAME:-OmniWM Dev}"
-DEV_BUNDLE_ID="com.barut.OmniWM.dev"
+DEV_BUNDLE_ID="${OMNIWM_DEV_BUNDLE_ID:-com.barut.OmniWM.dev}"
 DEV_IDENTITY="${OMNIWM_SIGNING_IDENTITY:-OmniWM Dev}"
 INSTALL_DIR="${OMNIWM_DEV_INSTALL_DIR:-$HOME/Applications}"
 RELEASE_APP="${OMNIWM_RELEASE_APP:-/Applications/OmniWM.app}"

@@ -1,4 +1,4 @@
-.PHONY: setup setup-tools doctor format format-check lint lint-fix build localization-check localization-sync run dev-install use-dev use-release test-dev-tools energy-profile arc-audit test-skylight-live release-check verify check check-tool-versions check-swiftformat-version check-swiftlint-version check-pins hooks
+.PHONY: setup setup-tools doctor format format-check lint lint-fix build localization-check localization-sync run dev-install use-dev use-release fork-release test-dev-tools energy-profile arc-audit test-skylight-live release-check verify check check-tool-versions check-swiftformat-version check-swiftlint-version check-pins hooks
 
 include Scripts/dev-tools.env
 
@@ -64,14 +64,19 @@ localization-sync: build
 
 run: dev-install
 
+FORK_APP_ENV = OMNIWM_DEV_APP_NAME="$${OMNIWM_DEV_APP_NAME:-OmniWM}" OMNIWM_DEV_BUNDLE_ID="$${OMNIWM_DEV_BUNDLE_ID:-com.hanswug.OmniWM}"
+
 dev-install:
-	./Scripts/omniwm-dev.sh install
+	$(FORK_APP_ENV) ./Scripts/omniwm-dev.sh install
 
 use-dev:
-	./Scripts/omniwm-dev.sh use dev
+	$(FORK_APP_ENV) ./Scripts/omniwm-dev.sh use dev
 
 use-release:
 	./Scripts/omniwm-dev.sh use release
+
+fork-release:
+	./Scripts/fork-release.sh
 
 test-dev-tools:
 	python3 -m unittest discover -s Tests/DevToolingTests

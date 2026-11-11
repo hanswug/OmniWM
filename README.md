@@ -4,7 +4,7 @@
 
 This is a personal fork of **[OmniWM](https://github.com/OmniNull/OmniWM)**, the free, open-source tiling window manager for Apple Silicon Macs by [OmniNull](https://github.com/OmniNull) and its contributors.
 
-**If you're looking for OmniWM, use upstream:** [website](https://omniwm.app) · [documentation](https://omniwm.app/guides/quick-start/) · [install](https://omniwm.app/guides/install/) · [repository](https://github.com/OmniNull/OmniWM). Upstream is signed, notarized and actively maintained. This fork isn't.
+**If you're looking for OmniWM, use upstream:** [website](https://omniwm.app) · [documentation](https://omniwm.app/guides/quick-start/) · [install](https://omniwm.app/guides/install/) · [repository](https://github.com/OmniNull/OmniWM). Upstream is signed, notarized and actively maintained. This fork's releases are self-signed and not notarized.
 
 OmniWM's engine is a joy to use: it's instant, smooth at 120 and 144 Hz, and full of features that deserve more attention. This fork exists because I use it every day, and I keep a handful of small quality-of-life changes for the Niri layout that fit my workflow. Real fixes are offered back upstream. Everything else stays here, opt-in, with upstream's defaults left unchanged.
 
@@ -103,9 +103,24 @@ omniwmctl command toggle-borders
 
 The `focus` event is also published when the focused window's fullscreen or full-span state changes, so a client needs no polling.
 
+## Install
+
+Download `OmniWM-<version>.zip` from [Releases](https://github.com/hanswug/OmniWM/releases), unzip it and move **OmniWM.app** to `/Applications` or `~/Applications`.
+
+- **It replaces upstream's OmniWM.** It uses the same settings file, `~/.config/omniwm/settings.toml`, and the same IPC socket, so quit or uninstall upstream first (`brew uninstall --cask omniwm` if you installed it with Homebrew). Only one OmniWM can run at a time.
+- **It's self-signed**, not notarized. On first launch macOS refuses to open it; right-click OmniWM.app, choose **Open**, and confirm. Then grant **Accessibility** (and Input Monitoring if you use hotkeys that need it) in System Settings → Privacy & Security.
+- **It has its own bundle ID** (`com.hanswug.OmniWM`), so macOS asks for those permissions again even if you granted them to upstream.
+- **Updates:** with update checks on, OmniWM tells you when a new fork release is out and links to it. It can't install it itself, because the in-app installer needs a notarized build.
+
+Versions follow upstream's with a fork build number: `0.8.0.1` is the first fork release on upstream 0.8.0.
+
+### Sample settings
+
+[`examples/settings.toml`](examples/settings.toml) is my full working configuration, exactly as I run it: Niri with shrink-to-fit, Reset Layout on visible container changes, and the fork's new-window placement. Copy it to `~/.config/omniwm/settings.toml` (back up yours first) and adjust; the app rules name the apps I use.
+
 ## Building
 
-There are no releases of this fork. To try it, build it the way upstream documents in [CONTRIBUTING.md](CONTRIBUTING.md) (`make doctor`, `make setup`, then `make run`). `make run` installs a separate **OmniWM Dev** app in `~/Applications`, with its own settings in `~/.config/omniwm-dev/`, so your regular OmniWM install is left alone. Only one of the two runs at a time; `make use-release` switches back.
+Build it the way upstream documents in [CONTRIBUTING.md](CONTRIBUTING.md): `make doctor`, `make setup`, then `make run`. `make run` builds the fork as **OmniWM** (`com.hanswug.OmniWM`), installs it in `~/Applications` and starts it. `make fork-release` builds the self-signed release zip in `dist/`.
 
 ## Companion app: OmniWM Extension
 
