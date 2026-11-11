@@ -20,6 +20,7 @@ extension ShellWidgetHost {
         if let previous = instance.surface { releaseShellFocus(from: previous, restore: true) }
         let surface = ShellWidgetSurface(scale: scale, resources: resources, directories: folders(of: state))
         surface.assetFolders = state.assetPackages
+        surface.palette = palette(for: key)
         connectResourceDrop(surface, key: ShellTreeKey(bar: key, view: .bar), widget: name)
         connectResourceDrag(surface, key: ShellTreeKey(bar: key, view: .bar), widget: name)
         surface.drawsRootMaterial = key.placement == .island
@@ -102,6 +103,7 @@ extension ShellWidgetHost {
         let next = barData()
         guard next != bars else { return }
         bars = next
+        syncBarPalettes()
         refreshIslandData()
         if let popout, popout.key.placement == .bar, headless == nil, next[popout.key] == nil {
             closePopout()
@@ -114,6 +116,22 @@ extension ShellWidgetHost {
         }
         publishDemand()
         refreshSlots()
+    }
+
+    func palette(for key: ShellBarKey) -> ShellPalette {
+        key.placement == .bar && bars[key]?.style.solidBlack == true ? resources.darkPalette : resources.palette
+    }
+
+    private func syncBarPalettes() {
+        for state in widgets.values {
+            for (key, instance) in state.instances {
+                guard let surface = instance.surface else { continue }
+                let palette = palette(for: key)
+                guard surface.palette !== palette else { continue }
+                surface.palette = palette
+                instance.redraw(text: state.text)
+            }
+        }
     }
 
     @discardableResult
@@ -344,41 +362,6 @@ extension ShellWidgetHost {
         if applied {
             state.instances[key]?.sequences[ShellWidgetView.popout.rawValue] = tree.sequence
         }
-    }
-
-    private static let titleDemand = ShellDataKey.title.bit | ShellDataKey.bar.bit
-
-    func publishDemand() {
-        let demand = dataDemand
-        let cadence = ShellDataFeed.Cadence.of(widgets.values.map { (self.demand(of: $0), interval(of: $0)) })
-        feed?.setDemand(demand, cadence: cadence)
-        publishTitleDemand(demand & Self.titleDemand != 0)
-    }
-
-    func interval(of state: WidgetState) -> Double? {
-        config.widgetIntervals[state.name] ?? state.declaration.interval
-    }
-
-    func demand(of state: WidgetState) -> UInt64 {
-        var deps: UInt64 = state.package == nil ? 0 : state.backgroundDemand
-        var active = false
-        for (key, instance) in state.instances
-            where key.placement != .island || islandData[key]?.surface?.visible == true
-        {
-            active = true
-            deps |= instance.deps | instance.popoutDeps
-        }
-        return active && state.package != nil && state.failures > 0 ? deps | state.failedDeps : deps
-    }
-
-    func publishTitleDemand(_ demands: Bool) {
-        guard demands != demandsWindowTitles else { return }
-        demandsWindowTitles = demands
-        onTitleDemandChange(demands)
-    }
-
-    var dataDemand: UInt64 {
-        widgets.values.reduce(0) { $0 | demand(of: $1) }
     }
 
     func refreshSlots() {

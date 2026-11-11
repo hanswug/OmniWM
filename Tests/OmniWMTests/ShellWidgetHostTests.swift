@@ -1919,6 +1919,30 @@ final class ShellWidgetClickTests: XCTestCase {
         XCTAssertEqual(harness.host.popout?.surface.size, CGSize(width: 70, height: 5))
     }
 
+    func testBarLayoutChangesResizeTheWidgetsThatReadIt() async throws {
+        executionTimeAllowance = failureBound
+        let widths: [ActiveLayoutKind?: CGFloat] = [nil: 10, .niri: 20, .dwindle: 30]
+        let declared = widths.compactMap { layout, width in layout.map { "\($0.rawValue) = \(Int(width))" } }
+        let fallback = try Int(XCTUnwrap(widths[nil]))
+        let harness = try harness("""
+        local widths = { \(declared.joined(separator: ", ")) }
+        function render(ctx)
+            return ui.box{ w = widths[ctx.data.bar.layout] or \(fallback), h = 10 }
+        end
+        """)
+        defer { harness.close() }
+        var layoutChanges = harness.layoutChanges.makeAsyncIterator()
+        for layout in [ActiveLayoutKind.niri, .dwindle, nil] {
+            let width = try XCTUnwrap(widths[layout])
+            harness.sink.bars = [Harness.bar: ShellBarData(monitor: "Main", layout: layout)]
+            harness.host.updateBars()
+            while harness.slot?.size.width != width {
+                try await layoutChanges.change()
+            }
+            XCTAssertEqual(harness.host.bars[Harness.bar]?.layout, layout)
+        }
+    }
+
     func testBarDataIsBuiltOnlyWhileWidgetsExist() async throws {
         executionTimeAllowance = failureBound
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
@@ -2540,6 +2564,35 @@ final class ShellWidgetClickTests: XCTestCase {
         XCTAssertEqual(Set(targets.map(\.target)), ["window ow_a", "workspace 1"])
         XCTAssertEqual(targets.first { $0.target == "workspace 1" }?.drop, true)
         XCTAssertEqual(targets.first { $0.target == "window ow_a" }?.drop, false)
+    }
+
+    func testCancellingInputMidDragCancelsInsteadOfDropping() async throws {
+        executionTimeAllowance = failureBound
+        let icon = CGSize(width: 30, height: 10)
+        let harness = try harness("""
+        function render(ctx)
+            return ui.row{ ui.box{ w = \(Int(icon.width)), h = \(Int(icon.height)), target = "window ow_a", drag = true } }
+        end
+        """)
+        defer { harness.close() }
+        var layoutChanges = harness.layoutChanges.makeAsyncIterator()
+        try await layoutChanges.change()
+        let surface = try harness.barSurface()
+        let start = CGPoint(x: icon.width / 2, y: icon.height / 2)
+        let past = CGPoint(x: start.x + ShellWidgetSurface.dragThreshold, y: start.y)
+
+        surface.press(at: start)
+        surface.drag(to: past, screen: past)
+        guard case .began = harness.sink.drags.first else {
+            return XCTFail("the drag did not begin")
+        }
+        surface.cancelInput()
+
+        XCTAssertFalse(harness.sink.drags.contains { if case .ended = $0 { true } else { false } })
+        guard case .cancelled = harness.sink.drags.last else {
+            return XCTFail("the drag was not cancelled")
+        }
+        XCTAssertFalse(surface.endDrag(at: past))
     }
 
     func testLuauWorkspacesModeRunsTheBundledWorkspacesWidget() async throws {

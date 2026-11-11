@@ -89,8 +89,9 @@ ui.text{ text = ctx.format.bytes(ctx.data.system and ctx.data.system.memory.used
 | `inputSource` | The keyboard input source and the enabled ones, each with a short label |
 | `privacy` | Whether any app is using a microphone or a camera |
 | `wifi` | Wi-Fi power, signal, band, channel and security, and the network name once Location access is allowed |
+| `connection` | How the Mac reaches the network (`wifi`, `ethernet`, `cellular`, `other` or `none`) and the interface name; a VPN reports the Wi-Fi or Ethernet link beneath it |
 | `bluetooth` | Bluetooth power and paired devices with their battery levels, once Bluetooth access is allowed |
-| `volume`, `muted`, `outputs` | Output volume and the audio outputs |
+| `volume`, `muted`, `outputs` | Output volume and the audio outputs, each with a device `kind` such as `airpodspro`, `headphones` or `display` |
 | `brightness` | Main display brightness (0–100) and whether the control is available |
 | `microphone` | Default input device volume (0–100) and mute state; either control is absent when unsupported |
 | `awake` | OmniWM's Prevent Sleep state and its optional Unix expiry time |
@@ -193,6 +194,7 @@ Use `reminders authorize` to request access, `reminders settings` to open Remind
 | `calendar authorize`, `calendar settings`, `calendar open [event]`, `calendar month next\|previous\|today`, `calendar day <yyyy-mm-dd>` | Calendar; `settings` opens the Calendars privacy settings |
 | `reminders authorize`, `reminders settings`, `reminders complete <id>`, `reminders add <text>` | Request Reminders access, open its privacy settings, or complete a selected writable reminder; failures appear in `ctx.data.reminders.error` |
 | `notifications refresh`, `notifications settings`, `notifications open <bundle>` | Refresh retained notifications, open Full Disk Access settings, or open the source application |
+| `notifications center` | Open macOS's Notification Center when it is not already showing; currently unavailable on macOS 26 |
 | `notifications dismiss <bundle> <id>`, `notifications dismiss-all`, `notifications cancel-dismiss-all` | Request native dismissal, process the retained snapshot, or stop after the current action |
 | `notifications reply <bundle> <id> <hex>` | Submit a supported native text reply; `<hex>` is the UTF-8 text encoded as hexadecimal bytes |
 | `battery settings`, `focus settings`, `screenshot settings` | Open Battery or Focus settings, or the Screenshot app |
@@ -216,6 +218,8 @@ Use `reminders authorize` to request access, `reminders settings` to open Remind
 ## Workspace and bar snapshots
 
 IDs are host-issued identities. Use a current snapshot for actions; titles and labels are presentation data. `BarStyle` describes the effective native bar settings, while `bar.island` indicates which split-bar group is rendering. Hidden Bar menu row IDs are valid only for the displayed native-menu page.
+
+**Unreleased — available when building from `main`.** `bar.layout` is the layout of the workspace active on the bar's display, `"niri"` or `"dwindle"`, while **Show Layout** (`statusBar.showLayout`) is on, and `nil` otherwise. The bundled OmniWM button shows it as a glyph beside the logo.
 
 <LuauDeclaration name="Workspace" />
 
@@ -269,7 +273,7 @@ Read access before rendering protected contents. Timestamps are Unix seconds. Ca
 
 ## Notification snapshots
 
-**Unreleased: available when building from `main`.** `ctx.data.notifications` reads retained Notification Center data through a read-only database connection. Full Disk Access is required; reading the feed does not request it. `notifications settings` opens the Full Disk Access pane. The feed follows database changes while demanded, but native persistence can delay updates by several seconds. `membershipComplete` reports whether all retained notifications and their identifiers were captured consistently; `metadataComplete` covers additional text, app and native metadata. `complete` is true only when both are true. Check these fields alongside `state` and `error` before treating the snapshot as authoritative.
+`ctx.data.notifications` reads retained Notification Center data through a read-only database connection. Full Disk Access is required; reading the feed does not request it. `notifications settings` opens the Full Disk Access pane. The feed follows database changes while demanded, but native persistence can delay updates by several seconds. With readable notification settings, `items` omits apps with notifications or Notification Center turned off, `_SYSTEM_CENTER_:` sources, and apps that are in neither those settings nor LaunchServices, so the empty state and Clear All cover only the remaining items. `membershipComplete` reports whether all retained notifications, including omitted ones, and their identifiers were captured consistently; `metadataComplete` covers additional text, app and native metadata. `complete` is true only when both are true. Check these fields alongside `state` and `error` before treating the snapshot as authoritative.
 
 The bundled [Notifications widget](/features/workspace-bar/#notifications) provides Details, Reply, dismissal and Clear All. Custom widgets issue the commands in [Actions](#actions) through `omniwm.run`; they are shell commands, not additional `omniwmctl command` paths. Use an item's current `bundle` and UUID `id`, rather than a title or row index. The host derives each item's `actionsSupported` flag from the source identifier's command support. When false, keep the notification visible without Open, Dismiss or Reply, and disable Clear All while it remains visible.
 
@@ -316,6 +320,8 @@ Weather supplies current conditions, 24 hourly entries, and seven daily entries;
 <LuauDeclaration name="InputSourceEntry" />
 
 <LuauDeclaration name="WiFi" />
+
+<LuauDeclaration name="Connection" />
 
 <LuauDeclaration name="Bluetooth" />
 

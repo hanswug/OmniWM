@@ -555,6 +555,23 @@ final class ShellShaderTests: XCTestCase {
         XCTAssertTrue(failure.contains("broken.metal:2"), failure)
     }
 
+    func testCompileErrorsSkipWarningsPrintedBeforeTheError() {
+        let error = MTLLibraryError(.compileFailure, userInfo: [NSLocalizedDescriptionKey: """
+        Compilation failed:
+
+        program_source:52:8: warning: stack nearly exhausted [-Wstack-exhausted]
+        struct OmniVertex {
+               ^
+        broken.metal:2:12: error: use of undeclared identifier 'undefined_value'
+            return undefined_value;
+                   ^
+        """])
+        XCTAssertEqual(
+            ShellShaderLibrary.message(error),
+            "broken.metal:2:12: error: use of undeclared identifier 'undefined_value' return undefined_value; ^"
+        )
+    }
+
     func testSourcesMustBePlainFileNamesThatExist() {
         let library = ShellShaderLibrary()
         XCTAssertNotNil(library.program(source: "../escape.metal", directories: [directory]).failure)

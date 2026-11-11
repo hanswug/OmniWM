@@ -141,7 +141,8 @@ extension ShellWidgetHost {
             case .dismiss,
                  .reply,
                  .dismissAll,
-                 .cancelDismissAll:
+                 .cancelDismissAll,
+                 .center:
                 ShellNotificationTrace.record(
                     "host.command",
                     fields: "kind=action focusedSurface=\(focusedSurface != nil)"
@@ -325,6 +326,8 @@ extension ShellWidgetHost {
                 onDrag(.moved(point))
             case let .ended(point):
                 onDrag(.ended(point))
+            case .cancelled:
+                onDrag(.cancelled)
             }
         }
         surface.onTooltip = { [weak self, weak state] event in

@@ -1,7 +1,58 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%@, top hit %@" : {
+
+    },
+    "Choose how the palette searches windows, apps, commands, and files." : {
+
+    },
+    "Clear Pick History" : {
+
+    },
+    "Enable Unified Search" : {
+
+    },
+    "Enter opens the selected result." : {
+
+    },
+    "No results" : {
+
+    },
+    "Open Command Palette searches several palette modes at once and shows up to three top hits above the results. Each mode’s own Command Palette shortcut still opens just that mode." : {
+
+    },
+    "Results are grouped in this order. Menu reads the frontmost app’s menus each time the palette opens. Clipboard needs clipboard history." : {
+
+    },
+    "Searched Modes" : {
+
+    },
+    "Searching…" : {
+
+    },
+    "Search…" : {
+
+    },
+    "Show all in %@" : {
+
+    },
+    "Top Hits" : {
+
+    },
+    "Top hits learn from the results you pick in unified search, and from apps and files you open with the Launcher. Clear Pick History forgets windows, commands, and menu items; the Launcher keeps its launch history. Clipboard picks are never remembered." : {
+
+    },
+    "Unified Search" : {
+
+    },
     "Dialog open" : {
+
+    },
+    "A left click on a partially visible window focuses it without moving the viewport. Keyboard navigation, gestures, Cmd-Tab, and the Dock still scroll windows into view. Has no effect when Center Focused Column is Always." : {
+
+    },
+    "Focus Clicked Windows Without Scrolling" : {
 
     },
     "Could Not Install Update" : {
@@ -34905,130 +34956,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "커서를 배열에 제한"
-          }
-        }
-      }
-    },
-    "Contact Barut for public credit" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "公開クレジットの掲載については Barut に連絡してください"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kontaktieren Sie Barut für eine öffentliche Nennung"
-          }
-        },
-        "nb" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kontakt Barut for offentlig kreditering"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kontakta Barut för att nämnas offentligt"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Contacta a Barut para recibir reconocimiento público"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "联系 Barut 以获得公开致谢"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "सार्वजनिक क्रेडिट के लिए बारूत से संपर्क करें"
-          }
-        },
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تواصل مع باروت للحصول على إشادة علنية"
-          }
-        },
-        "sr-Latn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kontaktirajte Baruta za javno priznanje"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Επικοινωνήστε με τον Barut για δημόσια αναφορά"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "צור קשר עם Barut לקבלת קרדיט פומבי"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Свяжитесь с Барутом, чтобы вас упомянули публично"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Skontaktuj się z Barutem w sprawie publicznego wyróżnienia"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Зверніться до Barut, щоб отримати публічне визнання"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Contacter Barut pour être mentionné publiquement"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Neem contact op met Barut voor een publieke vermelding"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Contatta Barut per essere citato pubblicamente"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ota yhteyttä Barutiin julkista mainintaa varten"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kontakt Barut for at blive krediteret offentligt"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "공개 후원자 명단에 이름을 올리려면 Barut에게 문의하세요"
           }
         }
       }
@@ -105565,130 +105492,6 @@
         }
       }
     },
-    "Private Sponsor" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "プライベートスポンサー"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Privater Sponsor"
-          }
-        },
-        "nb" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Privat sponsor"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Privat sponsor"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Patrocinador privado"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "私人赞助商"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "निजी प्रायोजक"
-          }
-        },
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "راعٍ خاص"
-          }
-        },
-        "sr-Latn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Privatni sponzor"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ιδιωτικός χορηγός"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ספונסר פרטי"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Частный спонсор"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prywatny sponsor"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Приватний спонсор"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sponsor privé"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Privé-sponsor"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sponsor privato"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Yksityinen sponsori"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Privat sponsor"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "개인 후원자"
-          }
-        }
-      }
-    },
     "Private-API Capability" : {
       "localizations" : {
         "ja" : {
@@ -127795,6 +127598,9 @@
         }
       }
     },
+    "Show Layout" : {
+
+    },
     "Show Workspace" : {
       "localizations" : {
         "ja" : {
@@ -131016,130 +130822,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "GitHub에서 스폰서"
-          }
-        }
-      }
-    },
-    "Sponsor on PayPal" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PayPalでスポンサーになる"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Auf PayPal sponsern"
-          }
-        },
-        "nb" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sponsor på PayPal"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sponsor på PayPal"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Patrocinar en PayPal"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 PayPal 上赞助"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PayPal पर स्पॉन्सर करें"
-          }
-        },
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "الرعاية على PayPal"
-          }
-        },
-        "sr-Latn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sponzoriši preko PayPala"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Χορηγία στο PayPal"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "תמכו ב-PayPal"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Поддержать через PayPal"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wspieraj na PayPal"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Підтримати через PayPal"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sponsoriser sur PayPal"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sponsor op PayPal"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sponsorizza su PayPal"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sponsoroi PayPalissa"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sponsor på PayPal"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PayPal에서 스폰서"
           }
         }
       }
@@ -160438,17 +160120,13 @@
     "Shift-Enter moves here (empty workspace)." : {},
     "Shift-Enter summons right." : {},
     "Shift-Enter unavailable without an anchor." : {},
-    "Choose a mark to remove from the selected window." : {},
-    "Choose a mark to remove from the selected window" : {},
     "Remove a window mark" : {},
     "This window is no longer in the current results. Search again before focusing it." : {},
     "Mark the selected window (Control-Option-Shift-M)" : {},
-    "Mark the selected window" : {},
     "That mark changed while the chooser was open. Choose a current mark and try again." : {},
     "No mark was changed." : {},
     "Set Mark" : {},
     "Window summoned right." : {},
-    "Marks the selected window row." : {},
     "The selected window has no marks to remove. Select a marked window." : {},
     "‘%@’ is already used by another window. Choose a different mark name." : {},
     "Could not summon this window right now. Press Enter to focus it instead." : {},
@@ -167355,7 +167033,7 @@
     "Your scratchpad windows." : {
 
     },
-    "Controls OmniWM’s item in the macOS menu bar. Show Workspace adds the active workspace and enables the app name and icon options.": {},
+    "Controls OmniWM’s item in the macOS menu bar. Show Layout adds the active workspace’s layout to the macOS status item and OmniWM buttons on OmniShell bars. Show Workspace adds the active workspace and enables the app name and number options.": {},
     "macOS Status Item": {},
     "Follows the span setting for All Displays." : {
 
@@ -173667,6 +173345,66 @@
     },
     "Mouse wheel sensitivity" : {
 
+    },
+    "While the command palette is open, %@ is reserved for marking the selected window in %@ mode." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "While the command palette is open, %1$@ is reserved for marking the selected window in %2$@ mode."
+          }
+        }
+      }
+    },
+    "While the command palette is open, %@ is reserved for removing a mark from the selected window in %@ mode." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "While the command palette is open, %1$@ is reserved for removing a mark from the selected window in %2$@ mode."
+          }
+        }
+      }
+    },
+    "While the command palette is open, %@ is reserved for revealing the selected item in Finder in %@ and %@ modes; in other modes it acts like Return." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "While the command palette is open, %1$@ is reserved for revealing the selected item in Finder in %2$@ and %3$@ modes; in other modes it acts like Return."
+          }
+        }
+      }
+    },
+    "While the command palette is open, %@ is reserved for switching to %@ mode when it is available." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "While the command palette is open, %1$@ is reserved for switching to %2$@ mode when it is available."
+          }
+        }
+      }
+    },
+    "While the command palette is open, %@ is reserved for switching to %@ mode." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "While the command palette is open, %1$@ is reserved for switching to %2$@ mode."
+          }
+        }
+      }
+    },
+    "While the command palette is open, %@ is reserved for toggling the file preview in %@ mode." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "While the command palette is open, %1$@ is reserved for toggling the file preview in %2$@ mode."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

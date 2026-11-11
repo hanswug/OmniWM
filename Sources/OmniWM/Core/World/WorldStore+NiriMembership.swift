@@ -98,8 +98,9 @@ extension WorldStore {
                     continue
                 }
             }
+            let isLoneDetached = token == detachedToken && placements.count == 1
             changed = storeNiriPlacement(
-                placement,
+                isLoneDetached ? placement.withoutColumnPosition : placement,
                 detached: token == detachedToken,
                 for: token,
                 monitors: monitors

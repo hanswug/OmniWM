@@ -24,6 +24,7 @@ struct HotkeySettingsView: View {
         let hotkeyMouseButtons = OverviewInputSettingsValidation.hotkeyMouseButtons(settings.hotkeyBindings)
         let modeKeyFailures = KeyboardModeTable(bindings: settings.hotkeyBindings).failures
         let modeLeaderAssigned = settings.hotkeyBindings.contains(where: Self.isAssignedModeLeader)
+        let paletteShortcuts = PaletteShortcuts.current()
         HotkeySettingsPage(
             subtitle: String(
                 localized: "Search commands, edit shortcuts, and review registration problems without leaving the settings window."
@@ -150,6 +151,7 @@ struct HotkeySettingsView: View {
                                 hyperModifiers: settings.hyperKeyModifiers.carbonMask,
                                 shiftedCharacters: shiftedCharacters
                             ),
+                            paletteShortcutNotes: paletteShortcuts.collisions(with: binding.binding).map(\.note),
                             isHyperActive: {
                                 controller.isHyperTriggerActive
                             },
@@ -231,21 +233,6 @@ struct HotkeySettingsView: View {
 
     private func startChordRecording(for actionId: String) {
         recordingTarget = .chord(actionId)
-    }
-
-    private func hyperModifierToggle(_ title: String, flag: UInt32) -> some View {
-        Toggle(title, isOn: Binding(
-            get: { settings.hyperKeyModifiers.contains(flag) },
-            set: { included in
-                guard let updated = settings.hyperKeyModifiers.setting(flag, included: included) else { return }
-                settings.hyperKeyModifiers = updated
-            }
-        ))
-        .disabled(
-            settings.hyperKeyModifiers.contains(flag)
-                && settings.hyperKeyModifiers.modifierCount <= HyperKeyModifiers.minimumModifierCount
-        )
-        .accessibilityLabel("Hyper includes \(title)")
     }
 
     private func systemHyperTriggerFailureMessage(_ failure: SystemHyperTriggerFailure) -> String {
@@ -395,6 +382,21 @@ extension HotkeySettingsView {
                 "In Prefix and Window mode, single keys run commands. After you give Begin Prefix or Enter or Leave Window Mode a shortcut, set mode keys beside the commands below. Needs Input Monitoring permission."
             )
         }
+    }
+
+    private func hyperModifierToggle(_ title: String, flag: UInt32) -> some View {
+        Toggle(title, isOn: Binding(
+            get: { settings.hyperKeyModifiers.contains(flag) },
+            set: { included in
+                guard let updated = settings.hyperKeyModifiers.setting(flag, included: included) else { return }
+                settings.hyperKeyModifiers = updated
+            }
+        ))
+        .disabled(
+            settings.hyperKeyModifiers.contains(flag)
+                && settings.hyperKeyModifiers.modifierCount <= HyperKeyModifiers.minimumModifierCount
+        )
+        .accessibilityLabel("Hyper includes \(title)")
     }
 
     private func handleModeKeyCaptured(actionId: String, trigger: HotkeyTrigger) {

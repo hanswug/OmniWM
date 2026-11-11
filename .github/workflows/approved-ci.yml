@@ -1,20 +1,27 @@
 name: OmniWM CI
+run-name: >-
+  ${{ inputs.pr_number && format('PR #{0} {1} {2}', inputs.pr_number, inputs.head_sha, inputs.merge_sha) || format('Main CI {0}', github.sha) }}
 
 on:
-  pull_request:
-    paths-ignore: ['docs/**', 'website/**', '*.md']
   push:
-    branches: [main, '**-release']
+    branches: [main]
     paths-ignore: ['docs/**', 'website/**', '*.md']
   workflow_dispatch:
     inputs:
       pr_number:
-        description: Pull request number to check against its base branch (optional)
+        description: Approved pull request number (set by approval policy)
         required: false
+        type: string
+      head_sha:
+        description: Approved PR head commit
+        type: string
+      merge_sha:
+        description: Approved immutable merge commit
         type: string
 
 permissions:
   contents: read
+  pull-requests: read
 
 cache-mode: read
 
@@ -26,15 +33,39 @@ env:
   DEVELOPER_DIR: /Applications/Xcode_27.0.app/Contents/Developer
 
 jobs:
+  approval:
+    name: Authorize exact source
+    runs-on: blacksmith-2vcpu-ubuntu-2604
+    timeout-minutes: 5
+    outputs:
+      checkout: ${{ steps.policy.outputs.checkout }}
+      head: ${{ steps.policy.outputs.head }}
+      base: ${{ steps.policy.outputs.base }}
+      website: ${{ steps.policy.outputs.website }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Check approval before running repository code
+        id: policy
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          EXPECTED_HEAD: ${{ inputs.head_sha }}
+          EXPECTED_MERGE: ${{ inputs.merge_sha }}
+        run: python3 Scripts/ci-approval.py authorize
   cache-dependencies:
+    needs: approval
     name: Cache dependencies
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     cache-mode: write
-    runs-on: xcode-27
+    runs-on: blacksmith-6vcpu-macos-27
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ needs.approval.outputs.checkout }}
           fetch-depth: 0
           filter: blob:none
           persist-credentials: false
@@ -42,22 +73,27 @@ jobs:
       - uses: ./.github/actions/setup-lix
         with:
           make-target: setup
-      - name: Date sources by their last commit
-        run: python3 Scripts/restore-mtimes.py
+          save-release-downloads: true
       - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        id: build-cache
         with:
           path: .build/localization
-          key: swift-build-v2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.swift-version', 'Package.resolved') }}-${{ github.sha }}
-          restore-keys: swift-build-v2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.swift-version', 'Package.resolved') }}-
+          key: swift-build-v2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.swift-version', 'Package.resolved', 'Scripts/build-metadata.env') }}-${{ github.sha }}
+          restore-keys: swift-build-v2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.swift-version', 'Package.resolved', 'Scripts/build-metadata.env') }}-
+      - name: Date sources by their last commit
+        env:
+          CACHED_BUILD_KEY: ${{ steps.build-cache.outputs.cache-matched-key }}
+        run: python3 Scripts/restore-mtimes.py "$CACHED_BUILD_KEY"
       - name: Build the app and test bundle
         run: LIBRARY_PATH="$(./Scripts/ghostty-preflight.sh print-library-dir)${LIBRARY_PATH:+:$LIBRARY_PATH}" swift build --build-tests --build-system swiftbuild --arch arm64 --scratch-path .build/localization
       - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: .build/localization
-          key: swift-build-v2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.swift-version', 'Package.resolved') }}-${{ github.sha }}
+          key: swift-build-v2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.swift-version', 'Package.resolved', 'Scripts/build-metadata.env') }}-${{ github.sha }}
   changes:
+    needs: approval
     name: Changes
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2604
     timeout-minutes: 5
     outputs:
       tests: ${{ steps.plan.outputs.tests }}
@@ -65,22 +101,24 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          fetch-depth: ${{ github.event_name == 'pull_request' && '0' || '1' }}
+          fetch-depth: 0
+          ref: ${{ needs.approval.outputs.checkout }}
           persist-credentials: false
       - name: Plan the Swift test groups
         id: plan
         env:
-          EVENT: ${{ github.event_name }}
-          BASE: ${{ github.event.pull_request.base.sha }}
-          HEAD: ${{ github.event.pull_request.head.sha }}
+          EVENT: ${{ inputs.pr_number != '' && 'pull_request' || github.event_name }}
+          BASE: ${{ needs.approval.outputs.base }}
+          HEAD: ${{ needs.approval.outputs.head }}
         run: |
           set -o pipefail
           if [[ "$EVENT" == pull_request ]]; then
             git diff --name-only "$BASE...$HEAD"
           fi | python3 Scripts/ci_test_plan.py "$EVENT" >> "$GITHUB_OUTPUT"
   tooling:
+    needs: approval
     name: Tooling
-    runs-on: xcode-27
+    runs-on: blacksmith-6vcpu-macos-27
     timeout-minutes: 30
     steps:
       - name: Validate requested pull request
@@ -93,7 +131,7 @@ jobs:
           fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: ${{ inputs.pr_number != '' && format('refs/pull/{0}/merge', inputs.pr_number) || github.ref }}
+          ref: ${{ needs.approval.outputs.checkout }}
           persist-credentials: false
       - name: Check pinned downloads
         run: make check-pins
@@ -116,8 +154,8 @@ jobs:
         run: make test-dev-tools
   verify:
     name: Verify
-    needs: changes
-    runs-on: xcode-27
+    needs: [approval, changes]
+    runs-on: blacksmith-6vcpu-macos-27
     timeout-minutes: 60
     steps:
       - name: Validate requested pull request
@@ -130,7 +168,7 @@ jobs:
           fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: ${{ inputs.pr_number != '' && format('refs/pull/{0}/merge', inputs.pr_number) || github.ref }}
+          ref: ${{ needs.approval.outputs.checkout }}
           fetch-depth: 0
           filter: blob:none
           persist-credentials: false
@@ -138,15 +176,18 @@ jobs:
       - uses: ./.github/actions/setup-lix
         with:
           make-target: setup
-      - name: Date sources by their last commit
-        if: needs.changes.outputs.tests == 'true'
-        run: python3 Scripts/restore-mtimes.py
       - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         if: needs.changes.outputs.tests == 'true'
+        id: build-cache
         with:
           path: .build/localization
-          key: swift-build-v2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.swift-version', 'Package.resolved') }}-${{ github.sha }}
-          restore-keys: swift-build-v2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.swift-version', 'Package.resolved') }}-
+          key: swift-build-v2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.swift-version', 'Package.resolved', 'Scripts/build-metadata.env') }}-${{ github.sha }}
+          restore-keys: swift-build-v2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.swift-version', 'Package.resolved', 'Scripts/build-metadata.env') }}-
+      - name: Date sources by their last commit
+        if: needs.changes.outputs.tests == 'true'
+        env:
+          CACHED_BUILD_KEY: ${{ steps.build-cache.outputs.cache-matched-key }}
+        run: python3 Scripts/restore-mtimes.py "$CACHED_BUILD_KEY"
       - name: Put flake tools on PATH
         run: echo "$PWD/.cache/flake-tools/bin" >> "$GITHUB_PATH"
       - name: Verify package toolchain
@@ -187,9 +228,9 @@ jobs:
         run: OMNIWM_LIVE_CHECKS=1 LIBRARY_PATH="$(./Scripts/ghostty-preflight.sh print-library-dir)${LIBRARY_PATH:+:$LIBRARY_PATH}" swift build --build-tests --build-system swiftbuild --arch arm64 --scratch-path .build/localization
   test-group:
     name: Tests (${{ matrix.name }})
-    needs: [changes, verify]
-    if: ${{ !cancelled() && needs.changes.outputs.tests == 'true' && needs.verify.result == 'success' }}
-    runs-on: xcode-27
+    needs: [approval, changes, verify]
+    if: ${{ !cancelled() && needs.approval.result == 'success' && needs.changes.outputs.tests == 'true' && needs.verify.result == 'success' }}
+    runs-on: blacksmith-6vcpu-macos-27
     timeout-minutes: 30
     strategy:
       fail-fast: false
@@ -205,8 +246,9 @@ jobs:
           fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: ${{ inputs.pr_number != '' && format('refs/pull/{0}/merge', inputs.pr_number) || github.ref }}
+          ref: ${{ needs.approval.outputs.checkout }}
           persist-credentials: false
+      - uses: ./.github/actions/setup-audio
       - uses: ./.github/actions/setup-swift
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
@@ -227,12 +269,18 @@ jobs:
         env:
           FLAG: ${{ matrix.flag }}
           PATTERN: ${{ matrix.pattern }}
-        run: swift test --skip-build --build-system swiftbuild --arch arm64 --scratch-path .build/localization "$FLAG" "$PATTERN"
+        shell: bash
+        run: |
+          swift test --skip-build --build-system swiftbuild --arch arm64 --scratch-path .build/localization "$FLAG" "$PATTERN" 2>&1 | tee "$RUNNER_TEMP/tests.log"
+          if grep -q "No matching test cases were run" "$RUNNER_TEMP/tests.log"; then
+            echo "::error::$FLAG $PATTERN ran no tests."
+            exit 1
+          fi
   tests:
     name: Tests
-    needs: [changes, verify, test-group]
-    if: ${{ !cancelled() }}
-    runs-on: ubuntu-latest
+    needs: [approval, changes, verify, test-group]
+    if: ${{ !cancelled() && needs.approval.result == 'success' }}
+    runs-on: blacksmith-2vcpu-ubuntu-2604
     timeout-minutes: 5
     steps:
       - name: Require every test group to pass
@@ -250,3 +298,26 @@ jobs:
             echo "::error::Changes $CHANGES, verify $VERIFY, test groups $TEST_GROUPS."
             exit 1
           }
+  website:
+    name: Website
+    needs: approval
+    if: needs.approval.outputs.website == 'true'
+    runs-on: blacksmith-2vcpu-ubuntu-2604
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.approval.outputs.checkout }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 24.15.0
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+      - run: npm ci
+      - run: npm run reference:check
+      - run: npm run check
+      - run: npm run build

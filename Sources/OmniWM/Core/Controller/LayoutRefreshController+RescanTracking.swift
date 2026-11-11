@@ -84,14 +84,14 @@ extension LayoutRefreshController {
                 to: trackedMode,
                 preferredMonitor: controller.workspaceManager.monitor(for: wsForWindow),
                 applyFloatingFrame: false,
-                observedFrame: candidate.capturedFrame,
+                observedFrame: candidate.capturedAppKitFrame,
                 allowLiveFrameFallback: false
             )
         } else if trackedMode == .floating {
             controller.seedFloatingGeometryIfNeeded(
                 for: admittedToken,
                 preferredMonitor: controller.workspaceManager.monitor(for: wsForWindow),
-                observedFrame: candidate.capturedFrame,
+                observedFrame: candidate.capturedAppKitFrame,
                 allowLiveFrameFallback: false
             )
         }

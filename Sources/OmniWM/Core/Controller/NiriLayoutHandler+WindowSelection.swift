@@ -18,7 +18,7 @@ extension NiriLayoutHandler {
             selectedNodeId: selectedNodeId,
             focusedToken: preferredFocusToken,
             containerSizingStates: containerSizingStates,
-            windowSizingStates: windowSizingStatesForUnpositionedWindows(pass: pass)
+            unpositionedPlacements: unpositionedPlacements(pass: pass)
         )
         for window in pass.windows {
             pass.engine.updateWindowConstraints(
@@ -58,22 +58,22 @@ extension NiriLayoutHandler {
         return states
     }
 
-    private func windowSizingStatesForUnpositionedWindows(
+    private func unpositionedPlacements(
         pass: NiriLayoutPass
-    ) -> [WindowToken: PersistedNiriWindowState]? {
+    ) -> [WindowToken: PersistedNiriPlacement]? {
         guard let controller else { return nil }
 
-        var states: [WindowToken: PersistedNiriWindowState]?
+        var placements: [WindowToken: PersistedNiriPlacement]?
         for token in pass.windowTokens where pass.engine.findNode(for: token, in: pass.wsId) == nil {
             guard let placement = controller.workspaceManager.restoreIntent(for: token)?.niriPlacement,
                   !placement.hasColumnPosition
             else { continue }
-            if states == nil {
-                states = [:]
+            if placements == nil {
+                placements = [:]
             }
-            states?[token] = placement.window
+            placements?[token] = placement
         }
-        return states
+        return placements
     }
 
     func resolveSelection(
@@ -353,6 +353,7 @@ extension NiriLayoutHandler {
         let rebaseDeltaBefore = state.offsetTransition.rebaseDelta
         var viewportNeedsRecalc = removal.removalResult.viewportNeedsRecalc
 
+        let controller = controller
         let isGestureOrAnimation = controller?.workspaceManager.animationDriver.hasMotion(in: pass.wsId) == true
 
         resolvePrimaryContainerSpansIfNeeded(pass: pass)
@@ -360,9 +361,13 @@ extension NiriLayoutHandler {
         let preservesGesture = state.preservesGestureOffset
             && pass.engine.effectiveSettings(in: pass.wsId).edgeOverscroll != .disabled
             && !removal.removedColumn && removal.removalResult.removedTokens.isEmpty
+        let keepsClickedSelectionOffscreen = state.clickFocusedNodeId != nil
+            && state.clickFocusedNodeId == state.selectedNodeId
+            && controller?.settings.focus.clickFocusWithoutScrolling == true
         if !usesSingleWindowFit,
            !preservesGesture,
            !isGestureOrAnimation,
+           !keepsClickedSelectionOffscreen,
            snapshot.isActiveWorkspace,
            let selectedId = state.selectedNodeId,
            let selectedNode = pass.engine.findNode(by: selectedId, in: pass.wsId),

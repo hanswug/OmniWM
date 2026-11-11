@@ -59,7 +59,8 @@ Pointer-driven focus and monitor-edge focus/move behavior.
 | Key | Type | Default | Description |
 | --- | --- | --- | --- |
 | `followsMouse` | boolean | `false` | Focuses a managed window when the pointer enters it, no click needed. |
-| `followsMouseOnlyFullyVisible` (optional) | boolean | `false` | **Unreleased:** Available when building from `main`. Restricts Niri hover focus to tiled windows whose current WindowServer bounds fit inside their assigned monitor's screen bounds and contain the pointer. If those bounds are unavailable, hover leaves focus unchanged. Also disables hover navigation at Niri screen edges. Clicks, keyboard navigation, Dwindle, and floating windows are unaffected. Requires `followsMouse`. |
+| `followsMouseOnlyFullyVisible` (optional) | boolean | `false` | Restricts Niri hover focus to tiled windows whose current WindowServer bounds fit inside their assigned monitor's screen bounds and contain the pointer. If those bounds are unavailable, hover leaves focus unchanged. Also disables hover navigation at Niri screen edges. Clicks, keyboard navigation, Dwindle, and floating windows are unaffected. Requires `followsMouse`. |
+| `clickFocusWithoutScrolling` (optional) | boolean | `false` | **Unreleased:** Available when building from `main`. A left click without modifiers on a partially visible Niri window focuses it and leaves the viewport where it is. Keyboard navigation, gestures, Cmd-Tab, the Dock, and other activations still scroll the window into view. With `followsMouse`, hovering focuses and scrolls the window before you click. Enable `followsMouseOnlyFullyVisible` as well to avoid that. Has no effect when `centerFocusedColumn` is `always`. Dwindle and floating windows are unaffected. |
 | `edgeNavigationInterval` *(optional)* | float | `1.5` | Seconds before hovering at a Niri edge moves one column, and between further moves while the pointer stays on the edge or preview. Requires `followsMouse`; moving away stops navigation. Values are clamped to `0.25`–`2.0` and rounded to the nearest `0.25`; nonfinite values use `1.5`. |
 | `raiseOnMouseFocus` | boolean | `false` | Also raises the window when focus-follows-mouse focuses it. A tiled window that a visible floating window overlaps from the front is focused without raising. |
 | `lockModifier` | string | `"off"` | Modifier that holds focus in place while pressed: `off`, `option`, `leftOption`, `rightOption`, `command`, `leftCommand`, `rightCommand`, `control`, `leftControl`, `rightControl`, `shift`, `leftShift`, `rightShift`. |
@@ -170,7 +171,7 @@ Options for the scrolling (Niri) layout.
 | `resizeStepPercent` *(optional)* | integer | `5` | Increment for Niri grow/shrink actions in percentage points, clamped to 1–100. Applies to container primary, window primary, and window secondary spans. Explicit CLI sizes are unaffected. |
 | `edgeGaps` *(optional)* | boolean | `true` | Keeps the inner gap between columns and the screen edges, in addition to the outer gaps. `false` uses the inner gap only between columns and between stacked windows. A lone window is unaffected. |
 | `shrinkToFit` *(optional)* | boolean | `false` | Resizing a column with the keyboard (set, adjust or cycle its span) resizes the other visible columns so together they fill the working area, keeping each within its size limits. Their own widths come back when the column count or the gaps change. Mouse resizing is unchanged. |
-| `moveWindowStacksIntoColumn` *(optional)* | boolean | `true` | Moving a lone window left or right stacks it into the adjacent column. `false` swaps its column with the adjacent one instead. A window that shares a column still moves out into its own column. |
+| `moveWindowStacksIntoColumn` *(optional)* | boolean | `true` | Moving a lone window left or right stacks it into the adjacent column. `false` swaps its column with the adjacent one instead, unless the adjacent column is tabbed: then the window joins its tabs. A window that shares a column still moves out into its own column. |
 
 The resize increment defaults to 5% instead of the previous fixed 10%.
 
@@ -268,7 +269,7 @@ The per-monitor workspace bar. Per-monitor exceptions live in [`monitorBarOverri
 | `position` | string | `"overlappingMenuBar"` | `overlappingMenuBar`, `belowMenuBar`, `bottom`, `left`, or `right`. Bottom and side placements follow the usable display edge, avoiding a visible Dock. |
 | `notchMode` | string | `"moveBelowMenuBar"` | Notch handling: `off`, `moveBelowMenuBar`, `rightOfNotch`, `splitActiveLeft`, `splitActiveRight`, or `fillLeftOfNotch`. `rightOfNotch` centers the bar without a notch, or places it 8 points to the right of the notch; offsets still apply. `fillLeftOfNotch` fills the menu-bar area left of the notch and covers app menus; without a notch it uses the left half of the menu bar. At Overlapping Menu Bar, this mode overrides `xOffset`, `yOffset`, and `height`: the bar uses the menu-bar height. Below Menu Bar turns it off without changing the saved setting. With `reserveLayoutSpace` on, the bar visible, and `autoHide` off, it reserves any space the bar occupies in the usable frame. For a notched display or visible menu bar (not automatically hidden in System Settings), macOS already reserves the top of the screen and shrinks the usable frame accordingly, so this is only non-zero for a notch-less display with a hidden menu bar. Bottom/left/right ignore notch modes without changing the saved preference. |
 | `notchActiveZoneWidth` | float | `180.0` | Width in points of the active zone around the notch. |
-| `fullWidth` *(optional)* | boolean | `false` | Spans the whole screen edge, with the shell's `leading`, `center` and `trailing` widgets at its start, middle and end (top, middle and bottom on a side bar). `notchMode`, `notchActiveZoneWidth` and the offset along the bar don't apply. With `position = "belowMenuBar"`, it leaves macOS's menu-bar auto-hide preference unchanged (**Unreleased:** available when building from `main`). At any other position, an enabled full-width bar sets macOS's **Automatically hide and show the menu bar** to Always on every display, including while automatic hiding or native fullscreen hides the bar. Overlapping the menu bar also places the bar at the screen top, above native menus. Your previous choice returns when the last full-width bar requesting automatic hiding moves below the menu bar, is disabled or hidden with Toggle Workspace Bar, or OmniWM quits normally. A crash can leave automatic hiding active; relaunch OmniWM and move its full-width bars below the menu bar, disable them, or quit normally to restore the saved preference. |
+| `fullWidth` *(optional)* | boolean | `false` | Spans the whole screen edge, with the shell's `leading`, `center` and `trailing` widgets at its start, middle and end (top, middle and bottom on a side bar). `notchMode`, `notchActiveZoneWidth` and the offset along the bar don't apply. With `position = "belowMenuBar"`, it leaves macOS's menu-bar auto-hide preference unchanged. At any other position, an enabled full-width bar sets macOS's **Automatically hide and show the menu bar** to Always on every display, including while automatic hiding or native fullscreen hides the bar. Overlapping the menu bar also places the bar at the screen top, above native menus. Your previous choice returns when the last full-width bar requesting automatic hiding moves below the menu bar, is disabled or hidden with Toggle Workspace Bar, or OmniWM quits normally. A crash can leave automatic hiding active; relaunch OmniWM and move its full-width bars below the menu bar, disable them, or quit normally to restore the saved preference. |
 | `fullWidthNotchMode` *(optional)* | string | `"rightOfNotch"` | Where a full-width bar's `center` widgets go on a display with a notch: `off` (centered under the notch), `moveBelowMenuBar` (the whole bar moves below the menu bar), `rightOfNotch`, `leftOfNotch`, or `splitAroundNotch` (the first half left of the notch, the rest right of it). Bottom/left/right ignore it. |
 | `systemStatsButton` | boolean | `false` | Adds a system stats button to the bar. The button needs the shell's `system-stats` widget in one of the bar's groups. |
 | `deduplicateAppIcons` | boolean | `false` | Collapses repeated icons of the same app within a pill. |
@@ -279,7 +280,7 @@ The per-monitor workspace bar. Per-monitor exceptions live in [`monitorBarOverri
 | `autoHide` *(optional)* | boolean | `false` | Reveal when the pointer touches the bar's edge span. Hide after the pointer moves inward past the bar and interactions end; moving along the edge keeps it visible. Never reserves layout space. Supports per-display overrides and combines with modifier-hold reveal. |
 | `autoHideRevealDelayMilliseconds` *(optional)* | float | `0.0` | How long the pointer must stay at the bar's edge before an auto-hidden bar appears, clamped to `0`–`1000`. Leaving the edge sooner cancels the reveal. Global setting. |
 | `autoHideHideDelayMilliseconds` *(optional)* | float | `0.0` | How long an auto-hidden bar stays after the pointer moves inward past it and interactions end, clamped to `0`–`1000`. Returning to the bar sooner cancels the hide. Global setting. |
-| `revealModifier` | string | `"off"` | Reveal the bar by holding a modifier. **Unreleased:** when building from `main`, this reveals only bars whose resolved `autoHide` is `true`; bars with `autoHide = false` stay visible and honor `reserveLayoutSpace`. Existing modifier-only setups must enable `autoHide` to keep hiding, which also enables hover reveal. Auto-hidden bars never reserve layout space. Values: `off`, `option`, `control`, `command`, `shift`, `controlOption`, `optionCommand`, `optionShift`, `controlCommand`, `controlShift`, `commandShift`, `controlOptionCommand`, `controlOptionShift`, `optionCommandShift`, `controlCommandShift`, `controlOptionCommandShift`. |
+| `revealModifier` | string | `"off"` | Reveal the bar by holding a modifier. This reveals only bars whose resolved `autoHide` is `true`; bars with `autoHide = false` stay visible and honor `reserveLayoutSpace`. Existing modifier-only setups must enable `autoHide` to keep hiding, which also enables hover reveal. Auto-hidden bars never reserve layout space. Values: `off`, `option`, `control`, `command`, `shift`, `controlOption`, `optionCommand`, `optionShift`, `controlCommand`, `controlShift`, `commandShift`, `controlOptionCommand`, `controlOptionShift`, `optionCommandShift`, `controlCommandShift`, `controlOptionCommandShift`. |
 | `revealHoldMilliseconds` | float | `200.0` | How long the modifier must be held before the bar reveals. |
 | `hideInNativeFullscreen` | boolean | `false` | Hides the bar while a native-fullscreen space is active. Effective `fillLeftOfNotch` at a top position always hides there, regardless of this setting. |
 | `height` | float | `24.0` | Bar thickness in points: height for horizontal bars, width for left/right bars. Side bars scroll when content exceeds the usable display height. |
@@ -322,7 +323,7 @@ The seven optional `overviewGesture…` and `window…` keys below configure Ove
 | --- | --- | --- | --- |
 | `scrollEnabled` | boolean | `true` | Trackpad column scrolling (`fingerCount`) and modifier + mouse scroll wheel scrolling along the Niri primary axis; `false` turns off both. |
 | `scrollSensitivity` | float | `5.0` | Trackpad scroll gesture sensitivity. |
-| `mouseWheelSensitivity` (optional) | float | `1.0` | **Unreleased:** Available when building from `main`. Smooth mouse-wheel navigation multiplier, clamped to `0.1`–`10.0`. Higher values require less wheel movement to switch columns. Standard discrete wheel steps still move one column per notch. Applies only while the mouse scroll modifier is held. Normal app scrolling is unchanged. |
+| `mouseWheelSensitivity` (optional) | float | `1.0` | Smooth mouse-wheel navigation multiplier, clamped to `0.1`–`10.0`. Higher values require less wheel movement to switch columns. Standard discrete wheel steps still move one column per notch. Applies only while the mouse scroll modifier is held. Normal app scrolling is unchanged. |
 | `scrollModifierKey` | string | `"optionShift"` | Modifier for wheel scrolling: `optionShift`, `controlShift`, `commandShift`, `controlOptionShift`, `optionCommandShift`, `controlCommandShift`, or `controlOptionCommandShift`. The System Hyper Trigger does not add modifiers to wheel events. |
 | `mouseMoveModifierKey` | string | `"option"` | Modifier for left-dragging tiled windows. Both layouts choose from the drop position: the target tile's center swaps and its sides insert beside it. In Niri, the sides facing neighboring columns open a new column and the other sides stack into the target's column; in Dwindle, internal dividers insert between subtrees and the workspace's outer edges insert at the root. `Shift` does not change this behavior. Workspace-edge targets take precedence in a band up to 24 points wide along the working area's boundary; dropping on another display uses the same targets there; see [drag guidance](/guides/tips/#swap-windows-by-dragging). Values: `off`, `option`, `control`, `command`, `controlOption`, `optionCommand`, `controlCommand`, `controlOptionCommand`. |
 | `mouseResizeModifierKey` | string | `"option"` | Modifier for right-drag resize: `option`, `control`, `command`, `shift`, `controlOption`, `optionCommand`, `optionShift`, `controlCommand`, `controlShift`, `commandShift`, `controlOptionCommand`, `controlOptionShift`, `optionCommandShift`, `controlCommandShift`, `controlOptionCommandShift`. |
@@ -356,9 +357,12 @@ Extra readouts beside the menu bar icon.
 | Key | Type | Default | Description |
 | --- | --- | --- | --- |
 | `showWorkspaceName` | boolean | `false` | Shows the active workspace beside the menu bar icon. |
+| `showLayout` | boolean | `false` | **Unreleased — available when building from `main`.** Shows the active workspace’s resolved Niri or Dwindle layout, independently of `showWorkspaceName`. The OmniWM button on OmniShell bars shows the same layout glyph beside its logo, using the layout of the workspace active on that bar’s display. |
 | `showAppNames` | boolean | `false` | Also shows the focused app's name. |
 | `useWorkspaceId` | boolean | `false` | Shows the workspace number instead of its name. |
-| `showIcon` | boolean | `true` | Shows the OmniWM icon beside the workspace. When off, only the workspace shows, except while diagnostics are recording or Secure Input is on. Has no effect while `showWorkspaceName` is off. |
+| `showIcon` | boolean | `true` | Shows the OmniWM icon beside the workspace or layout. When off, state icons still appear for diagnostics, Secure Input, and keyboard modes. Has no effect while both `showWorkspaceName` and `showLayout` are off. |
+
+If workspace information is unavailable, the item falls back to the OmniWM icon; state icons retain precedence.
 
 ## statusMenu
 
@@ -400,7 +404,7 @@ Clipboard history limits. History content itself is stored in the state director
 
 ## launcher
 
-**Unreleased: available when building from `main`.** The table and all of its keys are optional; omitted keys take the defaults below. Configure these values in **Settings > Launcher**. **Execution Defaults** groups the shell and terminal used by saved entries and CLI tools. Extra app/CLI folders and the custom shell executable are under **Discovery and Advanced Options**. Saved entries are stored in `launcher.entries` and edited through its shared Add/Edit form.
+The table and all of its keys are optional; omitted keys take the defaults below. Configure these values in **Settings > Launcher**. **Execution Defaults** groups the shell and terminal used by saved entries and CLI tools. Extra app/CLI folders and the custom shell executable are under **Discovery and Advanced Options**. Saved entries are stored in `launcher.entries` and edited through its shared Add/Edit form.
 
 | Key | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -457,6 +461,17 @@ arguments = ["--title", "Weekly report"]
 terminal = "background"
 ```
 
+## commandPalette
+
+**Unreleased — available when building from `main`.** The [command palette](/features/command-palette/#unified-search). The table and both keys are optional; when absent, every key takes its default. Configure these values in **Settings > Command Palette**.
+
+| Key | Type | Default | Description |
+| --- | --- | --- | --- |
+| `unifiedSearch` | boolean | `false` | Open Command Palette shows unified search instead of the last-used mode. Each mode's own Command Palette shortcut still opens just that mode. |
+| `searchedModes` | string array | `["windows", "applications", "commands", "files"]` | Palette modes unified search covers, in the order their groups appear: `windows`, `menu`, `clipboard`, `commands`, `applications` (Launcher), `files`. Unknown and repeated names are ignored. |
+
+What unified search learns from your picks is stored in the state directory, not in the config file.
+
 ## quakeTerminal
 
 The drop-down (Quake) terminal. `enabled` and `provider` apply to every provider; the position, size, animation, auto-hide and appearance keys below configure Ghostty. Kitty and foot use their own configuration and the optional [Kitty](#quaketerminalkitty) or [foot](#quaketerminalfoot) overrides.
@@ -497,8 +512,6 @@ Optional. When present, OmniWM positions and sizes the Kitty panel below the Omn
 | `heightPercent` | float | `50.0` | Height as a percentage of the monitor's available screen area (`10`–`100`). |
 
 ### quakeTerminal.foot
-
-**Unreleased: available when building from `main`.** The `foot` provider and these overrides are not included in v0.7.6.
 
 Optional overrides for OmniWM's foot Quake panel, sent each time OmniWM shows or hides it; changes apply the next time it is shown. Omitted optional keys use `foot.ini` as loaded when OmniWM started its dedicated foot server. OmniWM always sends `dim`, the `animationDuration` above (`0` while global animations are disabled), and the panel's area: the visible screen area of the monitor under the pointer, below the OmniShell top bar. Ghostty's and Kitty's values above are not used for foot.
 
@@ -629,8 +642,6 @@ minWidth = 574.0
 ```
 
 ## shellPermissions
-
-**Unreleased: available when building from `main`.** These OmniShell consent and trust decisions are not included in v0.7.6.
 
 **Settings > Network & Permissions** writes these decisions to the app’s `settings.toml`. They are separate from widget `settings.toml` declarations and `shell.toml` layout/options. External edits are live-reloaded. The section is optional: missing widget/program lists are empty, and missing service switches default to on.
 

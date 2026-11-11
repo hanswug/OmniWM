@@ -8,20 +8,14 @@ on:
       - website/**
       - Sources/OmniWM/Resources/omniwm.d.luau
       - .do/app.yaml
-      - .github/workflows/website.yml
-  pull_request:
-    paths:
-      - website/**
-      - Sources/OmniWM/Resources/omniwm.d.luau
-      - .do/app.yaml
-      - .github/workflows/website.yml
+      - .github/workflows/approved-website.yml
 
 permissions:
   contents: read
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2604
     defaults:
       run:
         working-directory: website

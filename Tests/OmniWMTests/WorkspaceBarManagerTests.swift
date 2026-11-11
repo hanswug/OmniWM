@@ -223,6 +223,62 @@ final class WorkspaceBarManagerTests: XCTestCase {
         XCTAssertEqual(panel.frame.height, contentHeight)
     }
 
+    func testFullWidthBarShownAgainHasItsZonesBeforeItsFrameIsWritten() async throws {
+        let manager = makeManager()
+        defer { manager.cleanup() }
+        var zonesAtWrite: [WorkspaceBarZones?] = []
+        manager.frameApplier = { panel, frame in
+            zonesAtWrite.append((panel.contentView as? NSHostingView<WorkspaceBarView>)?.rootView.model.zones)
+            panel.setFrame(frame, display: false)
+        }
+        try await manager.shellConfiguration.set(true, key: "fullWidth")
+        let resolved = controller.settings.workspaceBar.resolved(for: monitor)
+        XCTAssertTrue(resolved.fullWidth)
+        let geometry = WorkspaceBarGeometry.resolve(monitor: monitor, resolved: resolved, isVisible: true)
+        let frame = geometry.frame(fittingLength: 0, monitor: monitor, resolved: resolved)
+        let zones = try XCTUnwrap(geometry.zones(frame: frame, monitor: monitor, resolved: resolved))
+        let shown = barSurface(itemCount: 1)
+        manager.apply([shown])
+        XCTAssertEqual(zonesAtWrite, [zones])
+
+        manager.apply([DesiredBarSurface(monitor: monitor, visible: false, snapshot: shown.snapshot)])
+        XCTAssertNil(manager.barsByMonitor[monitor.id])
+        zonesAtWrite.removeAll()
+        manager.apply([shown])
+        XCTAssertEqual(zonesAtWrite, [zones])
+    }
+
+    func testACancelledShellDragEndsTheSessionWithoutADrop() {
+        let manager = makeManager()
+        defer { manager.cleanup() }
+        let destination = WorkspaceDescriptor.ID()
+        let hitFrame = CGRect(x: 200, y: 0, width: 100, height: 24)
+        let geometry = WorkspaceBarDropGeometry(workspaces: [
+            .init(id: destination, name: "2", layout: .niri, hitFrame: hitFrame, icons: [], columnCount: 0)
+        ])
+        var committed: [WorkspaceBarDropAction] = []
+        manager.dragController.geometryProvider = { geometry }
+        manager.dragController.sourceIsValid = { _ in true }
+        manager.dragController.commit = { action, _ in
+            committed.append(action)
+            return true
+        }
+        let source = WorkspaceBarDragSource(
+            tokens: [WindowToken(pid: 42, windowId: 42)], workspaceId: WorkspaceDescriptor.ID(), isFloating: false
+        )
+        let drop = CGPoint(x: hitFrame.midX, y: hitFrame.midY)
+
+        manager.dragController.begin(source: source, icon: nil, at: drop)
+        manager.shellDragChanged(.cancelled)
+        XCTAssertFalse(manager.dragController.isDragging)
+        XCTAssertTrue(committed.isEmpty)
+        XCTAssertTrue(manager.dragController.presentation.sourceTokens.isEmpty)
+
+        manager.dragController.begin(source: source, icon: nil, at: drop)
+        manager.shellDragChanged(.ended(drop))
+        XCTAssertEqual(committed, [.moveToWorkspace(destination)])
+    }
+
     func testEmptySceneRemovesPrimaryBar() {
         let manager = makeManager()
 

@@ -44,6 +44,14 @@ A workspace's home can be **Main**, **Secondary**, **Tertiary**, or a specific d
 
 The **Monitor Roles** list in **Settings > Displays** fixes that. Add displays with **Add Monitor** and reorder them with the arrows: the highest-ranked connected display becomes Main, the next becomes Secondary, the third becomes Tertiary, and unranked displays follow after them. Disconnected entries stay in the list and are skipped, so ranking `DELL, LG, Built-in` gives the two externals the Main and Secondary roles at your desk and hands Main back to the built-in display when you unplug. The Quake terminal's **Main Monitor** option follows the same Main. Leave the list empty to keep the default behavior. See [`monitors` in the Settings Reference](/config/settings-reference/#monitors) for the configuration format.
 
+:::note
+A **specific display** home follows that display's UUID, not its name. macOS assigns that UUID when the display connects, and can give the same panel a different one when the connection path changes, such as a different port. The workspace then shows **(Disconnected)** in **Settings > Workspaces**, and switching to it picks the display nearest the workspace's last position until you pick the display again. If the display returns with the UUID it had before, the workspace finds it again with nothing to do.
+
+**Main**, **Secondary** and **Tertiary** are more forgiving but not immune. A role stores no UUID, and a ranking entry whose display is not connected is skipped. If a ranked display returns under a new UUID, that entry is skipped and everything below it moves up a role, so remove the disconnected entry, add the display again, and put it back at the rank you want.
+
+Tertiary needs three connected displays, counting the built-in one, and a workspace pinned past the last role has no home until another display is attached.
+:::
+
 ## Workspaces and their home monitor
 
 Every workspace has a **Home Monitor**, and every connected display needs at least one workspace assigned to it for cross-display window moves to have a destination. The `Move Workspace to Monitor on Left / Right / Above / Below` actions target the active workspace and intentionally use the same temporary runtime override as `omniwmctl workspace move-to-monitor --force` — they do not rewrite the workspace's Home Monitor or swap workspaces, and unsafe fullscreen, hidden-app, scratchpad, or focus states still block the move. See the [CLI reference](/reference/cli/overview/) for the scripted equivalent.

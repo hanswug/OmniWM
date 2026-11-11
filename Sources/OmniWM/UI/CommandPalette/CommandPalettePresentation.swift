@@ -24,21 +24,6 @@ enum CommandPalettePresentation {
     static let setMarkShortcut = "⌃⌥⇧M"
     static let removeMarkShortcut = "⌃⌥⇧R"
 
-    static func availableMarkShortcut(
-        for action: MarkAction,
-        configuredBindings: [HotkeyBinding]
-    ) -> String? {
-        let keyCode = action == .set ? kVK_ANSI_M : kVK_ANSI_R
-        let localBinding = KeyBinding(
-            keyCode: UInt32(keyCode),
-            modifiers: UInt32(controlKey | optionKey | shiftKey)
-        )
-        guard !configuredBindings.contains(where: {
-            $0.binding.chordBinding?.conflicts(with: localBinding) == true
-        }) else { return nil }
-        return action == .set ? setMarkShortcut : removeMarkShortcut
-    }
-
     static func markAction(
         forKeyCode keyCode: UInt16,
         relevantModifiers: NSEvent.ModifierFlags
@@ -98,6 +83,28 @@ enum CommandPalettePresentation {
         UInt16(kVK_ANSI_5): "5", UInt16(kVK_ANSI_Keypad5): "5",
         UInt16(kVK_ANSI_6): "6", UInt16(kVK_ANSI_Keypad6): "6"
     ]
+
+    static func topHitIndex(
+        keyCode: UInt16,
+        relevantModifiers: NSEvent.ModifierFlags,
+        charactersIgnoringModifiers: String?
+    ) -> Int? {
+        guard relevantModifiers == .command,
+              let digit = (modeDigitByKeyCode[keyCode] ?? charactersIgnoringModifiers)
+                  .flatMap({ $0.count == 1 ? Int($0) : nil }),
+              (1 ... UnifiedSearch.topHitLimit).contains(digit)
+        else { return nil }
+        return digit - 1
+    }
+
+    static func topHitShortcut(at index: Int) -> String {
+        "⌘\(index + 1)"
+    }
+
+    static func accessibilityValue(_ value: String, topHitShortcut: String?) -> String {
+        guard let topHitShortcut else { return value }
+        return String(localized: "\(value), top hit \(topHitShortcut)")
+    }
 
     static func modeNavigationTarget(
         currentMode: CommandPaletteMode,
