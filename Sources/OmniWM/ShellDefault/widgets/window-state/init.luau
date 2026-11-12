@@ -28,12 +28,12 @@ function render(ctx: Context)
     local content
     if window then
         local size = look.px(ctx, "icon")
-        local badge = math.round(size * 0.62)
-        content = ui.stack{ w = size + badge * 0.35, h = size,
+        local badge = math.round(size * 0.8)
+        content = ui.stack{ w = size + badge * 0.5, h = size,
             ui.icon{ pid = window.pid, w = size, h = size, placeholder = "app.dashed", align = "leading" },
-            ui.stack{ align = "bottomTrailing", dy = 2 * look.scale(ctx), w = badge, h = badge, radius = badge / 2,
+            ui.stack{ align = "bottomTrailing", dy = 3 * look.scale(ctx), w = badge, h = badge, radius = badge / 2,
                 fill = "background", border = "border", borderWidth = 0.5,
-                ui.symbol{ name = symbol, size = badge * 0.6, weight = "bold", color = "foreground" } } }
+                ui.symbol{ name = symbol, size = badge * 0.68, weight = "heavy", color = "foreground" } } }
     end
     return status.button(ctx, { content = content, symbol = if window then nil else symbol,
         onClick = "toggle-fullscreen", help = if window then window.app .. ": " .. name else name })
