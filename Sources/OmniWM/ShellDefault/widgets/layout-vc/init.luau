@@ -3,8 +3,8 @@
 
 local status = require("../lib/fork-status")
 
-local NIRI = "inset.filled.leftthird.middlethird.rightthird.rectangle"
-local DWINDLE = "inset.filled.lefthalf.topright.bottomright.rectangle"
+local NIRI = "rectangle.split.3x1"
+local DWINDLE = "rectangle.split.2x2"
 local MAX_VISIBLE = 5
 
 function render(ctx: Context)
