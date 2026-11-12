@@ -171,6 +171,8 @@ The `focus` event is also published when the focused window's fullscreen or full
 
 Download `OmniWM-<version>.zip` from [Releases](https://github.com/hanswug/OmniWM/releases), unzip it and move **OmniWM.app** to `/Applications` or `~/Applications`.
 
+**Coming from upstream? Back up `~/.config/omniwm` first** (`settings.toml` and `shell/`). Restoring it is how you go back; see [Going back to upstream](#going-back-to-upstream).
+
 - **It replaces upstream's OmniWM.** It uses the same settings file, `~/.config/omniwm/settings.toml`, and the same IPC socket, so quit or uninstall upstream first (`brew uninstall --cask omniwm` if you installed it with Homebrew). Only one OmniWM can run at a time.
 - **It's self-signed**, not notarized. On first launch macOS refuses to open it; right-click OmniWM.app, choose **Open**, and confirm. Then grant **Accessibility** (and Input Monitoring if you use hotkeys that need it) in System Settings → Privacy & Security.
 - **It has its own bundle ID** (`com.hanswug.OmniWM`), so macOS asks for those permissions again even if you granted them to upstream.
@@ -180,17 +182,9 @@ Versions follow upstream's with a fork build number: `0.8.0.1` is the first fork
 
 ### Going back to upstream
 
-Upstream reads the same `settings.toml`, but it rejects the whole file if a hotkey entry names an action it doesn't know. It then keeps the file as `settings.toml.corrupt` and starts from defaults. The fork writes its own actions to that list even when they're unbound, so before you switch back:
+Quit OmniWM, restore the `~/.config/omniwm` you backed up before installing the fork, and start upstream's OmniWM.
 
-1. Quit OmniWM and back up `~/.config/omniwm/settings.toml`.
-2. Delete each `[[hotkeys]]` block whose `id` is one of these fork actions:
-   - `resetLayout`, `toggleBorders`, `cyclePaddingPreset`
-   - `setVisibleContainers.1` to `setVisibleContainers.5`
-   - `cycleNewWindowPlacement`, `newWindowPlacement.right`, `.left`, `.first`, `.last`
-   - `cycleNewWindowJoin`, `newWindowJoin.newColumn`, `.tabbed`, `.stacked`
-3. Remove the five [status widgets](#status-widgets) from `~/.config/omniwm/shell/shell.toml`; upstream doesn't bundle them.
-
-The fork's other settings (`shrinkToFit`, `newWindowPlacement`, `[[gaps.presets]]` and the rest) can stay: upstream ignores keys it doesn't know. If upstream has already set your file aside, make the same edits in `settings.toml.corrupt` and copy it back to `settings.toml`.
+Don't point upstream at a settings file the fork has written: the fork saves its own hotkey actions in it, and upstream rejects a file with actions it doesn't know. It keeps that file as `settings.toml.corrupt` and starts from defaults.
 
 ### Sample settings
 
