@@ -4,7 +4,7 @@
 [profiles.default]
 center = []
 leading = ["apple-menu", "app-menu", "omniwm", "workspaces", "scratchpads"]
-trailing = ["system-stats"]
+trailing = ["layout-vc", "window-state", "new-window-placement", "new-window-join", "padding", "system-stats"]
 
 [profiles.default.workspaceBar]
 fullWidth = false

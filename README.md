@@ -20,7 +20,10 @@ Each change is a topic branch cut from upstream `main`, so it can be reviewed an
 | [Shrink visible columns to fit](#shrink-visible-columns-to-fit) | setting | agreed in [#1110](https://github.com/OmniNull/OmniWM/issues/1110) as one opt-in setting in two PRs; first PR not opened yet |
 | [Reset Layout](#reset-layout) | command, setting | fork only |
 | [New window placement](#new-window-placement) | settings, commands | fork only |
-| [IPC hooks for the companion](#ipc-hooks-for-the-companion) | commands, event | fork only |
+| [Padding presets](#padding-presets) | setting, commands | fork only |
+| [Command feedback](#command-feedback) | setting | fork only |
+| [Status widgets](#status-widgets) | menu bar widgets | fork only |
+| [IPC hooks](#ipc-hooks) | commands, event | fork only |
 
 Merged upstream: [Fullscreen toggle raises the window](https://github.com/OmniNull/OmniWM/pull/1109), in upstream since 2026-11-08.
 
@@ -89,9 +92,45 @@ The mode only changes a column when a window joins it; switching modes changes n
 
 With Right or Left and no column on that side, it joins the focused column. While Tabbed or Stacked is on, every new window joins, so switch back to New column when you want columns again. Windows restored with their own size and the first window of a workspace always get their own column.
 
-Switch it from the command palette or a hotkey: **New Windows: New Column / Tabbed / Stacked**, or **Cycle New Window Join Mode** (`omniwmctl command new-window-join-tabbed`, `cycle-new-window-join`, …). The older `newWindowJoinsTabbedColumn = true` is read as `"tabbed"`.
+Switch it from the command palette or a hotkey: **New Windows: New Column / Tabbed / Stacked**, or **Cycle New Window Join Mode** (`omniwmctl command new-window-join-tabbed`, `cycle-new-window-join`, …). The older `newWindowJoinsTabbedColumn = true` is read as `"tabbed"`. Placement works the same way: **Cycle New Window Placement** (`cycle-new-window-placement`), or `new-window-placement-right|left|first|last`.
 
-### IPC hooks for the companion
+### Padding presets
+
+```toml
+[[gaps.presets]]
+name = "Wide Tall"
+top = 540
+bottom = 8
+left = 8
+right = 8
+```
+
+Named sets of outer gaps, in cycle order. **Cycle Padding Preset** (`omniwmctl command cycle-padding-preset`) applies the next one. The active preset isn't stored: it's whichever preset matches the current outer gaps, so editing the gaps by hand simply leaves you on a custom padding. For a display that should always use different gaps (a laptop's built-in screen, say), use the per-display gap override in **Settings → Gaps**.
+
+### Command feedback
+
+```toml
+[general]
+commandFeedback = true   # default false
+```
+
+A short HUD in the middle of the screen for commands whose result you can't otherwise see: Visible Containers, padding preset, fullscreen and full container on/off, new-window placement and join mode, borders on/off, and a resize that did nothing because the app's minimum or maximum size stopped it ("Safari: minimum 574"). Toggle it in **Settings → General → Feedback**.
+
+### Status widgets
+
+Five OmniShell widgets for the menu bar, bundled with the default widgets. Add them to a lane in `~/.config/omniwm/shell/shell.toml`:
+
+| Widget | Shows |
+|---|---|
+| `layout-vc` | the layout, and Visible Containers in Niri ("VC 3") |
+| `window-state` | whether the focused window is normal, fullscreen or full container |
+| `new-window-placement` | where new windows go |
+| `new-window-join` | how new windows join |
+| `padding` | the active padding preset, or Custom |
+
+Click a widget to move to the next value; right-click it to pick one. Widget scripts can read the same state as `ctx.data.bar.status`.
+
+### IPC hooks
 
 Commands that change settings live, so a client doesn't have to edit `settings.toml`, all bindable as hotkeys:
 
@@ -118,22 +157,15 @@ Versions follow upstream's with a fork build number: `0.8.0.1` is the first fork
 
 [`examples/settings.toml`](examples/settings.toml) is my full working configuration, exactly as I run it: Niri with shrink-to-fit, Reset Layout on visible container changes, and the fork's new-window placement. Copy it to `~/.config/omniwm/settings.toml` (back up yours first) and adjust; the app rules name the apps I use.
 
-[`examples/shell/`](examples/shell) is my menu bar: an OmniShell `shell.toml` with the Apple menu, app menu, OmniWM, workspaces and scratchpads on the left and system stats on the right. Copy it to `~/.config/omniwm/shell/`; OmniWM fills in its default widgets there on launch.
+[`examples/shell/`](examples/shell) is my menu bar: an OmniShell `shell.toml` with the Apple menu, app menu, OmniWM, workspaces and scratchpads on the left, and the five [status widgets](#status-widgets) and system stats on the right. Copy it to `~/.config/omniwm/shell/`; OmniWM fills in its default widgets there on launch.
 
 ## Building
 
 Build it the way upstream documents in [CONTRIBUTING.md](CONTRIBUTING.md): `make doctor`, `make setup`, then `make run`. `make run` builds the fork as **OmniWM** (`com.hanswug.OmniWM`), installs it in `~/Applications` and starts it. `make fork-release` builds the self-signed release zip in `dist/`.
 
-## Companion app: OmniWM Extension
+## Companion app: retired
 
-[**OmniWM Extension**](https://github.com/hanswug/omniwm-extension) is a small native menu bar app that works with OmniWM (upstream or this fork) through its IPC socket:
-
-- **Padding presets.** Cycle or pick outer-gap presets with a hotkey; on the built-in display alone it switches to the first preset, and restores yours when you dock again.
-- **Visible containers 1–5** from hotkeys. With upstream OmniWM it runs Balance Sizes afterwards; with this fork, `visibleContainerChangeAction` decides.
-- **Borders toggle.**
-- **A live menu bar status** with the workspace, layout, visible-container dots and fullscreen state, plus a small HUD that confirms each command.
-
-It needs no Accessibility or Input Monitoring permission. With this fork it uses the [IPC hooks](#ipc-hooks-for-the-companion) instead of editing `settings.toml`. Its command HUD is planned to move into this fork, so commands that hit a limit (a window at its minimum) show why nothing moved.
+[OmniWM Extension](https://github.com/hanswug/omniwm-extension) used to add padding presets, Visible Containers and borders hotkeys, a menu bar status and a command HUD. All of it is built into this fork now: [padding presets](#padding-presets), the catalog's hotkeys (**Set Visible Containers 1–5**, **Toggle Borders**, **Cycle Padding Preset**), the [status widgets](#status-widgets) and [command feedback](#command-feedback). Quit the companion before you bind the same keys in OmniWM.
 
 ## License and credit
 

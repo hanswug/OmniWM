@@ -1,8 +1,9 @@
 # OmniWM (hanswug fork): Hans's full working settings.toml, exactly as he runs it.
-# Niri layout with shrink-to-fit, Reset Layout on Visible Containers changes, and the fork's
-# new-window placement. The outer gaps are whatever padding preset the OmniWM Extension
-# companion last applied. Copy it to ~/.config/omniwm/settings.toml (back up yours first)
-# and adjust; the app rules name the apps Hans uses, so drop the ones you don't have.
+# Niri layout with shrink-to-fit, Reset Layout on Visible Containers changes, the fork's
+# new-window placement, padding presets cycled with Control+Option+0, Visible Containers on
+# Control+Option+1–4, borders on Control+Option+B, and command feedback on. Copy it to
+# ~/.config/omniwm/settings.toml (back up yours first) and adjust; the app rules name the
+# apps Hans uses, so drop the ones you don't have.
 
 schemaVersion = 5
 
@@ -66,9 +67,38 @@ left = 8.0
 right = 8.0
 top = 540.0
 
+[[gaps.presets]]
+bottom = 8.0
+left = 8.0
+name = "Fullscreen"
+right = 8.0
+top = 8.0
+
+[[gaps.presets]]
+bottom = 8.0
+left = 8.0
+name = "Wide Tall"
+right = 8.0
+top = 540.0
+
+[[gaps.presets]]
+bottom = 8.0
+left = 8.0
+name = "Wide"
+right = 8.0
+top = 720.0
+
+[[gaps.presets]]
+bottom = 8.0
+left = 640.0
+name = "Single"
+right = 640.0
+top = 720.0
+
 [general]
 animationSpeed = 1.0
 animationsEnabled = true
+commandFeedback = true
 defaultLayoutType = "niri"
 hotkeysEnabled = true
 hyperKeyModifiers = "Control+Option+Shift+Command"
@@ -135,7 +165,6 @@ containerPrimarySpanPresets = [0.3333333333333333, 0.5, 0.6666666666666666]
 edgeGaps = false
 infiniteLoop = false
 moveWindowStacksIntoColumn = true
-newWindowJoin = "stacked"
 newWindowPlacement = "last"
 overscrollVisibleStripPercent = 5
 resizeStepPercent = 5
@@ -1239,23 +1268,23 @@ binding = "Unassigned"
 id = "toggleSystemStats"
 
 [[hotkeys]]
-binding = "Unassigned"
+binding = "Control+Option+B"
 id = "toggleBorders"
 
 [[hotkeys]]
-binding = "Unassigned"
+binding = "Control+Option+1"
 id = "setVisibleContainers.1"
 
 [[hotkeys]]
-binding = "Unassigned"
+binding = "Control+Option+2"
 id = "setVisibleContainers.2"
 
 [[hotkeys]]
-binding = "Unassigned"
+binding = "Control+Option+3"
 id = "setVisibleContainers.3"
 
 [[hotkeys]]
-binding = "Unassigned"
+binding = "Control+Option+4"
 id = "setVisibleContainers.4"
 
 [[hotkeys]]
@@ -1279,12 +1308,56 @@ binding = "Unassigned"
 id = "cycleNewWindowJoin"
 
 [[hotkeys]]
+binding = "Control+Option+0"
+id = "cyclePaddingPreset"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "cycleNewWindowPlacement"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "newWindowPlacement.right"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "newWindowPlacement.left"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "newWindowPlacement.first"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "newWindowPlacement.last"
+
+[[hotkeys]]
 binding = "Unassigned"
 id = "toggleShellWidget.hidden-bar"
 
 [[hotkeys]]
 binding = "Unassigned"
+id = "toggleShellWidget.layout-vc"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleShellWidget.new-window-join"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleShellWidget.new-window-placement"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleShellWidget.padding"
+
+[[hotkeys]]
+binding = "Unassigned"
 id = "toggleShellWidget.system-stats"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleShellWidget.window-state"
 
 [[hotkeys]]
 binding = "Unassigned"
