@@ -1,7 +1,6 @@
 -- SPDX-License-Identifier: GPL-2.0-only
 -- Copyright (C) 2026 OmniNull — https://github.com/OmniNull/OmniWM
 
-local look = require("../lib/look")
 local status = require("../lib/fork-status")
 
 local FULLSCREEN = "arrow.up.left.and.arrow.down.right"
@@ -25,18 +24,8 @@ function render(ctx: Context)
     end
     local symbol, name = state(s)
     local window = s.focusedWindow
-    local content
-    if window then
-        local size = look.px(ctx, "icon")
-        local badge = math.round(size * 0.8)
-        content = ui.stack{ w = size + badge * 0.5, h = size,
-            ui.icon{ pid = window.pid, w = size, h = size, placeholder = "app.dashed", align = "leading" },
-            ui.stack{ align = "bottomTrailing", dy = 3 * look.scale(ctx), w = badge, h = badge, radius = badge / 2,
-                fill = "background", border = "border", borderWidth = 0.5,
-                ui.symbol{ name = symbol, size = badge * 0.68, weight = "heavy", color = "foreground" } } }
-    end
-    return status.button(ctx, { content = content, symbol = if window then nil else symbol,
-        onClick = "toggle-fullscreen", help = if window then window.app .. ": " .. name else name })
+    return status.button(ctx, { symbol = symbol, onClick = "toggle-fullscreen",
+        help = if window and window.app ~= "" then window.app .. ": " .. name else name })
 end
 
 function popout(ctx: Context)
