@@ -45,13 +45,19 @@ extension ShellNotificationsController {
         ]
     }
 
-    static func nativeProcesses() -> (pid_t, pid_t)? {
-        guard let notificationPID = NSRunningApplication.runningApplications(
-                  withBundleIdentifier: "com.apple.notificationcenterui"
-              ).first?.processIdentifier,
-              let menuPID = NSRunningApplication.runningApplications(
-                  withBundleIdentifier: "com.apple.MenuBarAgent"
-              ).first?.processIdentifier
+    static func nativeProcesses(
+        osMajorVersion: Int = ProcessInfo.processInfo.operatingSystemVersion.majorVersion,
+        runningPID: (String) -> pid_t? = {
+            NSRunningApplication.runningApplications(withBundleIdentifier: $0).first?.processIdentifier
+        }
+    ) -> (pid_t, pid_t)? {
+        let menuBarAgent = "com.apple.MenuBarAgent"
+        let controlCenter = "com.apple.controlcenter"
+        let (clockHost, fallbackClockHost) = osMajorVersion >= 27
+            ? (menuBarAgent, controlCenter)
+            : (controlCenter, menuBarAgent)
+        guard let notificationPID = runningPID("com.apple.notificationcenterui"),
+              let menuPID = runningPID(clockHost) ?? runningPID(fallbackClockHost)
         else { return nil }
         return (notificationPID, menuPID)
     }

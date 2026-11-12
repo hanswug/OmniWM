@@ -177,6 +177,7 @@ struct ShellDropTarget: Equatable {
     let frame: CGRect
     let drop: Bool
     var inIsland = false
+    var visible: CGRect?
 }
 
 @MainActor
@@ -213,12 +214,12 @@ final class ShellWidgetHost {
                 surface.sequence = tree.sequence
                 guard surface.apply(tree.nodes, text: text, gestureAcknowledgement: gestureAcknowledgement)
                 else { return false }
-                nextSize = surface.size
+                nextSize = surface.naturalSize
             } else {
                 let layout = unmountedLayout ?? ShellWidgetLayout()
                 unmountedLayout = layout
                 guard layout.apply(tree.nodes, text: text) else { return false }
-                nextSize = layout.size
+                nextSize = layout.naturalSize
             }
             sequences[ShellWidgetView.bar.rawValue] = tree.sequence
             guard nextSize != size else { return false }

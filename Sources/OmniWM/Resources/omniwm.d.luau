@@ -17,7 +17,7 @@ export type Align =
     | "topTrailing"
     | "bottomLeading"
     | "bottomTrailing"
-export type Element = { kind: number }
+export type Element = { kind: number, [any]: any }
 export type Curve = "linear" | "easeIn" | "easeOut" | "easeInOut" | "back"
     | "standard" | "standardAccel" | "standardDecel" | "emphasized" | "emphasizedAccel" | "emphasizedDecel"
     | "fastSpatial" | "spatial" | "slowSpatial" | "fastEffects" | "effects" | "slowEffects" | { number }
@@ -939,6 +939,8 @@ export type Props = {
     drag: boolean?,
     drop: boolean?,
     scroll: boolean?,
+    marquee: boolean?,
+    maxWidth: number?,
     [number]: Element,
 }
 
@@ -949,7 +951,6 @@ export type TextProps = Props & {
     filled: boolean?,
     size: number?,
     weight: Weight?,
-    maxWidth: number?,
     lines: number?,
     color: Color?,
     reserve: string?,

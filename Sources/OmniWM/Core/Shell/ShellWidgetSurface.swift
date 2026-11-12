@@ -25,6 +25,7 @@ final class ShellWidgetSurface {
     var onDrag: (@MainActor (ShellDragEvent) -> Void)?
     var onTooltip: (@MainActor (ShellTooltipEvent?) -> Void)?
     var onMove: (@MainActor () -> Void)?
+    var onVisibleBoundsChange: (@MainActor () -> Void)?
     var onFocusChange: (@MainActor (Bool) -> Void)?
     var onUnhandledEscape: (() -> Void)?
     var sequence = 0
@@ -73,6 +74,7 @@ final class ShellWidgetSurface {
     var symbolImages: [SymbolKey: CGImage] = [:]
     var iconImages: [IconKey: CGImage] = [:]
     var pointer: CGPoint?
+    private(set) var visibleBounds: CGRect?
     var hovered: [ElementHandle] = []
     var hoverScratch: [ElementHandle] = []
     var focused = ElementHandle.none
@@ -84,7 +86,7 @@ final class ShellWidgetSurface {
     var tooltipTarget = ElementHandle.none
     var tooltipTimer: DispatchWorkItem?
     var previewed = ElementHandle.none
-    var previewFrame: Rect?
+    var previewFrame: CGRect?
     var pressed = ElementHandle.none
     var pressedButton = ShellEvent.Button.left
     var pressCapture: ShellPointerCapture?
@@ -227,6 +229,13 @@ extension ShellWidgetSurface {
         layout.naturalSize
     }
 
+    func setVisibleBounds(_ bounds: CGRect?) {
+        guard bounds != visibleBounds else { return }
+        visibleBounds = bounds
+        updatePreview()
+        onVisibleBoundsChange?()
+    }
+
     var chrome: ShellPopoutChrome {
         let root = layout.core.rootHandle
         guard layout.core.contains(root) else { return ShellPopoutChrome() }
@@ -246,7 +255,7 @@ extension ShellWidgetSurface {
         keeping anchor: ShellScrollAnchor? = nil
     ) -> Bool {
         let followerExits = followerExitBindings()
-        guard layout.apply(output, text: text) else {
+        guard layout.apply(output, text: text, visibleBounds: visibleBounds) else {
             acknowledgeGesture(through: gestureAcknowledgement)
             return false
         }
@@ -359,10 +368,15 @@ extension ShellWidgetSurface {
         cancelManipulation(reason: "display-changed", immediate: true)
         finishSettle()
         layout.setRootLimit(size)
+        reconcileInput()
+        reconcileResourceDrop()
+        updatePreview()
         guard let text else { return }
         var commands = commands(text: text)
+        layoutTextInputs(into: &commands)
         appendFollow(into: &commands)
         scene.submit(commands, animated: false)
+        onMove?()
     }
 
     var animatesShaders: Bool {

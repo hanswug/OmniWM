@@ -128,7 +128,7 @@ final class NativeResizeAdoptionTests: NiriInteractionTestCase {
             XCTAssertEqual(phase, .dragging)
         }
 
-        func annotatedDrag(windowId: Int?, at location: CGPoint) throws {
+        func annotatedDrag(windowId: Int?, at location: CGPoint, timestamp: CGEventTimestamp? = nil) throws {
             MouseEventHandler._instance = handler
             let event = try XCTUnwrap(CGEvent(
                 mouseEventSource: nil,
@@ -136,6 +136,7 @@ final class NativeResizeAdoptionTests: NiriInteractionTestCase {
                 mouseCursorPosition: ScreenCoordinateSpace.toWindowServer(point: location),
                 mouseButton: .left
             ))
+            if let timestamp { event.timestamp = timestamp }
             event.setIntegerValueField(.mouseEventWindowUnderMousePointer, value: 0)
             event.setIntegerValueField(
                 .mouseEventWindowUnderMousePointerThatCanHandleThisEvent,
@@ -413,10 +414,13 @@ final class NativeResizeAdoptionTests: NiriInteractionTestCase {
         let tap = fixture.handler.inputTapThread
         let snapshot = tap.filterSnapshot
         let windowServerFrame = ScreenCoordinateSpace.toWindowServer(rect: leftStart)
+        let intake = fixture.controller.eventIntake
+        intake.open(sink: fixture.controller.eventInterpreter)
+        defer { intake.close() }
 
         let returned = DispatchSemaphore(value: 0)
         Thread.detachNewThread {
-            tap.evaluateLeftMouseDown(at: press, modifiers: [], snapshot: snapshot) {
+            tap.evaluateLeftMouseDown(at: press, modifiers: [], timestamp: 0, snapshot: snapshot) {
                 XCTAssertFalse(Thread.isMainThread)
                 return [left: windowServerFrame]
             }
@@ -424,9 +428,7 @@ final class NativeResizeAdoptionTests: NiriInteractionTestCase {
         }
         XCTAssertEqual(returned.wait(timeout: .now() + 1), .success)
         reported.frame = observed
-        await withCheckedContinuation { continuation in
-            DispatchQueue.main.async { continuation.resume() }
-        }
+        intake.drainNow()
 
         FrameApplyTrace.shared.beginCapture()
         defer { FrameApplyTrace.shared.endCapture() }
@@ -441,6 +443,270 @@ final class NativeResizeAdoptionTests: NiriInteractionTestCase {
 
         let target = try XCTUnwrap(firstWriteTarget(for: left))
         XCTAssertEqual(target.width, observed.width, accuracy: FrameTolerance.frameWrite)
+    }
+
+    func testDwindleNativeResizeKeepsDragDeliveredBeforeMainMouseDown() async throws {
+        let fixture = try makeFixture(.dwindle, pid: 835_271)
+        let (left, right) = (fixture.tokens[0], fixture.tokens[1])
+        let leftStart = try fixture.frame(left)
+        let rightStart = try fixture.frame(right)
+        let delta: CGFloat = 140
+        let observed = grown(leftStart, right: delta)
+        let press = CGPoint(x: leftStart.maxX - FrameTolerance.frameWrite, y: leftStart.midY)
+        let drag = CGPoint(x: press.x + delta, y: press.y)
+        let reported = try XCTUnwrap(fixture.nativeFrames[left.windowId])
+        let intake = fixture.controller.eventIntake
+        intake.open(sink: fixture.controller.eventInterpreter)
+        defer { intake.close() }
+
+        fixture.handler.state.moveTap = try XCTUnwrap(CFMachPortCreate(kCFAllocatorDefault, nil, nil, nil))
+        fixture.handler.pressedMouseButtonsProvider = { MouseEventHandler.MouseButton.left.pressedMask }
+        MouseEventHandler._instance = fixture.handler
+        fixture.handler.syncTapFilterSnapshot()
+        let tap = fixture.handler.inputTapThread
+
+        tap.evaluateLeftMouseDown(at: press, modifiers: [], timestamp: 10, snapshot: tap.filterSnapshot) {
+            [left: ScreenCoordinateSpace.toWindowServer(rect: leftStart)]
+        }
+        reported.frame = observed
+        XCTAssertTrue(EventIntake.post(.mouseDragged(button: .left, location: drag)))
+        try fixture.annotatedDrag(windowId: left.windowId, at: drag, timestamp: 20)
+        intake.drainNow()
+
+        FrameApplyTrace.shared.beginCapture()
+        defer { FrameApplyTrace.shared.endCapture() }
+        fixture.controller.axEventHandler.handleFrameChanged(windowId: UInt32(left.windowId))
+        XCTAssertEqual(firstWriteTarget(for: right), grown(rightStart, left: -delta))
+
+        fixture.handler.pressedMouseButtonsProvider = { 0 }
+        let release = try XCTUnwrap(CGEvent(
+            mouseEventSource: nil,
+            mouseType: .leftMouseUp,
+            mouseCursorPosition: ScreenCoordinateSpace.toWindowServer(point: drag),
+            mouseButton: .left
+        ))
+        XCTAssertNotNil(tap.evaluateTap(type: .leftMouseUp, event: release))
+        intake.drainNow()
+        await WindowAdmissionTestSupport.drainLayoutRefreshes(fixture.controller)
+
+        XCTAssertEqual(firstWriteTarget(for: left)?.width, observed.width)
+    }
+
+    func testDwindleNativeResizeKeepsFirstDragWhenAnotherPressIsQueued() async throws {
+        let fixture = try makeFixture(.dwindle, pid: 835_272)
+        let (left, right) = (fixture.tokens[0], fixture.tokens[1])
+        let leftStart = try fixture.frame(left)
+        let rightStart = try fixture.frame(right)
+        let delta: CGFloat = 140
+        let observed = grown(leftStart, right: delta)
+        let press = CGPoint(x: leftStart.maxX - FrameTolerance.frameWrite, y: leftStart.midY)
+        let drag = CGPoint(x: press.x + delta, y: press.y)
+        let reported = try XCTUnwrap(fixture.nativeFrames[left.windowId])
+        let intake = fixture.controller.eventIntake
+        intake.open(sink: fixture.controller.eventInterpreter)
+        defer { intake.close() }
+
+        fixture.handler.state.moveTap = try XCTUnwrap(CFMachPortCreate(kCFAllocatorDefault, nil, nil, nil))
+        fixture.handler.pressedMouseButtonsProvider = { MouseEventHandler.MouseButton.left.pressedMask }
+        MouseEventHandler._instance = fixture.handler
+        fixture.handler.syncTapFilterSnapshot()
+        let tap = fixture.handler.inputTapThread
+
+        tap.evaluateLeftMouseDown(at: press, modifiers: [], timestamp: 10, snapshot: tap.filterSnapshot) {
+            [left: ScreenCoordinateSpace.toWindowServer(rect: leftStart)]
+        }
+        reported.frame = observed
+        XCTAssertTrue(EventIntake.post(.mouseDragged(button: .left, location: drag)))
+        XCTAssertTrue(EventIntake.post(.leftMouseUp(location: drag)))
+        tap.evaluateLeftMouseDown(at: rightStart.center, modifiers: [], timestamp: 30, snapshot: tap.filterSnapshot) {
+            [right: ScreenCoordinateSpace.toWindowServer(rect: rightStart)]
+        }
+        try fixture.annotatedDrag(windowId: left.windowId, at: drag, timestamp: 20)
+        intake.drainNow()
+        await WindowAdmissionTestSupport.drainLayoutRefreshes(fixture.controller)
+
+        XCTAssertEqual(try fixture.frame(left).width, observed.width, accuracy: FrameTolerance.frameWrite)
+    }
+
+    func testDwindleNativeResizeRejectsPriorDragTargetAfterNextPressDrains() throws {
+        let fixture = try makeFixture(.dwindle, pid: 835_275)
+        let (first, second) = (fixture.tokens[0], fixture.tokens[1])
+        let firstFrame = try fixture.frame(first)
+        let secondFrame = try fixture.frame(second)
+        let firstDrag = nativeDragLocation(from: firstFrame)
+        let intake = fixture.controller.eventIntake
+        intake.open(sink: fixture.controller.eventInterpreter)
+        defer { intake.close() }
+        fixture.handler.state.moveTap = try XCTUnwrap(CFMachPortCreate(kCFAllocatorDefault, nil, nil, nil))
+        fixture.handler.syncTapFilterSnapshot()
+        let tap = fixture.handler.inputTapThread
+
+        fixture.handler.pressedMouseButtonsProvider = { MouseEventHandler.MouseButton.left.pressedMask }
+        tap.evaluateLeftMouseDown(at: firstFrame.center, modifiers: [], timestamp: 10, snapshot: tap.filterSnapshot) {
+            [first: ScreenCoordinateSpace.toWindowServer(rect: firstFrame)]
+        }
+        XCTAssertTrue(EventIntake.post(.mouseDragged(button: .left, location: firstDrag)))
+        fixture.handler.pressedMouseButtonsProvider = { 0 }
+        XCTAssertTrue(EventIntake.post(.leftMouseUp(location: firstDrag)))
+        intake.drainNow()
+        XCTAssertTrue(fixture.handler.state.nativeTitleBarDragFallbackReleased)
+
+        fixture.handler.pressedMouseButtonsProvider = { MouseEventHandler.MouseButton.left.pressedMask }
+        tap.evaluateLeftMouseDown(at: secondFrame.center, modifiers: [], timestamp: 30, snapshot: tap.filterSnapshot) {
+            [second: ScreenCoordinateSpace.toWindowServer(rect: secondFrame)]
+        }
+        intake.drainNow()
+        XCTAssertTrue(fixture.handler.state.awaitsNativeTitleBarDragTarget)
+        XCTAssertEqual(fixture.handler.state.nativeResizeStart?.token, second)
+
+        try fixture.annotatedDrag(windowId: first.windowId, at: firstDrag, timestamp: 20)
+        XCTAssertNotEqual(
+            fixture.handler.state.nativeTitleBarDrag?.token,
+            first,
+            "The prior drag claimed the new press"
+        )
+
+        try fixture.annotatedDrag(windowId: second.windowId, at: nativeDragLocation(from: secondFrame), timestamp: 40)
+        XCTAssertEqual(fixture.handler.state.nativeTitleBarDrag?.token, second)
+    }
+
+    func testDwindleQueuedReleaseWithNilDragTargetAllowsOverview() throws {
+        let drainOrders = [
+            (beforeRelease: false, beforeAnnotation: true),
+            (beforeRelease: false, beforeAnnotation: false),
+            (beforeRelease: true, beforeAnnotation: false)
+        ]
+        for (index, drain) in drainOrders.enumerated() {
+            let fixture = try makeFixture(.dwindle, pid: pid_t(835_276 + index))
+            let blocker = blockRefreshes(fixture)
+            defer { unblockRefreshes(fixture, blocker: blocker) }
+            defer { fixture.controller.windowActionHandler.invalidateOverviewDeferredActionsForServiceStop() }
+            fixture.controller.isEnabled = true
+            try fixture.controller.settings.setOverviewMouseButton(2)
+            let token = fixture.tokens[0]
+            let start = try fixture.frame(token)
+            let location = nativeDragLocation(from: start)
+            let intake = fixture.controller.eventIntake
+            intake.open(sink: fixture.controller.eventInterpreter)
+            defer { intake.close() }
+            fixture.handler.state.moveTap = try XCTUnwrap(CFMachPortCreate(kCFAllocatorDefault, nil, nil, nil))
+            fixture.handler.syncTapFilterSnapshot()
+            let tap = fixture.handler.inputTapThread
+
+            fixture.handler.pressedMouseButtonsProvider = { MouseEventHandler.MouseButton.left.pressedMask }
+            tap.evaluateLeftMouseDown(at: start.center, modifiers: [], timestamp: 10, snapshot: tap.filterSnapshot) {
+                [token: ScreenCoordinateSpace.toWindowServer(rect: start)]
+            }
+            XCTAssertTrue(EventIntake.post(.mouseDragged(button: .left, location: location)))
+            if drain.beforeRelease { intake.drainNow() }
+            fixture.handler.pressedMouseButtonsProvider = { 0 }
+            XCTAssertTrue(EventIntake.post(.leftMouseUp(location: location)))
+
+            if drain.beforeAnnotation {
+                intake.drainNow()
+                XCTAssertTrue(fixture.handler.state.nativeTitleBarDragFallbackReleased)
+            }
+            try fixture.annotatedDrag(windowId: nil, at: location, timestamp: 20)
+            if !drain.beforeAnnotation { intake.drainNow() }
+
+            XCTAssertFalse(fixture.handler.state.awaitsNativeTitleBarDragTarget, "\(drain)")
+            let captured = fixture.handler.receiveTapOtherMouseButton(type: .otherMouseDown, button: 2)
+            XCTAssertTrue(captured, "\(drain)")
+            XCTAssertTrue(fixture.controller.isOverviewOpen(), "\(drain)")
+            if captured {
+                XCTAssertTrue(fixture.handler.receiveTapOtherMouseButton(type: .otherMouseUp, button: 2))
+            }
+        }
+    }
+
+    func testDwindleNativeResizeKeepsItsQueuedReleaseWhenABlockedRightPressArrives() async throws {
+        let fixture = try makeFixture(.dwindle, pid: 835_274)
+        let left = fixture.tokens[0]
+        let leftStart = try fixture.frame(left)
+        let delta: CGFloat = 140
+        let observed = grown(leftStart, right: delta)
+        let press = CGPoint(x: leftStart.maxX - FrameTolerance.frameWrite, y: leftStart.midY)
+        let drag = CGPoint(x: press.x + delta, y: press.y)
+        let reported = try XCTUnwrap(fixture.nativeFrames[left.windowId])
+        let intake = fixture.controller.eventIntake
+        intake.open(sink: fixture.controller.eventInterpreter)
+        defer { intake.close() }
+
+        fixture.handler.state.moveTap = try XCTUnwrap(CFMachPortCreate(kCFAllocatorDefault, nil, nil, nil))
+        fixture.handler.pressedMouseButtonsProvider = { MouseEventHandler.MouseButton.left.pressedMask }
+        MouseEventHandler._instance = fixture.handler
+        fixture.handler.syncTapFilterSnapshot()
+        let tap = fixture.handler.inputTapThread
+
+        tap.evaluateLeftMouseDown(at: press, modifiers: [], timestamp: 10, snapshot: tap.filterSnapshot) {
+            [left: ScreenCoordinateSpace.toWindowServer(rect: leftStart)]
+        }
+        reported.frame = observed
+        XCTAssertTrue(EventIntake.post(.mouseDragged(button: .left, location: drag)))
+        try fixture.annotatedDrag(windowId: left.windowId, at: drag, timestamp: 20)
+        intake.drainNow()
+        FrameApplyTrace.shared.beginCapture()
+        defer { FrameApplyTrace.shared.endCapture() }
+        fixture.controller.axEventHandler.handleFrameChanged(windowId: UInt32(left.windowId))
+        XCTAssertNotNil(fixture.handler.state.nativeTitleBarDrag)
+
+        let ownedFrame = CGRect(x: -800, y: -800, width: 40, height: 40)
+        let surfaceId = "blocked-right-press-\(left.windowId)"
+        fixture.controller.ownedWindowRegistry.registerWindowNumber(
+            surfaceId: surfaceId,
+            policy: SurfacePolicy(
+                kind: .utility,
+                hitTestPolicy: .interactive,
+                capturePolicy: .included,
+                suppressesManagedFocusRecovery: true
+            ),
+            windowNumber: left.windowId + 10_000,
+            frameProvider: { ownedFrame },
+            visibilityProvider: { true }
+        )
+        defer { fixture.controller.ownedWindowRegistry.unregister(surfaceId: surfaceId) }
+        XCTAssertTrue(fixture.handler.shouldBlockOwnWindowInput(at: ownedFrame.center))
+
+        fixture.handler.pressedMouseButtonsProvider = { 0 }
+        XCTAssertTrue(EventIntake.post(.leftMouseUp(location: drag)))
+        XCTAssertFalse(fixture.handler.receiveTapMouseDown(at: ownedFrame.center, modifiers: [], button: .right))
+        intake.drainNow()
+        await WindowAdmissionTestSupport.drainLayoutRefreshes(fixture.controller)
+
+        XCTAssertEqual(firstWriteTarget(for: left)?.width, observed.width)
+    }
+
+    func testVisibilityChangeDiscardsPendingNativeResizePress() throws {
+        let fixture = try makeFixture(.dwindle, pid: 835_273)
+        let left = fixture.tokens[0]
+        let frame = try fixture.frame(left)
+        let intake = fixture.controller.eventIntake
+        intake.open(sink: fixture.controller.eventInterpreter)
+        defer { intake.close() }
+        fixture.handler.syncTapFilterSnapshot()
+        let tap = fixture.handler.inputTapThread
+
+        func press(timestamp: CGEventTimestamp) {
+            tap.evaluateLeftMouseDown(
+                at: frame.center,
+                modifiers: [],
+                timestamp: timestamp,
+                snapshot: tap.filterSnapshot
+            ) {
+                [left: ScreenCoordinateSpace.toWindowServer(rect: frame)]
+            }
+        }
+
+        press(timestamp: 10)
+        fixture.handler.handleAppVisibilityChanged()
+        intake.drainNow()
+        XCTAssertFalse(fixture.handler.state.awaitsNativeTitleBarDragTarget)
+        XCTAssertNil(fixture.handler.state.nativeResizeStart)
+
+        press(timestamp: 20)
+        intake.drainNow()
+        XCTAssertTrue(fixture.handler.state.awaitsNativeTitleBarDragTarget)
+        XCTAssertEqual(fixture.handler.state.nativeResizeStart?.token, left)
     }
 
     func testDwindleNativeResizeReturningToStartRestoresTheSplit() throws {

@@ -52,6 +52,7 @@ struct SettingsExport: Equatable {
     var hiddenBar: HiddenBar
     var animationsEnabled: Bool
     var animationSpeed: Double
+    var slideWorkspaceSwitches = false
     var language: String?
 
     var launcher = LauncherConfiguration()
