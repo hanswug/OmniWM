@@ -93,8 +93,12 @@ extension WMController {
 
     func noteFocusedWindowLayoutForFeedback() {
         let current = focusedWindowLayoutState()
-        let message = CommandFeedback.layoutChange(from: CommandFeedback.lastFocusedWindowLayout, to: current)
+        let previous = CommandFeedback.lastFocusedWindowLayout
+        let message = CommandFeedback.layoutChange(from: previous, to: current)
         CommandFeedback.lastFocusedWindowLayout = current
+        if previous != current {
+            requestWorkspaceBarRefresh()
+        }
         if let message {
             showCommandFeedback(message)
         }

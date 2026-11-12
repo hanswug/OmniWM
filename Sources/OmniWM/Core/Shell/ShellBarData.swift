@@ -149,9 +149,10 @@ struct ShellBarData: Equatable, Sendable {
     var scratchpads: [ShellBarScratchpad] = []
     var drag: ShellBarDrag?
     var surface: ShellIslandData?
+    var status: ShellBarForkStatus?
 
     func write(to writer: inout ShellValueWriter) {
-        writer.map(layout == nil ? 8 : 9)
+        writer.map((layout == nil ? 8 : 9) + (status == nil ? 0 : 1))
         writer.key("drag")
         if let drag {
             drag.write(to: &writer)
@@ -192,6 +193,10 @@ struct ShellBarData: Equatable, Sendable {
             writer.bool(scratchpad.visible)
             writer.key("windows")
             Self.write(scratchpad.windows, to: &writer)
+        }
+        if let status {
+            writer.key("status")
+            status.write(to: &writer)
         }
     }
 

@@ -288,6 +288,7 @@ extension WorkspaceBarManager {
                 icons: &icons
             )
             data.drag = ShellBarDrag(shellDrag, snapshot: bar.snapshot, sessionToken: shellSessionToken)
+            data.status = controller.shellForkStatus(on: bar.monitor.id)
             if showsLayout, let workspaceId = controller.workspaceManager.visibleWorkspaceId(on: bar.monitor.id) {
                 data.layout = controller.workspaceManager.activeLayoutKind(for: workspaceId)
             }

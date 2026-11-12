@@ -259,6 +259,25 @@ export type BarDrag = {
     gaps: { { workspace: string, before: number } },
 }
 
+export type BarPaddingPreset = {
+    name: string,
+    top: number,
+    bottom: number,
+    left: number,
+    right: number,
+    active: boolean,
+}
+
+export type BarStatus = {
+    layout: "niri" | "dwindle",
+    visibleContainers: number,
+    focusedWindow: { pid: number, app: string, fullscreen: boolean, fullSpan: boolean }?,
+    newWindowPlacement: "right" | "left" | "first" | "last",
+    newWindowJoin: "newColumn" | "tabbed" | "stacked",
+    paddingPreset: string?,
+    paddingPresets: { BarPaddingPreset },
+}
+
 export type Bar = {
     monitor: string,
     monitorId: string,
@@ -269,6 +288,7 @@ export type Bar = {
     style: BarStyle?,
     workspaces: { BarWorkspace },
     scratchpads: { BarScratchpad },
+    status: BarStatus?,
 }
 
 export type Workspace = {

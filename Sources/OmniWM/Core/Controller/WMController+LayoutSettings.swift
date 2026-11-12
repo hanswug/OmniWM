@@ -110,12 +110,14 @@ extension WMController {
         settings.niri.visibleContainerCount = count
         updateNiriConfig(visibleContainerCount: count)
         rebalanceNiriSizesForVisibleContainerCountChange()
+        requestWorkspaceBarRefresh()
         showCommandFeedback(CommandFeedback.visibleContainers(count))
     }
 
     func setNewWindowJoin(_ join: NewWindowJoin) {
         settings.niri.newWindowJoin = join
         niriEngine?.newWindowJoin = join
+        requestWorkspaceBarRefresh()
         showCommandFeedback(CommandFeedback.newWindowJoin(join))
     }
 
@@ -128,6 +130,7 @@ extension WMController {
     func setNewWindowPlacement(_ placement: NewWindowPlacement) {
         settings.niri.newWindowPlacement = placement
         niriEngine?.newWindowPlacement = placement
+        requestWorkspaceBarRefresh()
         showCommandFeedback(CommandFeedback.newWindowPlacement(placement))
     }
 
@@ -157,6 +160,7 @@ extension WMController {
         settings.gaps.outerGapTop = top
         settings.gaps.outerGapBottom = bottom
         updateMonitorGapSettings()
+        requestWorkspaceBarRefresh()
     }
 
     func enableDwindleLayout() {
