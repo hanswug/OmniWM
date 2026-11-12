@@ -96,6 +96,15 @@ struct SettingsExport: Equatable {
         var size: Double
         var fullscreenUsesOuterGaps: Bool
         var outer: OuterGaps
+        var presets: [PaddingPreset]?
+    }
+
+    struct PaddingPreset: Codable, Equatable {
+        var name: String
+        var top: Double
+        var bottom: Double
+        var left: Double
+        var right: Double
     }
 
     struct OuterGaps: Codable, Equatable {

@@ -9193,6 +9193,28 @@
         }
       }
     },
+    "command.presentation.cycleNewWindowPlacement" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Cycle New Window Placement"
+          }
+        }
+      }
+    },
+    "command.presentation.cyclePaddingPreset" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Cycle Padding Preset"
+          }
+        }
+      }
+    },
     "command.presentation.hiddenBar" : {
       "extractionState" : "extracted_with_value",
       "localizations" : {
@@ -9353,6 +9375,50 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "New Windows: Tabbed"
+          }
+        }
+      }
+    },
+    "command.presentation.newWindowPlacementFirst" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "New Windows: Open First"
+          }
+        }
+      }
+    },
+    "command.presentation.newWindowPlacementLast" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "New Windows: Open Last"
+          }
+        }
+      }
+    },
+    "command.presentation.newWindowPlacementLeft" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "New Windows: Open Left"
+          }
+        }
+      }
+    },
+    "command.presentation.newWindowPlacementRight" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "New Windows: Open Right"
           }
         }
       }

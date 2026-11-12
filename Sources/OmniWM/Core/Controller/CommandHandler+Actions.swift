@@ -298,6 +298,18 @@ extension CommandHandler {
             controller.setNewWindowJoin(.stacked)
         case .cycleNewWindowJoin:
             controller.cycleNewWindowJoin()
+        case .cyclePaddingPreset:
+            controller.cyclePaddingPreset()
+        case .cycleNewWindowPlacement:
+            controller.cycleNewWindowPlacement()
+        case .newWindowPlacementRight:
+            controller.setNewWindowPlacement(.right)
+        case .newWindowPlacementLeft:
+            controller.setNewWindowPlacement(.left)
+        case .newWindowPlacementFirst:
+            controller.setNewWindowPlacement(.first)
+        case .newWindowPlacementLast:
+            controller.setNewWindowPlacement(.last)
         case .hiddenBar:
             controller.toggleHiddenBarPanel()
         case .quakeTerminal:

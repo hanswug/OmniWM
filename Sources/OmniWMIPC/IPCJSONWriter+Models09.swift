@@ -271,16 +271,4 @@ extension IPCJSONWriter {
             try self.value(fieldValue)
         }
     }
-
-    mutating func value(_ value: borrowing IPCQuerySelectors) throws {
-        begin(123)
-        var first = true
-        try fields0(value, &first)
-        try fields1(value, &first)
-        end(125)
-    }
-
-    mutating func value(_ value: borrowing IPCQuerySort) throws {
-        try self.value(value.rawValue)
-    }
 }

@@ -12,4 +12,10 @@ public enum IPCPresentationCommand: String, CaseIterable, Hashable, Sendable {
     case newWindowJoinTabbed = "new-window-join-tabbed"
     case newWindowJoinStacked = "new-window-join-stacked"
     case cycleNewWindowJoin = "cycle-new-window-join"
+    case cyclePaddingPreset = "cycle-padding-preset"
+    case cycleNewWindowPlacement = "cycle-new-window-placement"
+    case newWindowPlacementRight = "new-window-placement-right"
+    case newWindowPlacementLeft = "new-window-placement-left"
+    case newWindowPlacementFirst = "new-window-placement-first"
+    case newWindowPlacementLast = "new-window-placement-last"
 }

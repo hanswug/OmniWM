@@ -470,6 +470,30 @@ extension IPCAutomationManifest {
             summary: "Cycle the new Niri window join mode: new column, tabbed, stacked."
         ),
         .init(
+            name: .presentation(.cyclePaddingPreset),
+            summary: "Switch the global outer gaps to the next padding preset and save them."
+        ),
+        .init(
+            name: .presentation(.cycleNewWindowPlacement),
+            summary: "Cycle where new Niri windows open: right, left, first, last."
+        ),
+        .init(
+            name: .presentation(.newWindowPlacementRight),
+            summary: "Open new Niri windows right of the focused column and save the setting."
+        ),
+        .init(
+            name: .presentation(.newWindowPlacementLeft),
+            summary: "Open new Niri windows left of the focused column and save the setting."
+        ),
+        .init(
+            name: .presentation(.newWindowPlacementFirst),
+            summary: "Open new Niri windows at the start of the workspace and save the setting."
+        ),
+        .init(
+            name: .presentation(.newWindowPlacementLast),
+            summary: "Open new Niri windows at the end of the workspace and save the setting."
+        ),
+        .init(
             commandWords: ["hidden-bar", "panel"],
             name: .presentation(.hiddenBar),
             summary: "Toggle the hidden-bar items panel."

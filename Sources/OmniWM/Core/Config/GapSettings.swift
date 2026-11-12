@@ -39,6 +39,16 @@ final class GapSettings {
         didSet { onChange?() }
     }
 
+    var paddingPresets: [SettingsExport.PaddingPreset] = [] {
+        didSet { onChange?() }
+    }
+
+    var activePaddingPresetIndex: Int? {
+        paddingPresets.firstIndex {
+            $0.top == outerGapTop && $0.bottom == outerGapBottom && $0.left == outerGapLeft && $0.right == outerGapRight
+        }
+    }
+
     func export() -> SettingsExport.Gaps {
         let size = self.size
         let outer = SettingsExport.OuterGaps(
@@ -50,11 +60,13 @@ final class GapSettings {
         return SettingsExport.Gaps(
             size: size,
             fullscreenUsesOuterGaps: fullscreenUsesOuterGaps,
-            outer: outer
+            outer: outer,
+            presets: paddingPresets.isEmpty ? nil : paddingPresets
         )
     }
 
     func apply(_ gaps: SettingsExport.Gaps) {
+        paddingPresets = gaps.presets ?? []
         size = gaps.size
         outerGapLeft = gaps.outer.left
         outerGapRight = gaps.outer.right

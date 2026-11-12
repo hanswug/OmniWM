@@ -88,6 +88,12 @@ new-window-join-new-column
 new-window-join-tabbed
 new-window-join-stacked
 cycle-new-window-join
+cycle-padding-preset
+cycle-new-window-placement
+new-window-placement-right
+new-window-placement-left
+new-window-placement-first
+new-window-placement-last
 hidden-bar-panel
 toggle-quake-terminal
 toggle-workspace-layout

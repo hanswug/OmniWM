@@ -38,7 +38,10 @@ final class PresentationActionContractTests: XCTestCase {
             "toggleWorkspaceLayout", "toggleOverview", "toggleSystemStats", "toggleBorders",
             "setVisibleContainers.1", "setVisibleContainers.2", "setVisibleContainers.3",
             "setVisibleContainers.4", "setVisibleContainers.5",
-            "newWindowJoin.newColumn", "newWindowJoin.tabbed", "newWindowJoin.stacked", "cycleNewWindowJoin"
+            "newWindowJoin.newColumn", "newWindowJoin.tabbed", "newWindowJoin.stacked", "cycleNewWindowJoin",
+            "cyclePaddingPreset", "cycleNewWindowPlacement", "newWindowPlacement.right", "newWindowPlacement.left",
+            "newWindowPlacement.first",
+            "newWindowPlacement.last"
         ]
         XCTAssertEqual(Array(ActionCatalog.allSpecs().suffix(expectedTail.count).map(\.id)), expectedTail)
         XCTAssertEqual(
@@ -179,6 +182,48 @@ private struct PresentationExpectation {
                 command: .presentation(.cycleNewWindowJoin),
                 id: "cycleNewWindowJoin",
                 title: "Cycle New Window Join Mode",
+                binding: .unassigned
+            ),
+            PresentationExpectation(
+                ipc: .cyclePaddingPreset,
+                command: .presentation(.cyclePaddingPreset),
+                id: "cyclePaddingPreset",
+                title: "Cycle Padding Preset",
+                binding: .unassigned
+            ),
+            PresentationExpectation(
+                ipc: .cycleNewWindowPlacement,
+                command: .presentation(.cycleNewWindowPlacement),
+                id: "cycleNewWindowPlacement",
+                title: "Cycle New Window Placement",
+                binding: .unassigned
+            ),
+            PresentationExpectation(
+                ipc: .newWindowPlacementRight,
+                command: .presentation(.newWindowPlacementRight),
+                id: "newWindowPlacement.right",
+                title: "New Windows: Open Right",
+                binding: .unassigned
+            ),
+            PresentationExpectation(
+                ipc: .newWindowPlacementLeft,
+                command: .presentation(.newWindowPlacementLeft),
+                id: "newWindowPlacement.left",
+                title: "New Windows: Open Left",
+                binding: .unassigned
+            ),
+            PresentationExpectation(
+                ipc: .newWindowPlacementFirst,
+                command: .presentation(.newWindowPlacementFirst),
+                id: "newWindowPlacement.first",
+                title: "New Windows: Open First",
+                binding: .unassigned
+            ),
+            PresentationExpectation(
+                ipc: .newWindowPlacementLast,
+                command: .presentation(.newWindowPlacementLast),
+                id: "newWindowPlacement.last",
+                title: "New Windows: Open Last",
                 binding: .unassigned
             )
         ]

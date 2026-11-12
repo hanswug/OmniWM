@@ -72,6 +72,14 @@ extension ActionCatalog {
             IPCPresentationCommand.newWindowJoinStacked.actionSpec(),
             IPCPresentationCommand.cycleNewWindowJoin.actionSpec()
         ])
+        specs.append(contentsOf: [
+            IPCPresentationCommand.cyclePaddingPreset.actionSpec(),
+            IPCPresentationCommand.cycleNewWindowPlacement.actionSpec(),
+            IPCPresentationCommand.newWindowPlacementRight.actionSpec(),
+            IPCPresentationCommand.newWindowPlacementLeft.actionSpec(),
+            IPCPresentationCommand.newWindowPlacementFirst.actionSpec(),
+            IPCPresentationCommand.newWindowPlacementLast.actionSpec()
+        ])
     }
 
     private static var toggleFloatingFocusActionSpec: ActionSpec {

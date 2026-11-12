@@ -52,6 +52,13 @@ final class IPCLayoutSettingsCommandTests: XCTestCase {
             ("new-window-join-tabbed", .newWindowJoinTabbed),
             ("new-window-join-stacked", .newWindowJoinStacked),
             ("cycle-new-window-join", .cycleNewWindowJoin)
+        ] + [
+            ("cycle-padding-preset", .cyclePaddingPreset),
+            ("cycle-new-window-placement", .cycleNewWindowPlacement),
+            ("new-window-placement-right", .newWindowPlacementRight),
+            ("new-window-placement-left", .newWindowPlacementLeft),
+            ("new-window-placement-first", .newWindowPlacementFirst),
+            ("new-window-placement-last", .newWindowPlacementLast)
         ]
         for (word, command) in commands {
             XCTAssertEqual(IPCCommandRequest(commandWords: [word]), .presentation(command))
@@ -78,7 +85,10 @@ final class IPCLayoutSettingsCommandTests: XCTestCase {
     func testNewHotkeyActionsAreAppendedAfterEveryExistingAction() throws {
         let ids = ActionCatalog.defaultHotkeyBindings().map(\.id)
         let added = ["toggleBorders"] + (1 ... 5).map { "setVisibleContainers.\($0)" } + [
-            "newWindowJoin.newColumn", "newWindowJoin.tabbed", "newWindowJoin.stacked", "cycleNewWindowJoin"
+            "newWindowJoin.newColumn", "newWindowJoin.tabbed", "newWindowJoin.stacked", "cycleNewWindowJoin",
+            "cyclePaddingPreset", "cycleNewWindowPlacement", "newWindowPlacement.right", "newWindowPlacement.left",
+            "newWindowPlacement.first",
+            "newWindowPlacement.last"
         ]
         XCTAssertEqual(Array(ids.suffix(added.count)), added)
 

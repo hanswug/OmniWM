@@ -123,6 +123,30 @@ extension WMController {
         setNewWindowJoin(modes[(index + 1) % modes.count])
     }
 
+    func setNewWindowPlacement(_ placement: NewWindowPlacement) {
+        settings.niri.newWindowPlacement = placement
+        niriEngine?.newWindowPlacement = placement
+    }
+
+    func cycleNewWindowPlacement() {
+        let placements = NewWindowPlacement.allCases
+        let index = placements.firstIndex(of: settings.niri.newWindowPlacement) ?? 0
+        setNewWindowPlacement(placements[(index + 1) % placements.count])
+    }
+
+    func setPaddingPreset(at index: Int) {
+        let presets = settings.gaps.paddingPresets
+        guard presets.indices.contains(index) else { return }
+        let preset = presets[index]
+        setOuterGaps(left: preset.left, right: preset.right, top: preset.top, bottom: preset.bottom)
+    }
+
+    func cyclePaddingPreset() {
+        let count = settings.gaps.paddingPresets.count
+        guard count > 0 else { return }
+        setPaddingPreset(at: ((settings.gaps.activePaddingPresetIndex ?? -1) + 1) % count)
+    }
+
     func setOuterGaps(left: Double, right: Double, top: Double, bottom: Double) {
         settings.gaps.outerGapLeft = left
         settings.gaps.outerGapRight = right
