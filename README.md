@@ -178,6 +178,20 @@ Download `OmniWM-<version>.zip` from [Releases](https://github.com/hanswug/OmniW
 
 Versions follow upstream's with a fork build number: `0.8.0.1` is the first fork release on upstream 0.8.0.
 
+### Going back to upstream
+
+Upstream reads the same `settings.toml`, but it rejects the whole file if a hotkey entry names an action it doesn't know. It then keeps the file as `settings.toml.corrupt` and starts from defaults. The fork writes its own actions to that list even when they're unbound, so before you switch back:
+
+1. Quit OmniWM and back up `~/.config/omniwm/settings.toml`.
+2. Delete each `[[hotkeys]]` block whose `id` is one of these fork actions:
+   - `resetLayout`, `toggleBorders`, `cyclePaddingPreset`
+   - `setVisibleContainers.1` to `setVisibleContainers.5`
+   - `cycleNewWindowPlacement`, `newWindowPlacement.right`, `.left`, `.first`, `.last`
+   - `cycleNewWindowJoin`, `newWindowJoin.newColumn`, `.tabbed`, `.stacked`
+3. Remove the five [status widgets](#status-widgets) from `~/.config/omniwm/shell/shell.toml`; upstream doesn't bundle them.
+
+The fork's other settings (`shrinkToFit`, `newWindowPlacement`, `[[gaps.presets]]` and the rest) can stay: upstream ignores keys it doesn't know. If upstream has already set your file aside, make the same edits in `settings.toml.corrupt` and copy it back to `settings.toml`.
+
 ### Sample settings
 
 [`examples/settings.toml`](examples/settings.toml) is my full working configuration, exactly as I run it: Niri with shrink-to-fit, Reset Layout on visible container changes, and the fork's new-window placement. Copy it to `~/.config/omniwm/settings.toml` (back up yours first) and adjust; the app rules name the apps I use.
