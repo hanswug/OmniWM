@@ -157,7 +157,7 @@ Versions follow upstream's with a fork build number: `0.8.0.1` is the first fork
 
 [`examples/settings.toml`](examples/settings.toml) is my full working configuration, exactly as I run it: Niri with shrink-to-fit, Reset Layout on visible container changes, and the fork's new-window placement. Copy it to `~/.config/omniwm/settings.toml` (back up yours first) and adjust; the app rules name the apps I use.
 
-[`examples/shell/`](examples/shell) is my menu bar: an OmniShell `shell.toml` with the Apple menu, app menu, OmniWM, workspaces and scratchpads on the left, and the five [status widgets](#status-widgets) and system stats on the right. Copy it to `~/.config/omniwm/shell/`; OmniWM fills in its default widgets there on launch.
+[`examples/shell/`](examples/shell) is my menu bar: an OmniShell `shell.toml` with the Apple menu, app menu, OmniWM and compact workspaces on the left, scratchpads in the centre, and the five [status widgets](#status-widgets) and system stats on the right. Copy it to `~/.config/omniwm/shell/`; OmniWM fills in its default widgets there on launch.
 
 ## Building
 

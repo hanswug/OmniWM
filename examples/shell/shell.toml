@@ -2,12 +2,27 @@
 [profiles]
 
 [profiles.default]
-center = []
-leading = ["apple-menu", "app-menu", "omniwm", "workspaces", "scratchpads"]
+center = ["scratchpads"]
+leading = ["apple-menu", "app-menu", "omniwm", "workspaces"]
 trailing = ["layout-vc", "window-state", "new-window-placement", "new-window-join", "padding", "system-stats"]
 
+[profiles.default.widgets]
+
+[profiles.default.widgets.omniwm]
+iconColor = "#ffffffff"
+
+[profiles.default.widgets.workspaces]
+compact = true
+indicator = "minimal"
+occupiedBackground = false
+
 [profiles.default.workspaceBar]
+backgroundOpacity = 0.0
 fullWidth = false
+height = 32.0
+inactiveIconOpacity = 0.75
 notchMode = "rightOfNotch"
+position = "overlappingMenuBar"
 reserveLayoutSpace = true
-transparentBackground = true
+showItemBackgrounds = false
+transparentBackground = false
