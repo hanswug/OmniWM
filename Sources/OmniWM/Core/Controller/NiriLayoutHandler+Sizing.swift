@@ -199,27 +199,6 @@ extension NiriLayoutHandler {
         }
     }
 
-    private func noteMaximumIfPinned(
-        _ window: NiriWindow,
-        in column: NiriContainer,
-        change: NiriSizeChange,
-        context: NiriInteractionContext
-    ) {
-        guard change.grows, let controller else { return }
-        let horizontal = context.orientation == .horizontal
-        let maximum = horizontal ? window.constraints.maxSize.width : window.constraints.maxSize.height
-        let current = horizontal ? column.cachedWidth : column.cachedHeight
-        guard maximum > 1, current >= maximum - 0.5 else { return }
-        controller.showSizeLimitFeedback(for: window.token, minimum: false, width: maximum)
-    }
-
-    func noteRefusedMinimum(for token: WindowToken) {
-        guard lastPrimaryResizeTokens.contains(token),
-              let minimum = controller?.workspaceManager.observedSizeEvidence(for: token)?.minSize
-        else { return }
-        refusedPrimaryMinimums[token] = minimum
-    }
-
     private func retestObservedPrimaryMinimums(
         in column: NiriContainer,
         engine: NiriLayoutEngine,
@@ -240,16 +219,7 @@ extension NiriLayoutHandler {
             guard var evidence = controller.workspaceManager.observedSizeEvidence(for: token),
                   (horizontal ? evidence.minSize.width : evidence.minSize.height) > 1
             else { continue }
-            let refused = refusedPrimaryMinimums.removeValue(forKey: token)
-            if shrinking, let refused,
-               horizontal ? refused.width == evidence.minSize.width : refused.height == evidence.minSize.height
-            {
-                refusedPrimaryMinimums[token] = refused
-                controller.showSizeLimitFeedback(
-                    for: token,
-                    minimum: true,
-                    width: horizontal ? refused.width : refused.height
-                )
+            if trustsRefusedMinimum(of: token, evidence: evidence, horizontal: horizontal, shrinking: shrinking) {
                 continue
             }
             if horizontal {
@@ -473,29 +443,5 @@ extension NiriLayoutHandler {
             style: controller.settings.gestures.resizePreviewStyle,
             pointerDriven: false
         )
-    }
-}
-
-extension NiriSizeChange {
-    fileprivate var grows: Bool {
-        switch self {
-        case let .adjustFixed(delta),
-             let .adjustProportion(delta):
-            delta > 0
-        case .setFixed,
-             .setProportion:
-            false
-        }
-    }
-
-    fileprivate var shrinks: Bool {
-        switch self {
-        case let .adjustFixed(delta),
-             let .adjustProportion(delta):
-            delta < 0
-        case .setFixed,
-             .setProportion:
-            false
-        }
     }
 }
