@@ -77,6 +77,7 @@ wait_for_no_other_omniwm() {
 }
 
 seed_settings() {
+  [ "$DEV_BUNDLE_ID" = "com.barut.OmniWM.dev" ] || return 0
   local config_base="${XDG_CONFIG_HOME:-$HOME/.config}"
   case "$config_base" in
     /*) ;;
