@@ -165,7 +165,7 @@ Build it the way upstream documents in [CONTRIBUTING.md](CONTRIBUTING.md): `make
 
 ## Companion app: retired
 
-[OmniWM Extension](https://github.com/hanswug/omniwm-extension) used to add padding presets, Visible Containers and borders hotkeys, a menu bar status and a command HUD. All of it is built into this fork now: [padding presets](#padding-presets), the catalog's hotkeys (**Set Visible Containers 1–5**, **Toggle Borders**, **Cycle Padding Preset**), the [status widgets](#status-widgets) and [command feedback](#command-feedback). Quit the companion before you bind the same keys in OmniWM.
+OmniWM Extension, my companion menu bar app, used to add padding presets, Visible Containers and borders hotkeys, a menu bar status and a command HUD. All of it is built into this fork now: [padding presets](#padding-presets), the catalog's hotkeys (**Set Visible Containers 1–5**, **Toggle Borders**, **Cycle Padding Preset**), the [status widgets](#status-widgets) and [command feedback](#command-feedback). Quit the companion before you bind the same keys in OmniWM.
 
 ## License and credit
 
