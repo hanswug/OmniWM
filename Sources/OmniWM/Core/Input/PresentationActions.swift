@@ -30,51 +30,17 @@ extension IPCPresentationCommand {
         case .borders: LocalizedStringResource(
                 "command.presentation.borders", defaultValue: "Toggle Borders", table: "Commands", bundle: .omniWM
             )
-        case .newWindowJoinNewColumn: LocalizedStringResource(
-                "command.presentation.newWindowJoinNewColumn", defaultValue: "New Windows: New Column",
-                table: "Commands", bundle: .omniWM
-            )
-        case .newWindowJoinTabbed: LocalizedStringResource(
-                "command.presentation.newWindowJoinTabbed", defaultValue: "New Windows: Tabbed",
-                table: "Commands", bundle: .omniWM
-            )
-        case .newWindowJoinStacked: LocalizedStringResource(
-                "command.presentation.newWindowJoinStacked", defaultValue: "New Windows: Stacked",
-                table: "Commands", bundle: .omniWM
-            )
-        case .cycleNewWindowJoin: LocalizedStringResource(
-                "command.presentation.cycleNewWindowJoin", defaultValue: "Cycle New Window Join Mode",
-                table: "Commands", bundle: .omniWM
-            )
-        case .cyclePaddingPreset: LocalizedStringResource(
-                "command.presentation.cyclePaddingPreset", defaultValue: "Cycle Padding Preset", table: "Commands",
-                bundle: .omniWM
-            )
-        case .cycleNewWindowPlacement: LocalizedStringResource(
-                "command.presentation.cycleNewWindowPlacement", defaultValue: "Cycle New Window Placement",
-                table: "Commands",
-                bundle: .omniWM
-            )
-        case .newWindowPlacementRight: LocalizedStringResource(
-                "command.presentation.newWindowPlacementRight", defaultValue: "New Windows: Open Right",
-                table: "Commands",
-                bundle: .omniWM
-            )
-        case .newWindowPlacementLeft: LocalizedStringResource(
-                "command.presentation.newWindowPlacementLeft", defaultValue: "New Windows: Open Left",
-                table: "Commands",
-                bundle: .omniWM
-            )
-        case .newWindowPlacementFirst: LocalizedStringResource(
-                "command.presentation.newWindowPlacementFirst", defaultValue: "New Windows: Open First",
-                table: "Commands",
-                bundle: .omniWM
-            )
-        case .newWindowPlacementLast: LocalizedStringResource(
-                "command.presentation.newWindowPlacementLast", defaultValue: "New Windows: Open Last",
-                table: "Commands",
-                bundle: .omniWM
-            )
+        case .newWindowJoinNewColumn,
+             .newWindowJoinTabbed,
+             .newWindowJoinStacked,
+             .cycleNewWindowJoin,
+             .cyclePaddingPreset,
+             .cycleNewWindowPlacement,
+             .newWindowPlacementRight,
+             .newWindowPlacementLeft,
+             .newWindowPlacementFirst,
+             .newWindowPlacementLast:
+            forkActionDisplayName()
         }
     }
 
@@ -106,36 +72,17 @@ extension IPCPresentationCommand {
         case .borders:
             id = "toggleBorders"
             keywords = ["border", "borders", "outline"]
-        case .newWindowJoinNewColumn:
-            id = "newWindowJoin.newColumn"
-            keywords = ["new window", "join", "column"]
-        case .newWindowJoinTabbed:
-            id = "newWindowJoin.tabbed"
-            keywords = ["new window", "join", "tab", "tabbed"]
-        case .newWindowJoinStacked:
-            id = "newWindowJoin.stacked"
-            keywords = ["new window", "join", "stack", "stacked"]
-        case .cycleNewWindowJoin:
-            id = "cycleNewWindowJoin"
-            keywords = ["new window", "join", "cycle", "tab", "stack"]
-        case .cyclePaddingPreset:
-            id = "cyclePaddingPreset"
-            keywords = ["padding", "preset", "gaps", "cycle"]
-        case .cycleNewWindowPlacement:
-            id = "cycleNewWindowPlacement"
-            keywords = ["new window", "placement", "cycle"]
-        case .newWindowPlacementRight:
-            id = "newWindowPlacement.right"
-            keywords = ["new window", "placement", "right"]
-        case .newWindowPlacementLeft:
-            id = "newWindowPlacement.left"
-            keywords = ["new window", "placement", "left"]
-        case .newWindowPlacementFirst:
-            id = "newWindowPlacement.first"
-            keywords = ["new window", "placement", "first"]
-        case .newWindowPlacementLast:
-            id = "newWindowPlacement.last"
-            keywords = ["new window", "placement", "last"]
+        case .newWindowJoinNewColumn,
+             .newWindowJoinTabbed,
+             .newWindowJoinStacked,
+             .cycleNewWindowJoin,
+             .cyclePaddingPreset,
+             .cycleNewWindowPlacement,
+             .newWindowPlacementRight,
+             .newWindowPlacementLeft,
+             .newWindowPlacementFirst,
+             .newWindowPlacementLast:
+            (id, keywords) = forkActionSpecFields()
         }
         return ActionCatalog.action(
             id: id,
