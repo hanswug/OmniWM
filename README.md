@@ -8,6 +8,31 @@ This is a personal fork of **[OmniWM](https://github.com/OmniNull/OmniWM)**, the
 
 OmniWM's engine is a joy to use: it's instant, smooth at 120 and 144 Hz, and full of features that deserve more attention. This fork exists because I use it every day, and I keep a handful of small quality-of-life changes for the Niri layout that fit my workflow. Real fixes are offered back upstream. Everything else stays here, opt-in, with upstream's defaults left unchanged.
 
+## Worth bringing upstream
+
+A short guide for OmniWM maintainers and contributors: which changes here fit upstream's design as it is, and which are only my preferences. None of them changes a default.
+
+**Bug fixes.** Each has tests that fail on upstream `main` and pass with the fix.
+
+- **[Columns end exactly on the outer gaps](#columns-end-exactly-on-the-outer-gaps).** Half-pixel column widths and a fractional view position put the row a pixel into an outer gap (641 to 3201 instead of 640 to 3200), or shift it a pixel when focus moves. The fix rounds column edges and places the view on whole pixels; widths don't change.
+- **[Explicit resizes retest learned minimums](#explicit-resizes-retest-learned-minimums).** A learned minimum never expired, so an app whose real minimum later dropped kept its column too wide (Safari held at 1299 pt). Resizes you ask for retest it. A minimum the app has just refused is trusted on the next shrink step, so pressing shrink against it doesn't make the row jump.
+
+**Agreed with a maintainer.**
+
+- **[Shrink visible columns to fit](#shrink-visible-columns-to-fit).** The opt-in `[niri] shrinkToFit`, agreed in [#1110](https://github.com/OmniNull/OmniWM/issues/1110) as one setting in two PRs: keyboard resizes first, then the automatic fit. It's off by default, and off means upstream's behaviour.
+
+**Small, low priority.**
+
+- **[Keyboard resizes stay inside the working area](#keyboard-resizes-stay-inside-the-working-area).** Caps sizing commands at the bound mouse resizing already uses.
+
+**Noticed upstream, not fixed here.**
+
+- Settings migration pairs unknown per-hotkey keys with hotkeys by array position (`SettingsTOMLUnknownKeyPreservation.preserveUnknownKeys`), so a hotkey action inserted mid-catalog hands preserved keys to the wrong hotkey. This fork appends new actions at the end of their group to stay clear of it.
+
+**Fork only.** Reset Layout (upstream keeps Balance Sizes' slot widths on purpose), new-window placement and join, padding presets, command feedback and the status widgets fit how I work, so they stay here. The [IPC hooks](#ipc-hooks) are small and CLI-shaped; they would go upstream only through an issue first.
+
+I send fixes upstream one PR at a time, following [CONTRIBUTING.md](CONTRIBUTING.md). Merged so far: [Fullscreen toggle raises the window](https://github.com/OmniNull/OmniWM/pull/1109).
+
 ## What's different
 
 Each change is a topic branch cut from upstream `main`, so it can be reviewed and proposed on its own. `hans/main` (the default branch here) is upstream `main` plus the topics below. Upstream changes are merged in regularly.
