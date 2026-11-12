@@ -126,6 +126,10 @@ final class SettingsStore {
         didSet { scheduleSave() }
     }
 
+    var commandFeedback = SettingsStore.defaultExport.commandFeedback {
+        didSet { scheduleSave() }
+    }
+
     var ipcEnabled = SettingsStore.defaultExport.ipcEnabled {
         didSet {
             guard oldValue != ipcEnabled else { return }
@@ -427,6 +431,7 @@ extension SettingsStore {
         workspaces.configurations = WorkspaceSettings.normalizedConfigurations(export.workspaceConfigurations)
         workspaces.defaultLayoutType = export.defaultLayoutType
         workspaces.autoBackAndForth = export.workspaceAutoBackAndForth
+        commandFeedback = export.commandFeedback
 
         borders.apply(export.borders)
 

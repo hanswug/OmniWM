@@ -36,6 +36,7 @@ extension WMController {
     }
 
     func publishFocusIfFocusedWindowLayoutChanged() {
+        noteFocusedWindowLayoutForFeedback()
         guard focusNotificationDispatcher.focusedWindowLayoutStateChanged(),
               let ipcApplicationBridge
         else { return }

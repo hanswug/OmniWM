@@ -110,11 +110,13 @@ extension WMController {
         settings.niri.visibleContainerCount = count
         updateNiriConfig(visibleContainerCount: count)
         rebalanceNiriSizesForVisibleContainerCountChange()
+        showCommandFeedback(CommandFeedback.visibleContainers(count))
     }
 
     func setNewWindowJoin(_ join: NewWindowJoin) {
         settings.niri.newWindowJoin = join
         niriEngine?.newWindowJoin = join
+        showCommandFeedback(CommandFeedback.newWindowJoin(join))
     }
 
     func cycleNewWindowJoin() {
@@ -126,6 +128,7 @@ extension WMController {
     func setNewWindowPlacement(_ placement: NewWindowPlacement) {
         settings.niri.newWindowPlacement = placement
         niriEngine?.newWindowPlacement = placement
+        showCommandFeedback(CommandFeedback.newWindowPlacement(placement))
     }
 
     func cycleNewWindowPlacement() {
@@ -139,6 +142,7 @@ extension WMController {
         guard presets.indices.contains(index) else { return }
         let preset = presets[index]
         setOuterGaps(left: preset.left, right: preset.right, top: preset.top, bottom: preset.bottom)
+        showCommandFeedback(CommandFeedback.paddingPreset(preset.name))
     }
 
     func cyclePaddingPreset() {

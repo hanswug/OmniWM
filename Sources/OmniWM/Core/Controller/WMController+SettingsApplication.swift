@@ -130,6 +130,7 @@ extension WMController {
     func toggleBorders() {
         settings.borders.enabled.toggle()
         borderSettingsChanged()
+        showCommandFeedback(CommandFeedback.borders(settings.borders.enabled))
     }
 
     func setGapSize(_ size: Double, publishChange: Bool = true) {

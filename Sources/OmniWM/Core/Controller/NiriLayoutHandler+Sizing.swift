@@ -161,6 +161,7 @@ extension NiriLayoutHandler {
     func setContainerPrimarySpan(_ change: NiriSizeChange, target: WindowTarget = .focused) -> Bool {
         performWindowSizing(on: target) { engine, windowNode, context, state in
             guard let column = engine.findColumn(containing: windowNode, in: context.workspaceId) else { return nil }
+            noteMaximumIfPinned(windowNode, in: column, change: change, context: context)
             retestObservedPrimaryMinimums(
                 in: column, engine: engine, context: context, explicit: true, shrinking: change.shrinks
             )
@@ -176,6 +177,7 @@ extension NiriLayoutHandler {
         performWindowSizing(on: target) { engine, windowNode, context, state in
             let column = engine.findColumn(containing: windowNode, in: context.workspaceId)
             if let column {
+                noteMaximumIfPinned(windowNode, in: column, change: change, context: context)
                 retestObservedPrimaryMinimums(
                     in: column, engine: engine, context: context, explicit: true, shrinking: change.shrinks
                 )
@@ -195,6 +197,20 @@ extension NiriLayoutHandler {
         for column in engine.columns(in: workspaceId) {
             retestObservedPrimaryMinimums(in: column, engine: engine, context: context)
         }
+    }
+
+    private func noteMaximumIfPinned(
+        _ window: NiriWindow,
+        in column: NiriContainer,
+        change: NiriSizeChange,
+        context: NiriInteractionContext
+    ) {
+        guard change.grows, let controller else { return }
+        let horizontal = context.orientation == .horizontal
+        let maximum = horizontal ? window.constraints.maxSize.width : window.constraints.maxSize.height
+        let current = horizontal ? column.cachedWidth : column.cachedHeight
+        guard maximum > 1, current >= maximum - 0.5 else { return }
+        controller.showSizeLimitFeedback(for: window.token, minimum: false, width: maximum)
     }
 
     func noteRefusedMinimum(for token: WindowToken) {
@@ -229,6 +245,11 @@ extension NiriLayoutHandler {
                horizontal ? refused.width == evidence.minSize.width : refused.height == evidence.minSize.height
             {
                 refusedPrimaryMinimums[token] = refused
+                controller.showSizeLimitFeedback(
+                    for: token,
+                    minimum: true,
+                    width: horizontal ? refused.width : refused.height
+                )
                 continue
             }
             if horizontal {
@@ -456,6 +477,17 @@ extension NiriLayoutHandler {
 }
 
 extension NiriSizeChange {
+    fileprivate var grows: Bool {
+        switch self {
+        case let .adjustFixed(delta),
+             let .adjustProportion(delta):
+            delta > 0
+        case .setFixed,
+             .setProportion:
+            false
+        }
+    }
+
     fileprivate var shrinks: Bool {
         switch self {
         case let .adjustFixed(delta),

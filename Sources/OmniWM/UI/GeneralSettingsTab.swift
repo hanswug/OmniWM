@@ -50,6 +50,19 @@ struct GeneralSettingsTab: View {
             }
             .id("Startup")
 
+            Section {
+                Toggle(isOn: $settings.commandFeedback) {
+                    Text(verbatim: "Show Command Feedback")
+                }
+                .id("Show Command Feedback")
+            } header: {
+                Text(verbatim: "Feedback")
+            } footer: {
+                Text(verbatim: "Shows a short HUD when a command changes something you can't see: Visible Containers, "
+                    + "padding preset, fullscreen, full container, new-window placement and join mode, borders, "
+                    + "or a resize that an app's size limit stopped.")
+            }
+
             Section("Updates") {
                 Toggle("Check for Updates Automatically", isOn: $settings.updateChecksEnabled)
                     .id("Check for Updates Automatically")
