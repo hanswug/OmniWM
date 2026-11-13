@@ -7,6 +7,23 @@
 
 schemaVersion = 5
 
+[appTheming]
+custom = []
+terminalColors = "palette"
+
+[appTheming.ghostty]
+enabled = false
+
+[appTheming.herdr]
+enabled = false
+reloadSavedMachines = true
+
+[appTheming.kitty]
+enabled = false
+
+[appTheming.neovim]
+enabled = false
+
 [appearance]
 mode = "dark"
 tabRailAppIcons = true
