@@ -267,7 +267,7 @@ final class NiriShrinkToFitTests: XCTestCase {
         XCTAssertEqual(peeking.cachedWidth, peekingWidth)
     }
 
-    func testNeighbourSpecComesBackAfterARotationAndBack() throws {
+    func testNeighbourIsRefittedAfterARotationAndBack() throws {
         let fixture = try makeFixture(shrinkToFit: true)
         let neighbour = fixture.columns[1]
         let spec = neighbour.width
@@ -285,8 +285,12 @@ final class NiriShrinkToFitTests: XCTestCase {
             fixture.settle()
         }
 
-        XCTAssertNil(neighbour.fittedWidth)
         XCTAssertEqual(neighbour.width, spec)
+        let frames = try fixture.frames()
+        let pixel = 1 / fixture.scale
+        XCTAssertEqual(frames[0].minX, padding, accuracy: pixel)
+        XCTAssertEqual(frames[1].minX - frames[0].maxX, fixture.gap, accuracy: pixel)
+        XCTAssertEqual(frames[1].maxX, monitorFrame.width - padding, accuracy: pixel)
     }
 
     func testTabbedNeighbourFillsTheRest() throws {

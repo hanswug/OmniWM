@@ -55,6 +55,7 @@ final class NiriResetRetestsMinimumsTests: XCTestCase {
     func testShrinkToFitGrowsRightAwayAfterRefusedShrinks() throws {
         let fixture = try makeFixture(windowCount: 2, visibleContainerCount: 2)
         fixture.controller.settings.niri.shrinkToFit = true
+        fixture.controller.updateNiriConfig(shrinkToFit: true)
         try learnMinimumWidth(1000, for: fixture.tokens[0], fixture: fixture)
         for _ in 0 ..< 3 {
             XCTAssertTrue(fixture.controller.niriLayoutHandler.setContainerPrimarySpan(

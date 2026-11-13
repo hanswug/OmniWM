@@ -17,6 +17,7 @@ final class NiriAutoShrinkToFitTests: XCTestCase {
         let fixture = try makeEvenFixture(windowCount: 4, visibleContainerCount: 4)
         setMinimumWidth(900, for: fixture.tokens[3], fixture: fixture)
         fixture.controller.settings.niri.shrinkToFit = true
+        fixture.controller.updateNiriConfig(shrinkToFit: true)
 
         let frames = try settledFrames(fixture)
 
@@ -40,6 +41,7 @@ final class NiriAutoShrinkToFitTests: XCTestCase {
             setMinimumWidth(800, for: token, fixture: fixture)
         }
         fixture.controller.settings.niri.shrinkToFit = true
+        fixture.controller.updateNiriConfig(shrinkToFit: true)
 
         let frames = try settledFrames(fixture)
 
@@ -64,6 +66,7 @@ final class NiriAutoShrinkToFitTests: XCTestCase {
     func testARefusingNeighbourFitsWithFewerColumnsThanVisibleContainers() throws {
         let fixture = try makeFixture(windowCount: 2, visibleContainerCount: 3)
         fixture.controller.settings.niri.shrinkToFit = true
+        fixture.controller.updateNiriConfig(shrinkToFit: true)
         XCTAssertTrue(fixture.controller.niriLayoutHandler.setWindowPrimarySpan(
             .setProportion(80),
             target: .window(fixture.handles[0])
@@ -81,6 +84,7 @@ final class NiriAutoShrinkToFitTests: XCTestCase {
     func testAResizedWindowThatRefusesFitsWithFewerColumnsThanVisibleContainers() throws {
         let fixture = try makeFixture(windowCount: 2, visibleContainerCount: 3)
         fixture.controller.settings.niri.shrinkToFit = true
+        fixture.controller.updateNiriConfig(shrinkToFit: true)
         try focusColumn(1, fixture)
         let minimum = try settledFrames(fixture)[1].width - 300
         learnMinimumWidth(minimum, for: fixture.tokens[1], fixture: fixture)
@@ -102,6 +106,7 @@ final class NiriAutoShrinkToFitTests: XCTestCase {
     func testAVisibleContainerChangeKeepsTheRowOnTheGaps() throws {
         let fixture = try makeFixture(windowCount: 3, visibleContainerCount: 3)
         fixture.controller.settings.niri.shrinkToFit = true
+        fixture.controller.updateNiriConfig(shrinkToFit: true)
         try focusColumn(1, fixture)
         _ = try settledFrames(fixture)
 
@@ -128,6 +133,7 @@ final class NiriAutoShrinkToFitTests: XCTestCase {
         for fit in [false, true] {
             let fixture = try makeFixture(windowCount: 3, visibleContainerCount: 3)
             fixture.controller.settings.niri.shrinkToFit = fit
+            fixture.controller.updateNiriConfig(shrinkToFit: fit)
             fixture.controller.settings.niri.centerFocusedColumn = .always
             fixture.controller.updateNiriConfig(centerFocusedColumn: .always)
             try focusColumn(1, fixture)
@@ -145,6 +151,7 @@ final class NiriAutoShrinkToFitTests: XCTestCase {
         let before = try settledFrames(fixture)
 
         fixture.controller.settings.niri.shrinkToFit = true
+        fixture.controller.updateNiriConfig(shrinkToFit: true)
 
         XCTAssertEqual(try settledFrames(fixture), before)
     }
@@ -152,6 +159,7 @@ final class NiriAutoShrinkToFitTests: XCTestCase {
     func testAFullSpanColumnLeavesItsNeighboursAlone() throws {
         let fixture = try makeFixture(windowCount: 3, visibleContainerCount: 2)
         fixture.controller.settings.niri.shrinkToFit = true
+        fixture.controller.updateNiriConfig(shrinkToFit: true)
         try focusColumn(2, fixture)
         let before = try settledFrames(fixture)
 
@@ -166,6 +174,7 @@ final class NiriAutoShrinkToFitTests: XCTestCase {
     func testAFullSpanRoundTripRestoresTheRow() throws {
         let fixture = try makeFixture(windowCount: 3, visibleContainerCount: 2)
         fixture.controller.settings.niri.shrinkToFit = true
+        fixture.controller.updateNiriConfig(shrinkToFit: true)
         try focusColumn(2, fixture)
         let before = try settledFrames(fixture)
 
@@ -179,6 +188,7 @@ final class NiriAutoShrinkToFitTests: XCTestCase {
     func testNavigatingToAnUnderfilledPairMovesThePeekingColumnOutOfView() throws {
         let fixture = try makeFixture(windowCount: 3, visibleContainerCount: 2)
         fixture.controller.settings.niri.shrinkToFit = true
+        fixture.controller.updateNiriConfig(shrinkToFit: true)
         try revealColumn(2, atLeadingEdge: false, fixture)
         try revealColumn(1, atLeadingEdge: true, fixture)
         XCTAssertTrue(fixture.controller.niriLayoutHandler.setWindowPrimarySpan(.adjustProportion(-20)))
@@ -197,6 +207,7 @@ final class NiriAutoShrinkToFitTests: XCTestCase {
     func testNavigatingTheOtherWayMovesThePeekingColumnOutOfView() throws {
         let fixture = try makeFixture(windowCount: 3, visibleContainerCount: 2)
         fixture.controller.settings.niri.shrinkToFit = true
+        fixture.controller.updateNiriConfig(shrinkToFit: true)
         try revealColumn(1, atLeadingEdge: false, fixture)
         XCTAssertTrue(fixture.controller.niriLayoutHandler.setWindowPrimarySpan(.adjustProportion(-20)))
         _ = try settledFrames(fixture)
@@ -214,6 +225,7 @@ final class NiriAutoShrinkToFitTests: XCTestCase {
     func testNavigatingToAnOverflowingPairNeverResizesColumns() throws {
         let fixture = try makeFixture(windowCount: 3, visibleContainerCount: 2)
         fixture.controller.settings.niri.shrinkToFit = true
+        fixture.controller.updateNiriConfig(shrinkToFit: true)
         try revealColumn(2, atLeadingEdge: false, fixture)
         try revealColumn(1, atLeadingEdge: true, fixture)
         XCTAssertTrue(fixture.controller.niriLayoutHandler.setWindowPrimarySpan(.adjustProportion(20)))
@@ -236,6 +248,7 @@ final class NiriAutoShrinkToFitTests: XCTestCase {
     func testShrinkingNextToAParkedColumnFitsOnlyVisibleContainersColumns() throws {
         let fixture = try makeFixture(windowCount: 3, visibleContainerCount: 2)
         fixture.controller.settings.niri.shrinkToFit = true
+        fixture.controller.updateNiriConfig(shrinkToFit: true)
         try revealColumn(2, atLeadingEdge: false, fixture)
         try revealColumn(1, atLeadingEdge: true, fixture)
         for _ in 0 ..< 2 {
