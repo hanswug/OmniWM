@@ -1350,6 +1350,10 @@ id = "toggleShellWidget.new-window-placement"
 
 [[hotkeys]]
 binding = "Unassigned"
+id = "toggleShellWidget.padding"
+
+[[hotkeys]]
+binding = "Unassigned"
 id = "toggleShellWidget.system-stats"
 
 [[hotkeys]]

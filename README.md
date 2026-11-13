@@ -191,7 +191,7 @@ Don't point upstream at a settings file the fork has written: the fork saves its
 These are my own working files, updated whenever I push, and how I carry my setup between my Macs.
 
 - [`examples/settings.toml`](examples/settings.toml): my full settings, exactly as I run them. Niri with shrink-to-fit, Reset Layout on visible container changes, the fork's new-window placement, padding presets and command feedback. The app rules name the apps I use.
-- [`examples/shell/shell.toml`](examples/shell/shell.toml): my menu bar. Workspaces on the left, and four [status widgets](#status-widgets) (layout and Visible Containers, window state, new-window placement and join) on the right.
+- [`examples/shell/shell.toml`](examples/shell/shell.toml): my menu bar. Workspaces on the left, scratchpads in the centre, and on the right the five [status widgets](#status-widgets) (layout and Visible Containers, window state, new-window placement and join, padding) and system stats. On the built-in display it auto-hides and sits below the menu bar.
 
 ### Moving your setup to another Mac
 
