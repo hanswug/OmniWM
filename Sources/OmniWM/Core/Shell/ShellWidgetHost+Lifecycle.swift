@@ -158,8 +158,12 @@ extension ShellWidgetHost {
     func setBarColors(accent: SettingsColor?, foreground: SettingsColor?) {
         guard barColors.accent != accent || barColors.foreground != foreground else { return }
         barColors = (accent, foreground)
-        guard started, config.themeName == "native" else { return }
-        appearanceDidChange()
+        guard started else { return }
+        if config.themeName == "native" {
+            appearanceDidChange()
+        } else {
+            onPaletteChange?(Self.paletteTheme(config: config, accent: accent, foreground: foreground))
+        }
     }
 
     static func paletteTheme(config: ShellConfig, accent: SettingsColor?, foreground: SettingsColor?) -> ShellTheme {
@@ -177,11 +181,9 @@ extension ShellWidgetHost {
     }
 
     private func refreshPalettes() {
-        resources.refreshPalettes(theme: Self.paletteTheme(
-            config: config,
-            accent: barColors.accent,
-            foreground: barColors.foreground
-        ))
+        let theme = Self.paletteTheme(config: config, accent: barColors.accent, foreground: barColors.foreground)
+        resources.refreshPalettes(theme: theme)
+        onPaletteChange?(theme)
     }
 
     func appearanceDidChange() {

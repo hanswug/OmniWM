@@ -1089,6 +1089,13 @@ export type ComponentProps = Props & {
     props: any?,
 }
 
+export type ImageConversionUpdate = {
+    progress: { completed: number, total: number }?,
+    ok: boolean?,
+    items: { Resource }?,
+    error: string?,
+}
+
 export type ServiceHandle = {
     cancel: (self: ServiceHandle) -> (),
 }
@@ -1137,6 +1144,7 @@ declare omniwm: {
         close: (id: string, callback: WindowCallback?) -> (ServiceHandle?, string?),
     },
     resources: {
+        convert: (resources: { Resource }, format: "png" | "jpeg" | "tiff", callback: (update: ImageConversionUpdate) -> ()) -> (ServiceHandle?, string?),
         persist: (resource: Resource, callback: ((result: { ok: boolean, token: string?, error: string? }) -> ())?) -> (string?, string?),
         restore: (token: string) -> (Resource?, string?),
     },

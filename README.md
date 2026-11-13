@@ -19,7 +19,7 @@ A short guide for OmniWM maintainers and contributors: which changes here fit up
 
 **Agreed with a maintainer.**
 
-- **[Shrink visible columns to fit](#shrink-visible-columns-to-fit).** The opt-in `[niri] shrinkToFit`, agreed in [#1110](https://github.com/OmniNull/OmniWM/issues/1110) as one setting in two PRs: keyboard resizes first, then the automatic fit. It's off by default, and off means upstream's behaviour.
+- **[Shrink visible columns to fit](#shrink-visible-columns-to-fit).** The opt-in `[niri] shrinkToFit`, agreed in [#1110](https://github.com/OmniNull/OmniWM/issues/1110) as one setting in two PRs. The keyboard fit is merged upstream ([#1216](https://github.com/OmniNull/OmniWM/pull/1216)); the automatic fit is the second PR. It's off by default, and off means upstream's behaviour.
 
 **Small, low priority.**
 
@@ -42,7 +42,7 @@ Each change is a topic branch cut from upstream `main`, so it can be reviewed an
 | [Explicit resizes retest learned minimums](#explicit-resizes-retest-learned-minimums) | fix | not proposed yet |
 | [Keyboard resizes stay inside the working area](#keyboard-resizes-stay-inside-the-working-area) | fix | fork only |
 | [Columns end exactly on the outer gaps](#columns-end-exactly-on-the-outer-gaps) | fix | candidate, both parts fail on clean upstream |
-| [Shrink visible columns to fit](#shrink-visible-columns-to-fit) | setting | agreed in [#1110](https://github.com/OmniNull/OmniWM/issues/1110) as one opt-in setting in two PRs; first PR not opened yet |
+| [Shrink visible columns to fit](#shrink-visible-columns-to-fit) | setting | agreed in [#1110](https://github.com/OmniNull/OmniWM/issues/1110) as one opt-in setting in two PRs; the keyboard fit is [merged upstream](https://github.com/OmniNull/OmniWM/pull/1216) (2026-11-13), the automatic fit is the second PR |
 | [Reset Layout](#reset-layout) | command, setting | fork only |
 | [New window placement](#new-window-placement) | settings, commands | fork only |
 | [Padding presets](#padding-presets) | setting, commands | fork only |
@@ -50,7 +50,7 @@ Each change is a topic branch cut from upstream `main`, so it can be reviewed an
 | [Status widgets](#status-widgets) | menu bar widgets | fork only |
 | [IPC hooks](#ipc-hooks) | commands, event | fork only |
 
-Merged upstream: [Fullscreen toggle raises the window](https://github.com/OmniNull/OmniWM/pull/1109), in upstream since 2026-11-08.
+Merged upstream: [Fullscreen toggle raises the window](https://github.com/OmniNull/OmniWM/pull/1109), in upstream since 2026-11-08, and the keyboard half of [Shrink visible columns to fit](https://github.com/OmniNull/OmniWM/pull/1216), since 2026-11-13.
 
 New settings default to upstream's behaviour. Niri ones live in the `[niri]` table and in **Settings → Layouts → Niri**.
 

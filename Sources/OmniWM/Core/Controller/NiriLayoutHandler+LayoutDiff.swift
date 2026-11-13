@@ -90,6 +90,7 @@ extension NiriLayoutHandler {
         context: NiriLayoutDiffContext
     ) -> WorkspaceLayoutDiff {
         var diff = WorkspaceLayoutDiff()
+        diff.frameChanges.reserveCapacity(windows.count)
         let workspace = context.engine.states[context.workspaceId]
         for window in windows {
             let token = window.token

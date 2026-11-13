@@ -30,10 +30,6 @@ final class WMController {
     private(set) var systemHyperTriggerFailure: SystemHyperTriggerFailure?
     private(set) var windowSwitcherInputAvailable = false
     var keyboardModeKind = KeyboardModeKind.normal
-    var isHyperTriggerActive: Bool {
-        hotkeys.isHyperTriggerActive
-    }
-
     let secureInputMonitor = SecureInputMonitor()
     let secureInputIndicator = SecureInputIndicatorController()
     let lockScreenObserver = LockScreenObserver()
@@ -190,6 +186,7 @@ final class WMController {
         return terminal
     }()
 
+    @ObservationIgnored let appTheming = AppThemingHost()
     @ObservationIgnored
     lazy var commandPaletteController: CommandPaletteController = .init(motionPolicy: motionPolicy)
     @ObservationIgnored var windowSwitcherControllerStorage: WindowSwitcherController?
@@ -328,6 +325,10 @@ final class WMController {
 }
 
 extension WMController {
+    var isHyperTriggerActive: Bool {
+        hotkeys.isHyperTriggerActive
+    }
+
     private struct BorderLayoutConfig: Equatable {
         let enabled: Bool
         let width: CGFloat

@@ -80,7 +80,7 @@ final class WindowSwitcherController {
             render()
         case .cycleScope:
             guard isVisible else { return }
-            scope = scope.next(offeringVisibleWorkspaces: visibleWorkspaceIds.count > 1)
+            scope = scope.next(offeringVisibleWorkspaces: visibleScopeAddsWorkspaces)
             controller?.settings.windowSwitcher.scope = scope
             reconcileItems()
             render()
@@ -209,7 +209,10 @@ final class WindowSwitcherController {
                 return byToken[token]
             }
         }
-        return WorkspaceEntryOrdering.orderedEntries(entries, topology: manager.layoutTopology(for: workspaceId))
+        return WorkspaceEntryOrdering.orderedEntries(
+            consume entries,
+            topology: manager.layoutTopology(for: workspaceId)
+        )
     }
 
     private func reconcileItems() {
@@ -327,6 +330,13 @@ final class WindowSwitcherController {
 }
 
 extension WindowSwitcherController {
+    private var visibleScopeAddsWorkspaces: Bool {
+        if let workspaceId, visibleWorkspaceIds.contains(workspaceId) {
+            return visibleWorkspaceIds.count > 1
+        }
+        return !visibleWorkspaceIds.isEmpty
+    }
+
     func advanceFromAutomation(reverse: Bool, scope: WindowSwitcherScope?) {
         guard !isVisible else {
             handle(.cycle(reverse: reverse))

@@ -156,7 +156,12 @@ private struct GlobalNiriSettingsSection: View {
 
             Toggle("Shrink Columns to Fit", isOn: Bindable(settings.niri).shrinkToFit)
                 .id("Shrink Columns to Fit")
-            SettingsCaption(localized: "Keyboard resizing also resizes the other visible columns to fill the view")
+                .onChange(of: settings.niri.shrinkToFit) { _, newValue in
+                    controller.updateNiriConfig(shrinkToFit: newValue)
+                }
+            SettingsCaption(
+                localized: "Keyboard resizing also resizes the other visible columns to fill the view. If a window can't shrink to its share, resize again."
+            )
             SettingsCaption(
                 "The visible columns are also fitted when windows open or close, a minimum size changes, or Visible Containers change. Columns that can't fit move out of view instead of into the outer gaps."
             )

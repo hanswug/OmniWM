@@ -8,7 +8,7 @@ import OmniWMIPC
 extension WMController {
     func configureInputRouting() {
         axManager.isWindowParked = { [workspaceManager] windowId in
-            workspaceManager.entry(forWindowId: windowId)?.hiddenState != nil
+            workspaceManager.withEntry(forWindowId: windowId) { $0.hiddenState != nil } == true
         }
         axManager.onParkFrameApplyFailed = { [weak self] result in
             self?.layoutRefreshController.repairLayoutTransientPark(after: result)
@@ -64,6 +64,7 @@ extension WMController {
     }
 
     func configureSurfaceCallbacks() {
+        configureAppTheming()
         traceCaptureCoordinator.onStateChange = { [weak self] in
             self?.statusBarController?.handleTraceCaptureStateChange()
         }

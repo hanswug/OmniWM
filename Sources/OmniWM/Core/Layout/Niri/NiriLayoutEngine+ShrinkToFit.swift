@@ -10,12 +10,13 @@ extension NiriLayoutEngine {
         geometry: NiriSizingGeometry
     ) -> [NiriProjectedColumn] {
         let projected = projectedColumns(in: workspaceId)
-        guard let relations = columnSummary(in: workspaceId, state: state, geometry: geometry).viewport,
-              relations.count == projected.count
-        else { return [] }
-        return zip(projected, relations).compactMap { column, relation in
-            relation == .intersecting && !column.windows.isEmpty ? column : nil
+        let relations = viewportRelations(of: projected, in: workspaceId, state: state, geometry: geometry)
+        var onScreen: [NiriProjectedColumn] = []
+        onScreen.reserveCapacity(projected.count)
+        for index in projected.indices where relations[index] == .intersecting && !projected[index].windows.isEmpty {
+            onScreen.append(projected[index])
         }
+        return onScreen
     }
 
     func shrinkVisibleColumnsToFit(
@@ -115,20 +116,18 @@ extension NiriLayoutEngine {
         _ geometry: NiriShrinkToFitGeometry
     ) {
         guard !workspace.shrinkToFitColumnIds.isEmpty else { return }
+        let stored = workspace.shrinkToFitGeometry
         let manualCount = geometry.orientation == .horizontal
             ? workspace.manualWidthColumnCount
             : workspace.manualHeightColumnCount
-        guard manualCount != nil else {
-            workspace.shrinkToFitColumnIds.removeAll()
-            workspace.shrinkToFitGeometry = nil
-            return
-        }
-        guard workspace.shrinkToFitGeometry != geometry else { return }
-        for column in columns where workspace.shrinkToFitColumnIds.contains(column.id) {
-            column.invalidateCachedPrimarySpan(orientation: geometry.orientation)
-            switch geometry.orientation {
-            case .horizontal: column.fittedWidth = nil
-            case .vertical: column.fittedHeight = nil
+        if manualCount != nil, stored == geometry { return }
+        if let stored, manualCount != nil || stored.orientation != geometry.orientation {
+            for column in columns where workspace.shrinkToFitColumnIds.contains(column.id) {
+                column.invalidateCachedPrimarySpan(orientation: stored.orientation)
+                switch stored.orientation {
+                case .horizontal: column.fittedWidth = nil
+                case .vertical: column.fittedHeight = nil
+                }
             }
         }
         workspace.shrinkToFitColumnIds.removeAll()

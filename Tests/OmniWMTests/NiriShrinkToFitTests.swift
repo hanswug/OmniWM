@@ -160,6 +160,20 @@ final class NiriShrinkToFitTests: XCTestCase {
         XCTAssertEqual(fixture.columns[0].cachedWidth, fixture.raw(0.3))
     }
 
+    func testNothingIsFittedWhenEvenTheMinimumsCannotFit() throws {
+        let fixture = try makeFixture(shrinkToFit: true)
+        let available = fixture.available(2)
+        fixture.constrain(0, minimum: available * 0.15, maximum: 0)
+        fixture.constrain(1, minimum: available * 0.9, maximum: 0)
+
+        XCTAssertTrue(fixture.setSpan(.setProportion(70), on: 0))
+        fixture.settle()
+
+        XCTAssertEqual(fixture.columns[0].cachedWidth, fixture.raw(0.7))
+        XCTAssertNil(fixture.columns[0].fittedWidth)
+        XCTAssertNil(fixture.columns[1].fittedWidth)
+    }
+
     func testNeighbourPackingIsRespected() throws {
         let fixture = try makeFixture(shrinkToFit: true)
         let share = fixture.available(2) - fixture.raw(0.7)
@@ -209,6 +223,7 @@ final class NiriShrinkToFitTests: XCTestCase {
         }
         try fixture.focus(column: 0)
         fixture.controller.settings.niri.shrinkToFit = true
+        fixture.controller.updateNiriConfig(shrinkToFit: true)
 
         XCTAssertTrue(fixture.setSpan(.setProportion(50), onColumn: 1))
         fixture.settle()
@@ -223,6 +238,55 @@ final class NiriShrinkToFitTests: XCTestCase {
         let pixel = 1 / fixture.scale
         XCTAssertEqual(frames[0].minX, padding, accuracy: pixel)
         XCTAssertEqual(frames[2].maxX, monitorFrame.width - padding, accuracy: pixel)
+    }
+
+    func testOnlyVisibleContainersColumnsAreFittedWhenAnotherPeeksIn() throws {
+        let fixture = try makeFixture(shrinkToFit: false)
+        try fixture.addWindow()
+        try fixture.addWindow()
+        for index in 0 ..< 4 {
+            XCTAssertTrue(fixture.setSpan(.setProportion(40), onColumn: index))
+        }
+        try fixture.focus(column: 1)
+        let peeking = fixture.columns[3]
+        let peekingWidth = peeking.cachedWidth
+        fixture.controller.settings.niri.shrinkToFit = true
+        fixture.controller.updateNiriConfig(shrinkToFit: true)
+
+        XCTAssertTrue(fixture.setSpan(.setProportion(60), onColumn: 1))
+        fixture.settle()
+
+        let columns = fixture.columns
+        XCTAssertEqual(columns[1].cachedWidth, fixture.raw(0.6))
+        XCTAssertEqual(
+            columns[2].cachedWidth,
+            fixture.available(2) - fixture.raw(0.6),
+            accuracy: CGFloat.rounding(operations: 4, at: fixture.span)
+        )
+        XCTAssertNil(peeking.fittedWidth)
+        XCTAssertEqual(peeking.cachedWidth, peekingWidth)
+    }
+
+    func testNeighbourSpecComesBackAfterARotationAndBack() throws {
+        let fixture = try makeFixture(shrinkToFit: true)
+        let neighbour = fixture.columns[1]
+        let spec = neighbour.width
+        XCTAssertTrue(fixture.setSpan(.setProportion(70), on: 0))
+        fixture.settle()
+        XCTAssertNotNil(neighbour.fittedWidth)
+
+        for frame in [CGRect(x: 0, y: 0, width: monitorFrame.height, height: monitorFrame.width), monitorFrame] {
+            let monitor = Monitor(
+                id: fixture.monitor.id, displayId: 1, frame: frame, visibleFrame: frame,
+                hasNotch: false, name: "Main"
+            )
+            fixture.controller.workspaceManager.applyMonitorConfigurationChange([monitor])
+            fixture.controller.syncMonitorsToNiriEngine()
+            fixture.settle()
+        }
+
+        XCTAssertNil(neighbour.fittedWidth)
+        XCTAssertEqual(neighbour.width, spec)
     }
 
     func testTabbedNeighbourFillsTheRest() throws {
@@ -283,6 +347,18 @@ final class NiriShrinkToFitTests: XCTestCase {
         XCTAssertEqual(settings.export(), decoded.niri)
     }
 
+    func testEngineFollowsTheSettingWhenSettingsAreApplied() throws {
+        let fixture = try makeFixture(shrinkToFit: false)
+        let controller = fixture.controller
+        let engine = try XCTUnwrap(controller.niriEngine)
+        XCTAssertFalse(engine.shrinkToFit)
+
+        controller.settings.niri.shrinkToFit = true
+        controller.applyPersistedSettings(controller.settings, startServices: false)
+
+        XCTAssertTrue(engine.shrinkToFit)
+    }
+
     private func makeFixture(shrinkToFit: Bool, portrait: Bool = false) throws -> Fixture {
         let frame = portrait
             ? CGRect(x: 0, y: 0, width: monitorFrame.height, height: monitorFrame.width)
@@ -333,6 +409,7 @@ final class NiriShrinkToFitTests: XCTestCase {
         controller.workspaceManager.applySettings()
         controller.niriLayoutHandler.enableNiriLayout()
         controller.syncMonitorsToNiriEngine()
+        controller.updateNiriConfig(shrinkToFit: shrinkToFit)
         let workspaceId = try XCTUnwrap(controller.workspaceManager.workspaceId(named: "1"))
         XCTAssertTrue(controller.workspaceManager.setActiveWorkspace(workspaceId, on: monitor.id))
         let fixture = Fixture(controller: controller, monitor: monitor, workspaceId: workspaceId)
