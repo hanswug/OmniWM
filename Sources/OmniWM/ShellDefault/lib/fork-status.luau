@@ -16,7 +16,13 @@ end
 
 function status.button(ctx: Context, props)
     local style = ctx.data.bar.style
-    local button = { onClick = props.onClick or ui.popout, onRightClick = ui.popout, help = props.help }
+    local button = { help = props.help }
+    if props.static then
+        button.opacity = 0.55
+    else
+        button.onClick = props.onClick or ui.popout
+        button.onRightClick = ui.popout
+    end
     if props.symbol then
         button[#button + 1] = look.barGlyph(ctx, { name = props.symbol })
     end

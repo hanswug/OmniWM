@@ -10,6 +10,10 @@ function render(ctx: Context)
     if not s or #s.paddingPresets == 0 then
         return status.empty()
     end
+    if s.ownPadding then
+        return status.button(ctx, { symbol = SYMBOL, text = s.ownPadding, static = true,
+            help = s.ownPadding .. " uses its own padding (Settings → Layouts)" })
+    end
     local name = s.paddingPreset or "Custom"
     return status.button(ctx, { symbol = SYMBOL, text = name, onClick = "cycle-padding-preset",
         help = "Padding: " .. name })
@@ -17,7 +21,7 @@ end
 
 function popout(ctx: Context)
     local s = status.get(ctx)
-    if not s then
+    if not s or s.ownPadding then
         return status.empty()
     end
     local entries = {}

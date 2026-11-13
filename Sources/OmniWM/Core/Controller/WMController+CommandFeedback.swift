@@ -16,6 +16,10 @@ enum CommandFeedback {
         CommandFeedbackMessage(symbol: "square.arrowtriangle.4.outward", text: name)
     }
 
+    static func ownPadding(_ display: String) -> CommandFeedbackMessage {
+        CommandFeedbackMessage(symbol: "square.arrowtriangle.4.outward", text: "\(display): own padding")
+    }
+
     static func borders(_ enabled: Bool) -> CommandFeedbackMessage {
         CommandFeedbackMessage(
             symbol: enabled ? "square" : "square.dashed",

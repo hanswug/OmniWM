@@ -65,6 +65,16 @@ final class ShellForkStatusTests: XCTestCase {
         XCTAssertTrue(try rendered("window-state", status()).commands().contains("toggle-fullscreen"))
     }
 
+    func testPaddingOnADisplayWithItsOwnGapsIsALabelWithoutActions() throws {
+        var own = status()
+        own.ownPadding = "Built-in"
+        let padding = try rendered("padding", own)
+        XCTAssertTrue(padding.strings().contains("Built-in"))
+        XCTAssertFalse(padding.strings().contains("Wide Tall"))
+        XCTAssertTrue(padding.commands().isEmpty)
+        XCTAssertTrue(try rendered("padding", status()).commands().contains("cycle-padding-preset"))
+    }
+
     func testPickersOfferEverySetCommand() throws {
         let padding = try rendered("padding", status())
         padding.layoutPopout()

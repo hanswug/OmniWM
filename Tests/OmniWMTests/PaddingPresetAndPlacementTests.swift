@@ -56,6 +56,39 @@ final class PaddingPresetAndPlacementTests: XCTestCase {
         XCTAssertEqual(controller.settings.toExport().gaps, before)
     }
 
+    func testADisplayWithItsOwnGapsKeepsThemAndSaysSo() throws {
+        let previous = CommandFeedback.present
+        var shown: [CommandFeedbackMessage] = []
+        CommandFeedback.present = { shown.append($0) }
+        defer { CommandFeedback.present = previous }
+        let controller = WMController(settings: makeSettings())
+        controller.settings.commandFeedback = true
+        controller.settings.gaps.paddingPresets = presets
+        let frame = CGRect(x: 0, y: 0, width: 1710, height: 1112)
+        let monitor = Monitor(
+            id: .init(displayId: 77), displayId: 77, frame: frame, visibleFrame: frame,
+            hasNotch: true, name: "Built-in Retina Display"
+        )
+        controller.workspaceManager.applyMonitorConfigurationChange([monitor])
+        controller.settings.gaps.update(
+            MonitorGapSettings(monitorName: monitor.name, outerGapLeft: 8, outerGapTop: 8),
+            for: monitor
+        )
+        let before = controller.settings.toExport().gaps
+
+        controller.cyclePaddingPreset()
+        controller.setPaddingPreset(at: 2)
+
+        XCTAssertEqual(controller.settings.toExport().gaps, before)
+        XCTAssertEqual(shown, [CommandFeedback.ownPadding("Built-in"), CommandFeedback.ownPadding("Built-in")])
+        XCTAssertEqual(controller.shellForkStatus(on: monitor.id).ownPadding, "Built-in")
+
+        controller.settings.gaps.remove(for: monitor)
+        XCTAssertNil(controller.shellForkStatus(on: monitor.id).ownPadding)
+        controller.cyclePaddingPreset()
+        XCTAssertEqual(controller.settings.gaps.activePaddingPresetIndex, 0)
+    }
+
     func testPlacementCyclesThroughEveryPlacementAndReachesTheEngine() {
         let controller = WMController(settings: makeSettings())
         controller.enableNiriLayout()

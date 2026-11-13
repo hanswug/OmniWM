@@ -24,13 +24,14 @@ struct ShellBarForkStatus: Equatable, Sendable {
     var newWindowPlacement = NewWindowPlacement.right.rawValue
     var newWindowJoin = NewWindowJoin.newColumn.rawValue
     var paddingPresets: [PaddingPreset] = []
+    var ownPadding: String?
 
     var paddingPreset: String? {
         paddingPresets.first(where: \.active)?.name
     }
 
     func write(to writer: inout ShellValueWriter) {
-        writer.map(7)
+        writer.map(8)
         writer.key("layout")
         writer.string(layout.rawValue)
         writer.key("visibleContainers")
@@ -59,7 +60,17 @@ struct ShellBarForkStatus: Equatable, Sendable {
         } else {
             writer.null()
         }
+        writer.key("ownPadding")
+        if let ownPadding {
+            writer.string(ownPadding)
+        } else {
+            writer.null()
+        }
         writer.key("paddingPresets")
+        writePresets(to: &writer)
+    }
+
+    private func writePresets(to writer: inout ShellValueWriter) {
         writer.array(paddingPresets.count)
         for preset in paddingPresets {
             writer.map(6)
@@ -80,9 +91,18 @@ struct ShellBarForkStatus: Equatable, Sendable {
 }
 
 extension WMController {
+    func ownPaddingLabel(for monitor: Monitor) -> String? {
+        guard let override = settings.gaps.settings(for: monitor),
+              override.outerGapLeft != nil || override.outerGapRight != nil
+              || override.outerGapTop != nil || override.outerGapBottom != nil
+        else { return nil }
+        return monitor.name.hasPrefix("Built-in") ? "Built-in" : monitor.name
+    }
+
     func shellForkStatus(on monitorId: Monitor.ID) -> ShellBarForkStatus {
         var status = ShellBarForkStatus()
         status.visibleContainers = settings.niri.visibleContainerCount
+        status.ownPadding = workspaceManager.monitors.first { $0.id == monitorId }.flatMap(ownPaddingLabel(for:))
         if let workspaceId = workspaceManager.visibleWorkspaceId(on: monitorId) {
             status.layout = workspaceManager.activeLayoutKind(for: workspaceId)
             if let engine = niriEngine {

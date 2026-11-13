@@ -143,6 +143,10 @@ extension WMController {
     func setPaddingPreset(at index: Int) {
         let presets = settings.gaps.paddingPresets
         guard presets.indices.contains(index) else { return }
+        if let label = monitorForInteraction().flatMap(ownPaddingLabel(for:)) {
+            showCommandFeedback(CommandFeedback.ownPadding(label))
+            return
+        }
         let preset = presets[index]
         setOuterGaps(left: preset.left, right: preset.right, top: preset.top, bottom: preset.bottom)
         showCommandFeedback(CommandFeedback.paddingPreset(preset.name))

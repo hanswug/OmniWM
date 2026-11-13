@@ -276,6 +276,7 @@ export type BarStatus = {
     newWindowJoin: "newColumn" | "tabbed" | "stacked",
     paddingPreset: string?,
     paddingPresets: { BarPaddingPreset },
+    ownPadding: string?,
 }
 
 export type Bar = {
