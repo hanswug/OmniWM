@@ -161,8 +161,8 @@ final class NiriObservedMinimumRetestTests: XCTestCase {
         settings.gaps.outerGapTop = 0
         settings.gaps.outerGapBottom = 0
         let monitor = Monitor(
-            id: .init(displayId: 1),
-            displayId: 1,
+            id: .init(displayId: 91),
+            displayId: 91,
             frame: monitorFrame,
             visibleFrame: monitorFrame,
             hasNotch: false,

@@ -118,8 +118,8 @@ final class NiriKeyboardResizeClampTests: XCTestCase {
         settings.gaps.outerGapBottom = Double(outerGap)
         settings.niri.edgeGaps = edgeGaps
         let monitor = Monitor(
-            id: .init(displayId: 1),
-            displayId: 1,
+            id: .init(displayId: 91),
+            displayId: 91,
             frame: monitorFrame,
             visibleFrame: monitorFrame,
             hasNotch: false,
