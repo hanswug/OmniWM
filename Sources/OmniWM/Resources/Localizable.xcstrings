@@ -40053,6 +40053,7 @@
       }
     },
     "Dark" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -71839,6 +71840,7 @@
       }
     },
     "Light" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -157415,9 +157417,6 @@
     "App & Motion" : {
 
     },
-    "App Appearance" : {
-
-    },
     "Apps" : {
 
     },
@@ -157597,9 +157596,6 @@
 
     },
     "Focus Ribbon" : {
-
-    },
-    "Follows macOS appearance or uses the selected light or dark appearance." : {
 
     },
     "Frame Rate" : {

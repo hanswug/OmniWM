@@ -49,7 +49,7 @@ Global switches: hotkeys, Hyper key, default layout, sleep, updates, IPC, animat
 | `ipcEnabled` | boolean | `false` | Enables the IPC server used by `omniwmctl`. |
 | `animationsEnabled` | boolean | `true` | Animates window layout changes and other OmniWM-authored motion. macOS Reduce Motion turns them off regardless of this key. |
 | `animationSpeed` *(optional)* | float | `1.0` | Tiling animation speed multiplier: `2.0` is twice as fast, `0.5` is half as fast. Applies to Niri focus, window/column movement and resizing, Dwindle layout changes, workspace swipe settling, and workspace switch slides. Values are clamped to `0.25`–`4.0`; nonfinite values use `1.0`. Changes apply to newly started transitions. Direct gesture tracking, inertial scrolling, Overview, and Quake terminal animations keep their own behavior. |
-| `slideWorkspaceSwitches` *(optional)* | boolean | `false` | **Unreleased:** Available when building from `main`. Workspace switches from shortcuts, the command palette and `omniwmctl` slide between workspaces like a workspace swipe, in the `workspaceSwipeAxis` direction, whether or not `workspaceSwipeEnabled` is on. Needs `animationsEnabled` and Screen Recording; without them, or while the destination workspace has no captured preview yet, the switch is instant. While on, OmniWM keeps previews of the neighboring workspaces captured in the background. Settings > Appearance > App & Motion. |
+| `slideWorkspaceSwitches` *(optional)* | boolean | `false` | **Unreleased:** Available when building from `main`. Workspace switches from shortcuts, the command palette and `omniwmctl` slide between workspaces like a workspace swipe, in the same direction as a workspace swipe, whether or not `workspaceSwipeEnabled` is on. Needs `animationsEnabled` and Screen Recording; without them, or while the destination workspace has no captured preview yet, the switch is instant. While on, OmniWM keeps previews of the neighboring workspaces captured in the background. Settings > Appearance > App & Motion. |
 | `language` *(optional)* | string | unset | Interface language as a packaged localization code, such as `"ja"` or `"sr-Latn"`. Leave it unset to follow macOS. Takes effect the next time OmniWM starts. |
 | `workspaceAutoBackAndForth` *(optional)* | boolean | `false` | When a workspace shortcut or command palette entry targets the workspace you are already on, switch to the previously active workspace instead, like i3's `workspace_auto_back_and_forth`. `omniwmctl` workspace commands are unaffected. Settings > Workspaces > Workspace Switching. |
 
@@ -214,7 +214,7 @@ Border drawn around the focused window.
 
 Gradient and glow are composable. A missing table preserves solid rendering. Non-finite or structurally invalid values preserve the previous valid appearance; finite gradient color components are clamped to `0...1`, while glow radius and opacity must remain within their documented ranges. Glow reuses the border's solid color or gradient endpoints unless `glow.color` or `glow.darkColor` overrides it, so a gradient border produces a spatially matching gradient glow by default.
 
-Border and gradient colors resolve per macOS appearance: dark values apply when the system (or OmniWM's own Appearance setting, when not Automatic) uses the dark appearance, and update live as the appearance switches — no restart needed. Unset dark values keep the base colors, so existing configs render exactly as before. In Settings, inherited colors are labeled explicitly; Customize creates an override and Reset restores inheritance. Editing one dark gradient endpoint leaves the other inherited until customized. The glow inherits the resolved border color or gradient endpoints, so it adapts with them.
+Border and gradient colors resolve per macOS appearance: dark values apply when macOS uses the dark appearance, and update live as the appearance switches — no restart needed. Unset dark values keep the base colors, so existing configs render exactly as before. In Settings, inherited colors are labeled explicitly; Customize creates an override and Reset restores inheritance. Editing one dark gradient endpoint leaves the other inherited until customized. The glow inherits the resolved border color or gradient endpoints, so it adapts with them.
 
 ## overview
 
@@ -333,7 +333,7 @@ The seven optional `overviewGesture…` and `window…` keys below configure Ove
 | `trackpadScrollStyle` | string | `"snap"` | `snap` (snap to columns) or `momentum`. |
 | `workspaceSwipeEnabled` | boolean | `false` | Trackpad swipe switches to the next/previous workspace. |
 | `workspaceSwipeFingerCount` | integer | `3` | Workspace-swipe finger count: `2`, `3`, or `4`. |
-| `workspaceSwipeAxis` | string | `"vertical"` | Workspace-swipe axis: `horizontal` or `vertical`. Also sets the direction workspace switches from shortcuts slide in. |
+| `workspaceSwipeAxis` | string | `"vertical"` | Workspace-swipe axis: `horizontal` or `vertical`. Workspace switch slides from shortcuts go the same way as workspace swipes. |
 | `workspaceSwipeEdgeBehavior` *(optional)* | string | `"cycle"` | What a workspace swipe does past the first or last workspace: `cycle` wraps around, `none` ignores the swipe, and `onePast` moves from the last occupied workspace to an empty one, creating it if needed, while ignoring swipes past an empty last workspace or before the first. Applies to trackpad swipes only; next/previous workspace hotkeys always wrap. |
 | `overviewGestureEnabled` *(optional)* | boolean | `false` | Enable the trackpad gesture that opens Overview with an upward swipe and closes it with a downward swipe. |
 | `overviewGestureFingerCount` *(optional)* | integer | `4` | Overview gesture finger count: `3` or `4`. |
@@ -552,14 +552,12 @@ Appearance of OmniWM's own UI.
 
 | Key | Type | Default | Description |
 | --- | --- | --- | --- |
-| `mode` | string | `"dark"` | `automatic`, `light`, or `dark`. |
 | `tabRailAppIcons` *(optional)* | boolean | `false` | Replaces compact tab markers with app icons in Niri and Dwindle. Each tab group reserves a 28-point rail instead of 10 points; crowded rails scroll vertically. |
 
 The **Show app icons in tab rails** toggle in **Settings → Appearance → App & Motion** controls the same option. Changes apply live without restarting.
 
 ```toml
 [appearance]
-mode = "dark"
 tabRailAppIcons = true
 ```
 
