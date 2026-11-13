@@ -6,8 +6,8 @@ local status = require("../lib/fork-status")
 local PLACEMENTS = table.freeze({
     { id = "right", symbol = "inset.filled.righthalf.arrow.right.rectangle", text = "Right" },
     { id = "left", symbol = "inset.filled.lefthalf.arrow.left.rectangle", text = "Left" },
-    { id = "first", symbol = "arrowtriangle.backward.leadingside.rectangle", text = "First" },
-    { id = "last", symbol = "arrowtriangle.forward.trailingside.rectangle", text = "Last" },
+    { id = "first", symbol = "arrow.left.to.line", text = "First" },
+    { id = "last", symbol = "arrow.right.to.line", text = "Last" },
 })
 
 function render(ctx: Context)

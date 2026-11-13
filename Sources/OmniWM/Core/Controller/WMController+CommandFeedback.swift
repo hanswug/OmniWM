@@ -42,10 +42,10 @@ enum CommandFeedback {
                 text: "New windows: Left"
             )
         case .first: CommandFeedbackMessage(
-                symbol: "arrowtriangle.backward.leadingside.rectangle", text: "New windows: First"
+                symbol: "arrow.left.to.line", text: "New windows: First"
             )
         case .last: CommandFeedbackMessage(
-                symbol: "arrowtriangle.forward.trailingside.rectangle", text: "New windows: Last"
+                symbol: "arrow.right.to.line", text: "New windows: Last"
             )
         }
     }
