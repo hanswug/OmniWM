@@ -130,7 +130,7 @@ left = 8
 right = 8
 ```
 
-Named sets of outer gaps, in cycle order. **Cycle Padding Preset** (`omniwmctl command cycle-padding-preset`) applies the next one. The active preset isn't stored: it's whichever preset matches the current outer gaps, so editing the gaps by hand simply leaves you on a custom padding. For a display that should always use different gaps (a laptop's built-in screen, say), use the per-display gap override in **Settings → Gaps**.
+Named sets of outer gaps, in cycle order. **Cycle Padding Preset** (`omniwmctl command cycle-padding-preset`) applies the next one. The active preset isn't stored: it's whichever preset matches the current outer gaps, so editing the gaps by hand simply leaves you on a custom padding. For a display that should always use different gaps (a laptop's built-in screen, say), use the per-display gap override in **Settings → Layouts**.
 
 ### Command feedback
 
@@ -188,9 +188,18 @@ Don't point upstream at a settings file the fork has written: the fork saves its
 
 ### Sample settings
 
-[`examples/settings.toml`](examples/settings.toml) is my full working configuration, exactly as I run it: Niri with shrink-to-fit, Reset Layout on visible container changes, and the fork's new-window placement. Copy it to `~/.config/omniwm/settings.toml` (back up yours first) and adjust; the app rules name the apps I use.
+These are my own working files, updated whenever I push, and how I carry my setup between my Macs.
 
-[`examples/shell/`](examples/shell) is my menu bar: an OmniShell `shell.toml` with the Apple menu, app menu, OmniWM and compact workspaces on the left, scratchpads in the centre, and the five [status widgets](#status-widgets) and system stats on the right. Copy it to `~/.config/omniwm/shell/`; OmniWM fills in its default widgets there on launch.
+- [`examples/settings.toml`](examples/settings.toml): my full settings, exactly as I run them. Niri with shrink-to-fit, Reset Layout on visible container changes, the fork's new-window placement, padding presets and command feedback. The app rules name the apps I use.
+- [`examples/shell/shell.toml`](examples/shell/shell.toml): my menu bar. Workspaces on the left, and four [status widgets](#status-widgets) (layout and Visible Containers, window state, new-window placement and join) on the right.
+
+### Moving your setup to another Mac
+
+1. Quit OmniWM on the new Mac and back up its `~/.config/omniwm`.
+2. Copy `settings.toml` and `shell/shell.toml` into `~/.config/omniwm/` and `~/.config/omniwm/shell/`. Taking them from GitHub? Use the file's **Raw** view: saving the normal file page saves HTML, which OmniWM sets aside as `settings.toml.corrupt`.
+3. Start OmniWM. It fills in its default widgets in `shell/` on launch. Replacing the files while it runs works too: it picks them up.
+
+Per-display settings don't carry over: gap and bar overrides for a display are keyed to that display's UUID, and every Mac's built-in display has its own. Set them again on the new Mac (gaps in **Settings → Layouts**, bar overrides in **Settings → Styles & Widgets**), or swap in the new UUID from `omniwmctl query displays --fields name,uuid`.
 
 ## Building
 

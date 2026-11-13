@@ -2,9 +2,9 @@
 [profiles]
 
 [profiles.default]
-center = ["scratchpads"]
-leading = ["apple-menu", "app-menu", "omniwm", "workspaces"]
-trailing = ["layout-vc", "window-state", "new-window-placement", "new-window-join", "padding", "system-stats"]
+center = []
+leading = ["workspaces"]
+trailing = ["layout-vc", "window-state", "new-window-placement", "new-window-join"]
 
 [profiles.default.widgets]
 
@@ -26,3 +26,11 @@ position = "overlappingMenuBar"
 reserveLayoutSpace = true
 showItemBackgrounds = false
 transparentBackground = false
+
+[[profiles.default.monitorBarOverrides]]
+hideEmptyWorkspaces = true
+id = "B630ABA4-2CF2-4684-A85D-EEDA78595250"
+monitorDisplayUUID = "37D8832A-2D66-02CA-B9F7-8F30A301B230"
+monitorName = "Built-in Retina Display"
+xOffset = 0.0
+yOffset = 4.0

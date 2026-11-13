@@ -12,7 +12,7 @@ mode = "dark"
 tabRailAppIcons = true
 
 [borders]
-enabled = true
+enabled = false
 width = 3.0
 
 [borders.color]
@@ -63,9 +63,9 @@ size = 9.0
 
 [gaps.outer]
 bottom = 8.0
-left = 8.0
-right = 8.0
-top = 540.0
+left = 640.0
+right = 640.0
+top = 720.0
 
 [[gaps.presets]]
 bottom = 8.0
@@ -104,6 +104,7 @@ hotkeysEnabled = true
 hyperKeyModifiers = "Control+Option+Shift+Command"
 ipcEnabled = true
 preventSleepEnabled = false
+slideWorkspaceSwitches = false
 systemHyperTrigger = "None"
 updateChecksEnabled = false
 workspaceAutoBackAndForth = false
@@ -171,7 +172,7 @@ resizeStepPercent = 5
 shrinkToFit = true
 singleWindowFit = "fill"
 visibleContainerChangeAction = "reset"
-visibleContainerCount = 3
+visibleContainerCount = 1
 
 [overview]
 enabled = true
@@ -1349,10 +1350,6 @@ id = "toggleShellWidget.new-window-placement"
 
 [[hotkeys]]
 binding = "Unassigned"
-id = "toggleShellWidget.padding"
-
-[[hotkeys]]
-binding = "Unassigned"
 id = "toggleShellWidget.system-stats"
 
 [[hotkeys]]
@@ -1362,6 +1359,15 @@ id = "toggleShellWidget.window-state"
 [[hotkeys]]
 binding = "Unassigned"
 id = "toggleShellWidget.workspaces"
+
+[[monitorGapOverrides]]
+id = "93369C29-6690-4348-9F41-1BC9C221370C"
+innerGap = 8.0
+monitorDisplayUUID = "37D8832A-2D66-02CA-B9F7-8F30A301B230"
+monitorName = "Built-in Retina Display"
+outerGapLeft = 8.0
+outerGapRight = 8.0
+outerGapTop = 8.0
 
 [[workspaces]]
 id = "AD36F001-C57E-41A5-AC1D-DF5249D007F0"
