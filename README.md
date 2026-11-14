@@ -193,6 +193,8 @@ These are my own working files, updated whenever I push, and how I carry my setu
 - [`examples/settings.toml`](examples/settings.toml): my full settings, exactly as I run them. Niri with shrink-to-fit, Reset Layout on visible container changes, the fork's new-window placement, padding presets and command feedback. The app rules name the apps I use.
 - [`examples/shell/shell.toml`](examples/shell/shell.toml): my menu bar. Workspaces on the left, scratchpads in the centre, and on the right the five [status widgets](#status-widgets) (layout and Visible Containers, window state, new-window placement and join, padding) and system stats. On the built-in display it auto-hides and sits below the menu bar.
 
+Auto-hide and a vertical bar offset don't go well together: with an offset, auto-hide only reveals the bar when the pointer comes down from the menu bar, not when it comes up from below. Set the offset to 0 to avoid it, as the built-in display's bar does here.
+
 ### Moving your setup to another Mac
 
 1. Quit OmniWM on the new Mac and back up its `~/.config/omniwm`.
